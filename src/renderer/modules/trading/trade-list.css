@@ -1,0 +1,222 @@
+/* ===== Trade List Modal ===== */
+.trade-list-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+.trade-list-modal {
+  width: 92%;
+  max-width: 1100px;
+  height: 80vh;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Header */
+.trade-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.trade-list-title-row { display: flex; align-items: center; gap: 10px; }
+.trade-list-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+.trade-list-count { font-size: 12px; color: var(--text-muted); }
+.trade-list-actions { display: flex; gap: 6px; }
+.trade-list-btn {
+  padding: 4px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.trade-list-btn:hover { border-color: var(--border-light); color: var(--text-primary); }
+.trade-list-close { width: 28px; padding: 4px; text-align: center; }
+
+/* Summary cards */
+.trade-list-summary {
+  display: flex;
+  gap: 10px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.trade-summary-card {
+  flex: 1;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+.trade-summary-label { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+.trade-summary-value { font-size: 18px; font-weight: 600; color: var(--text-primary); font-family: var(--font-mono); }
+.trade-summary-fee { color: var(--orange); }
+.trade-summary-value.up { color: var(--green); }
+.trade-summary-value.down { color: var(--red); }
+
+/* Filters */
+.trade-list-filters {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.trade-filter-group { display: flex; gap: 4px; }
+.trade-filter-btn {
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.trade-filter-btn:hover { border-color: var(--border-light); }
+.trade-filter-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* Body */
+.trade-list-body { flex: 1; overflow-y: auto; }
+.trade-list-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Table */
+.trade-table { width: 100%; border-collapse: collapse; }
+.trade-th {
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-secondary);
+  z-index: 1;
+  white-space: nowrap;
+}
+.trade-th-right { text-align: right; }
+.trade-tr {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.trade-tr:hover { background: var(--bg-hover); }
+.trade-tr-expanded { background: var(--bg-hover); }
+.trade-td {
+  padding: 7px 10px;
+  font-size: 12px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.trade-td-right { text-align: right; font-family: var(--font-mono); }
+.trade-td-time { color: var(--text-secondary); font-size: 11px; }
+.trade-td-name { font-size: 12px; }
+.trade-td-code { font-size: 10px; color: var(--text-muted); }
+.trade-td-fee { color: var(--orange); }
+.trade-td-net { color: var(--text-primary); font-weight: 500; }
+
+/* Tags */
+.trade-market-tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--bg-active);
+  color: var(--text-secondary);
+}
+.trade-side-tag {
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+.trade-side-buy { background: var(--green-bg); color: var(--green); }
+.trade-side-sell { background: var(--red-bg); color: var(--red); }
+
+/* Expanded detail row */
+.trade-detail-row { background: var(--bg-tertiary) !important; }
+.trade-detail-content {
+  display: flex;
+  gap: 24px;
+  padding: 12px 20px;
+}
+.trade-detail-section { flex: 1; }
+.trade-detail-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Fee items */
+.trade-fee-items { display: flex; flex-direction: column; gap: 4px; }
+.trade-fee-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-radius: 3px;
+}
+.trade-fee-item:hover { background: var(--bg-hover); }
+.trade-fee-name { font-size: 12px; color: var(--text-secondary); }
+.trade-fee-amount { font-size: 12px; color: var(--text-primary); font-family: var(--font-mono); }
+.trade-fee-total {
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+.trade-fee-total .trade-fee-name { color: var(--text-primary); font-weight: 600; }
+.trade-fee-total .trade-fee-amount { color: var(--orange); font-weight: 600; }
+
+/* Info grid */
+.trade-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+}
+.trade-info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 8px;
+}
+.trade-info-label { font-size: 11px; color: var(--text-muted); }
+.trade-info-value { font-size: 12px; color: var(--text-primary); font-family: var(--font-mono); }
+
+/* Footer */
+.trade-tfoot td {
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+  position: sticky;
+  bottom: 0;
+}

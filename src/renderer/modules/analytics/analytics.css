@@ -1,0 +1,286 @@
+.winrate-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.winrate-panel {
+  width: 90vw;
+  max-width: 1100px;
+  height: 85vh;
+  background: var(--bg-secondary, #1e222d);
+  border: 1px solid var(--border, #2a2e39);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.winrate-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border, #2a2e39);
+  flex-shrink: 0;
+}
+
+.winrate-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #d1d4dc);
+  margin: 0;
+}
+
+.winrate-mock-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #f0b90b;
+  background: rgba(240, 185, 11, 0.12);
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-left: 8px;
+  letter-spacing: 0.3px;
+}
+
+.winrate-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.winrate-date-input {
+  background: var(--bg-tertiary, #2a2e39);
+  border: 1px solid var(--border, #2a2e39);
+  border-radius: 4px;
+  color: var(--text-primary, #d1d4dc);
+  padding: 4px 8px;
+  font-size: 12px;
+  outline: none;
+}
+
+.winrate-date-input:focus {
+  border-color: var(--accent, #2962ff);
+}
+
+.winrate-btn {
+  background: var(--accent, #2962ff);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.winrate-btn:hover {
+  opacity: 0.85;
+}
+
+.winrate-btn-secondary {
+  background: var(--bg-tertiary, #2a2e39);
+  color: var(--text-secondary, #787b86);
+  border: 1px solid var(--border, #2a2e39);
+}
+
+.winrate-btn-secondary:hover {
+  background: var(--bg-active, #363a45);
+  color: var(--text-primary, #d1d4dc);
+}
+
+.winrate-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary, #787b86);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.winrate-close:hover {
+  color: var(--text-primary, #d1d4dc);
+}
+
+.winrate-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+
+.winrate-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary, #787b86);
+  font-size: 14px;
+}
+
+.winrate-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  color: var(--text-secondary, #787b86);
+  font-size: 14px;
+}
+
+/* Summary cards */
+.winrate-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.winrate-stat-card {
+  background: var(--bg-tertiary, #2a2e39);
+  border: 1px solid var(--border, #2a2e39);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+
+.winrate-stat-label {
+  font-size: 11px;
+  color: var(--text-secondary, #787b86);
+  margin-bottom: 4px;
+}
+
+.winrate-stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #d1d4dc);
+}
+
+.winrate-stat-value.positive {
+  color: var(--green, #26a69a);
+}
+
+.winrate-stat-value.negative {
+  color: var(--red, #ef5350);
+}
+
+.winrate-winrate {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Table */
+.winrate-table-section {
+  margin-bottom: 20px;
+}
+
+.winrate-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #d1d4dc);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.winrate-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.winrate-table th {
+  text-align: left;
+  padding: 8px 10px;
+  color: var(--text-secondary, #787b86);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border, #2a2e39);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.winrate-table th:hover {
+  color: var(--text-primary, #d1d4dc);
+}
+
+.winrate-table td {
+  padding: 8px 10px;
+  color: var(--text-primary, #d1d4dc);
+  border-bottom: 1px solid var(--border, #2a2e39);
+  white-space: nowrap;
+}
+
+.winrate-table tr:hover td {
+  background: var(--bg-hover, #2a2e39);
+}
+
+.winrate-table .positive {
+  color: var(--green, #26a69a);
+}
+
+.winrate-table .negative {
+  color: var(--red, #ef5350);
+}
+
+.winrate-stock-cell {
+  cursor: pointer;
+  color: var(--accent, #2962ff);
+}
+
+.winrate-stock-cell:hover {
+  text-decoration: underline;
+}
+
+.winrate-winrate-bar {
+  display: inline-block;
+  width: 60px;
+  height: 4px;
+  background: var(--bg-primary, #131722);
+  border-radius: 2px;
+  position: relative;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.winrate-winrate-bar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 2px;
+}
+
+/* Trade detail expansion */
+.winrate-trade-detail {
+  background: var(--bg-primary, #131722);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin: 8px 0;
+}
+
+.winrate-trade-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.winrate-trade-table th {
+  text-align: left;
+  padding: 6px 8px;
+  color: var(--text-secondary, #787b86);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border, #2a2e39);
+}
+
+.winrate-trade-table td {
+  padding: 6px 8px;
+  color: var(--text-primary, #d1d4dc);
+  border-bottom: 1px solid var(--border, #2a2e39);
+}

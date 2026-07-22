@@ -1,0 +1,37 @@
+.shortcuts-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 600;
+}
+.shortcuts-panel {
+  width: 520px;
+  max-height: 480px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  overflow-y: auto;
+  padding: 16px;
+}
+.shortcuts-title {
+  font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;
+}
+.shortcuts-group { margin-bottom: 12px; }
+.shortcuts-group-title {
+  font-size: 11px; font-weight: 600; color: var(--text-secondary);
+  margin-bottom: 6px; text-transform: uppercase;
+}
+.shortcuts-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 3px 0; font-size: 12px;
+}
+.shortcuts-key {
+  background: var(--bg-tertiary); border: 1px solid var(--border);
+  border-radius: 3px; padding: 2px 8px; color: var(--text-primary);
+  font-family: var(--font-mono); font-size: 11px; min-width: 28px; text-align: center;
+}
+.shortcuts-desc { color: var(--text-secondary); }

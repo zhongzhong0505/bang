@@ -1,0 +1,34 @@
+{
+  "name": "bang",
+  "version": "0.1.0",
+  "description": "TradingView-like desktop trading app with Futu OpenD integration",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "rspack build",
+    "build:prod": "NODE_ENV=production rspack build",
+    "start": "electron .",
+    "dev": "rspack build && electron .",
+    "dev:watch": "rspack build --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "lightweight-charts": "^5.2.0",
+    "lucide-react": "^1.25.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "ws": "^8.21.1",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@rspack/cli": "^2.1.5",
+    "@rspack/core": "^2.1.5",
+    "@rspack/plugin-react-refresh": "^1.2.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/ws": "^8.18.1",
+    "electron": "^43.2.0",
+    "postcss": "^8.5.21",
+    "postcss-loader": "^8.2.1",
+    "typescript": "^7.0.2"
+  }
+}

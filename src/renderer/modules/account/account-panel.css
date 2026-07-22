@@ -1,0 +1,290 @@
+.account-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.account-modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 640px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.account-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.account-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.account-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.account-provider-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(41, 98, 255, 0.15);
+  color: var(--accent);
+}
+
+.account-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.account-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.account-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.account-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.account-close:hover {
+  color: var(--red);
+}
+
+.account-refresh-spin {
+  animation: account-spin 0.8s linear infinite;
+}
+
+@keyframes account-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.account-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.account-loading {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.account-disconnected {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.account-disconnected-text {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.account-disconnected-hint {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.account-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.account-summary-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.account-card-primary {
+  border-color: var(--accent);
+  background: rgba(41, 98, 255, 0.08);
+}
+
+.account-card-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.account-card-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  line-height: 1.3;
+}
+
+.account-card-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.account-section {
+  margin-bottom: 20px;
+}
+
+.account-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.account-pnl-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.account-pnl-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+}
+
+.account-pnl-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.account-pnl-value {
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.account-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.account-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+}
+
+.account-detail-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.account-detail-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.account-market-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.account-th {
+  text-align: left;
+  padding: 8px 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 11px;
+  border-bottom: 1px solid var(--border);
+}
+
+.account-th-right {
+  text-align: right;
+}
+
+.account-market-tr {
+ border-bottom: 1px solid var(--border);
+}
+
+.account-market-tr:hover {
+  background: var(--bg-hover);
+}
+
+.account-td {
+  padding: 8px 10px;
+  color: var(--text-primary);
+}
+
+.account-td-right {
+  text-align: right;
+  font-family: var(--font-mono);
+}
+
+.account-market-tag {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  margin-right: 6px;
+}
+
+.account-market-currency {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.account-footer {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.up { color: var(--green); }
+.down { color: var(--red); }
