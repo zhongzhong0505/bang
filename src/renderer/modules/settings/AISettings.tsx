@@ -206,7 +206,9 @@ const AISettings: React.FC = () => {
               <span className="settings-hint">
                 {currentPreset.authType === 'x-api-key'
                   ? '在 Anthropic 控制台获取 API Key'
-                  : '在对应平台获取 API Key'}
+                  : provider === 'tencent-tokenhub'
+                    ? '在腾讯云 Token Plan 控制台获取 API Key（通用与 Hy 套餐共用）'
+                    : '在对应平台获取 API Key'}
               </span>
             </div>
           )}
@@ -268,7 +270,9 @@ const AISettings: React.FC = () => {
             <span className="settings-hint">
               {isTencent
                 ? '混元 API 地址，通常无需修改'
-                : '可替换为兼容服务地址'}
+                : provider === 'tencent-tokenhub'
+                  ? 'Token Plan OpenAI 兼容地址，通常无需修改'
+                  : '可替换为兼容服务地址'}
             </span>
           </div>
         </div>
