@@ -204,14 +204,49 @@ const ChartView: React.FC = () => {
 
   const displayData = chartType === 'heikin' ? heikinData : mockData;
 
-  const comparisonDataMap = useMemo(() => {
-    const result: Record<string, KlineData[]> = {};
+  const [comparisonDataMap, setComparisonDataMap] = useState<Record<string, KlineData[]>>({});
+
+  // Fetch real K-line for comparison symbols when gateway is connected
+  useEffect(() => {
+    if (comparisonSymbols.length === 0) { setComparisonDataMap({}); return; }
+    const api = window.bangAPI;
+    const connected = gatewayStatus.connected && gatewayStatus.loggedIn;
+    const count = subType === '1' ? 500 : isDaily ? 200 : 300;
+    const fetches: Promise<void>[] = [];
+    const resultMap: Record<string, KlineData[]> = {};
+
+    for (const comp of comparisonSymbols) {
+      if (connected && api?.requestKline) {
+        fetches.push(
+          api.requestKline(comp.code, subType, count).then((data: KlineData[]) => {
+            if (data && data.length > 0) resultMap[comp.code] = data;
+            else {
+              const basePrice = STOCK_BASE_PRICES[comp.code] ?? 100;
+              resultMap[comp.code] = generateMockKlineBySubType(count, basePrice, subType);
+            }
+          }).catch(() => {
+            const basePrice = STOCK_BASE_PRICES[comp.code] ?? 100;
+            resultMap[comp.code] = generateMockKlineBySubType(count, basePrice, subType);
+          })
+        );
+      } else {
+        const basePrice = STOCK_BASE_PRICES[comp.code] ?? 100;
+        resultMap[comp.code] = generateMockKlineBySubType(count, basePrice, subType);
+      }
+    }
+
+    // Show mock immediately, then replace with real data
+    const mockMap: Record<string, KlineData[]> = {};
     for (const comp of comparisonSymbols) {
       const basePrice = STOCK_BASE_PRICES[comp.code] ?? 100;
-      result[comp.code] = generateMockKlineBySubType(fullMockData.length, basePrice, subType);
+      mockMap[comp.code] = generateMockKlineBySubType(count, basePrice, subType);
     }
-    return result;
-  }, [comparisonSymbols, fullMockData.length, subType]);
+    setComparisonDataMap(mockMap);
+
+    if (fetches.length > 0) {
+      Promise.all(fetches).then(() => setComparisonDataMap({ ...resultMap }));
+    }
+  }, [comparisonSymbols, subType, gatewayStatus.connected, gatewayStatus.loggedIn, isDaily]);
 
   // Keyboard shortcuts
   useEffect(() => {

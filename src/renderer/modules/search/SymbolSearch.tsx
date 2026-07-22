@@ -23,45 +23,36 @@ const SymbolSearch: React.FC = () => {
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
     const q = query.trim();
+    const filterLocal = (kw: string): SymbolSearchResult[] => {
+      if (!kw) return COMPARISON_STOCK_LIST;
+      const ql = kw.toLowerCase();
+      return COMPARISON_STOCK_LIST.filter(s =>
+        s.code.toLowerCase().includes(ql) || s.name.toLowerCase().includes(ql)
+      );
+    };
 
-    searchTimer.current = setTimeout(async () => {
-      if (gatewayConnected && window.bangAPI) {
-        if (!q) {
-          setResults(COMPARISON_STOCK_LIST);
-          return;
-        }
-        setSearching(true);
+    // Show local results immediately
+    setResults(filterLocal(q));
+
+    // Asynchronously augment with gateway results (non-blocking)
+    if (gatewayConnected && window.bangAPI?.searchStock && q) {
+      setSearching(true);
+      searchTimer.current = setTimeout(async () => {
         try {
           const apiResults = await window.bangAPI.searchStock(q);
           if (apiResults && apiResults.length > 0) {
-            setResults(apiResults);
-          } else {
-            // Fallback to local filter
-            const ql = q.toLowerCase();
-            setResults(COMPARISON_STOCK_LIST.filter(s =>
-              s.code.toLowerCase().includes(ql) || s.name.toLowerCase().includes(ql)
-            ));
+            // Merge: API results first, then local results not already included
+            const existingCodes = new Set(apiResults.map((r) => r.code));
+            const localExtras = filterLocal(q).filter((s) => !existingCodes.has(s.code));
+            setResults([...apiResults, ...localExtras]);
           }
         } catch {
-          const ql = q.toLowerCase();
-          setResults(COMPARISON_STOCK_LIST.filter(s =>
-            s.code.toLowerCase().includes(ql) || s.name.toLowerCase().includes(ql)
-          ));
+          // Keep local results already shown
         } finally {
           setSearching(false);
         }
-      } else {
-        // Offline: filter local list
-        if (!q) {
-          setResults(COMPARISON_STOCK_LIST);
-        } else {
-          const ql = q.toLowerCase();
-          setResults(COMPARISON_STOCK_LIST.filter(s =>
-            s.code.toLowerCase().includes(ql) || s.name.toLowerCase().includes(ql)
-          ));
-        }
-      }
-    }, 300);
+      }, 400);
+    }
 
     return () => {
       if (searchTimer.current) clearTimeout(searchTimer.current);
