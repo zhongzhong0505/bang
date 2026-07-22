@@ -108,7 +108,10 @@ const App: React.FC = () => {
   const setFullscreen = useStore((s) => s.setFullscreen);
   const isFullscreen = useStore((s) => s.isFullscreen);
 
-  useEffect(() => { setTheme(appSettings.theme); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    setTheme(appSettings.theme);
+    useStore.getState().setFontSize(appSettings.fontSize ?? 'normal');
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const api = window.bangAPI;

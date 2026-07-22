@@ -88,7 +88,9 @@ export function generateMockPositions(): Position[] {
 export function generateMockOrders(): OrderRecord[] {
   return [
     { id: 'ORD001', code: 'HK.00700', name: '腾讯控股', side: 'BUY', type: 'LIMIT', price: 378.0, qty: 100, filledQty: 100, status: 'FILLED', time: Date.now() - 3600000 },
-    { id: 'ORD002', code: 'US.TSLA', name: 'Tesla Inc', side: 'BUY', type: 'LIMIT', price: 240.0, qty: 30, filledQty: 0, status: 'PENDING', time: Date.now() - 600000 },
+    { id: 'ORD002', code: 'US.TSLA', name: 'Tesla Inc', side: 'BUY', type: 'LIMIT', price: 240.0, qty: 30, filledQty: 0, status: 'SUBMITTED', time: Date.now() - 600000 },
     { id: 'ORD003', code: 'HK.09988', name: '阿里巴巴-W', side: 'SELL', type: 'MARKET', price: 0, qty: 500, filledQty: 500, status: 'FILLED', time: Date.now() - 7200000 },
+    { id: 'ORD004', code: 'US.AAPL', name: 'Apple Inc', side: 'BUY', type: 'LIMIT', price: 195.0, qty: 50, filledQty: 20, status: 'PARTIAL', time: Date.now() - 1800000 },
+    { id: 'ORD005', code: 'HK.00700', name: '腾讯控股', side: 'SELL', type: 'LIMIT', price: 385.0, qty: 200, filledQty: 0, status: 'PENDING_CANCEL', time: Date.now() - 300000 },
   ];
 }

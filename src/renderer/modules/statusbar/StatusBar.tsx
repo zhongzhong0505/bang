@@ -14,7 +14,9 @@ const StatusBar: React.FC = () => {
         <span className={`status-dot ${gatewayStatus.connected ? 'status-dot-connected' : 'status-dot-disconnected'}`} />
         <span className="status-text">
           {gatewayStatus.connected
-            ? `已连接 ${gatewayStatus.host}:${gatewayStatus.port}`
+            ? gatewayStatus.provider === 'tiger'
+              ? `已连接 ${gatewayStatus.host ?? ''}`
+              : `已连接 ${gatewayStatus.host}:${gatewayStatus.port}`
             : '未连接'}
         </span>
         {gatewayStatus.provider && (

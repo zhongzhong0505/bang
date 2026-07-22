@@ -102,6 +102,7 @@ export interface AppState {
   // App settings
   appSettings: AppSettings;
   setAppSettings: (s: Partial<AppSettings>) => void;
+  setFontSize: (size: 'small' | 'normal' | 'large' | 'xlarge') => void;
   resolvedTheme: 'dark' | 'light';
   themeColors: ThemeColors;
   setTheme: (t: ThemeMode) => void;
@@ -328,6 +329,13 @@ export const useStore = create<AppState>((set, get) => ({
       const cssKey = cssVarMap[key];
       if (cssKey) root.style.setProperty(cssKey, val);
     });
+  },
+
+  setFontSize: (size) => {
+    const scale: Record<string, number> = { small: 0.9, normal: 1.0, large: 1.12, xlarge: 1.25 };
+    const zoom = scale[size] ?? 1.0;
+    document.documentElement.style.setProperty('--app-zoom', String(zoom));
+    set((s) => ({ appSettings: { ...s.appSettings, fontSize: size } }));
   },
 
   // Quantitative trading

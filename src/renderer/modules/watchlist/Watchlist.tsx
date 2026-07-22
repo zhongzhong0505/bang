@@ -1,15 +1,76 @@
-import React, { useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useEffect, useCallback, useRef, useMemo, useState } from 'react';
 import { useStore } from '../../store';
-import { generateMockSnapshot, generateMockKline, STOCK_PRICES } from '../../mock';
+import { generateMockSnapshot, generateMockKline, STOCK_PRICES, generateMockPositions } from '../../mock';
+import { getMarketFromCode } from '../../../shared/types';
+import type { Market, Position } from '../../../shared/types';
 import './watchlist.css';
 
+const MARKET_FILTERS: { key: string; label: string }[] = [
+  { key: 'ALL', label: '全部' },
+  { key: 'US', label: '美股' },
+  { key: 'HK', label: '港股' },
+  { key: 'SH', label: '沪A' },
+  { key: 'SZ', label: '深A' },
+];
+
+// ─── Main component ────────────────────────────────────────
+
 const Watchlist: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'watchlist' | 'positions'>('watchlist');
+  const [marketFilter, setMarketFilter] = useState('ALL');
+
+  return (
+    <div className="watchlist">
+      {/* Tab bar */}
+      <div className="watchlist-tabs">
+        <button
+          className={`watchlist-tab${activeTab === 'watchlist' ? ' watchlist-tab-active' : ''}`}
+          onClick={() => setActiveTab('watchlist')}
+        >自选</button>
+        <button
+          className={`watchlist-tab${activeTab === 'positions' ? ' watchlist-tab-active' : ''}`}
+          onClick={() => setActiveTab('positions')}
+        >持仓</button>
+      </div>
+
+      {/* Market filter (only in watchlist tab) */}
+      {activeTab === 'watchlist' && (
+        <div className="watchlist-market-filter">
+          {MARKET_FILTERS.map((f) => (
+            <button
+              key={f.key}
+              className={`watchlist-market-btn${marketFilter === f.key ? ' watchlist-market-btn-active' : ''}`}
+              onClick={() => setMarketFilter(f.key)}
+            >{f.label}</button>
+          ))}
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="watchlist-list">
+        {activeTab === 'watchlist'
+          ? <WatchlistContent marketFilter={marketFilter} />
+          : <PositionsContent />
+        }
+      </div>
+    </div>
+  );
+};
+
+// ─── Watchlist content ─────────────────────────────────────
+
+const WatchlistContent: React.FC<{ marketFilter: string }> = ({ marketFilter }) => {
   const watchlist = useStore((s) => s.watchlist);
   const snapshots = useStore((s) => s.snapshots);
   const updateSnapshot = useStore((s) => s.updateSnapshot);
   const setCurrentStock = useStore((s) => s.setCurrentStock);
   const currentCode = useStore((s) => s.currentCode);
   const removeFromWatchlist = useStore((s) => s.removeFromWatchlist);
+
+  const filteredList = useMemo(() => {
+    if (marketFilter === 'ALL') return watchlist;
+    return watchlist.filter((item) => getMarketFromCode(item.code) === marketFilter);
+  }, [watchlist, marketFilter]);
 
   const updateAll = useCallback(() => {
     const currentWatchlist = useStore.getState().watchlist;
@@ -25,14 +86,7 @@ const Watchlist: React.FC = () => {
           const item = currentWatchlist.find((w) => w.code === s.code);
           currentUpdateSnapshot(s.code, { ...s, name: item?.name ?? s.name ?? s.code });
         });
-      }).catch(() => {
-        // fallback to mock
-        currentWatchlist.forEach((item) => {
-          const snap = generateMockSnapshot(item.code);
-          snap.name = item.name;
-          currentUpdateSnapshot(item.code, snap);
-        });
-      });
+      }).catch(() => { /* leave existing data */ });
     } else {
       currentWatchlist.forEach((item) => {
         const snap = generateMockSnapshot(item.code);
@@ -48,63 +102,121 @@ const Watchlist: React.FC = () => {
     return () => clearInterval(timer);
   }, [updateAll]);
 
-  // Re-run initial snapshot whenever watchlist items change
-  useEffect(() => {
-    updateAll();
-  }, [watchlist, updateAll]);
+  useEffect(() => { updateAll(); }, [watchlist, updateAll]);
+
+  if (filteredList.length === 0) {
+    return <div className="watchlist-empty">暂无{marketFilter !== 'ALL' ? MARKET_FILTERS.find(f => f.key === marketFilter)?.label : ''}自选股</div>;
+  }
 
   return (
-    <div className="watchlist">
-      <div className="watchlist-header">
-        <span className="watchlist-title">自选股</span>
-      </div>
-      <div className="watchlist-list">
-        {watchlist.map((item) => {
-          const snap = snapshots[item.code];
-          const isUp = snap ? snap.changeVal >= 0 : true;
-          return (
-            <div
-              key={item.code}
-              className={`watchlist-item${item.code === currentCode ? ' watchlist-item-active' : ''}`}
-              onClick={() => setCurrentStock(item.code, item.name)}
-            >
-              <div className="watchlist-item-left">
-                <span className="watchlist-item-name">{item.name}</span>
-                <span className="watchlist-item-code">{item.code}</span>
-                <MiniSparkline code={item.code} />
-              </div>
-              <div className="watchlist-item-right">
-                {snap ? (
-                  <>
-                    <span className={`watchlist-price ${isUp ? 'watchlist-price-up' : 'watchlist-price-down'}`}>
-                      {snap.curPrice.toFixed(2)}
-                    </span>
-                    <span className={`watchlist-change ${isUp ? 'watchlist-change-up' : 'watchlist-change-down'}`}>
-                      {isUp ? '+' : ''}{snap.changeRate.toFixed(2)}%
-                    </span>
-                  </>
-                ) : (
-                  <span className="watchlist-price">--</span>
-                )}
-                <button
-                  className="watchlist-remove"
-                  onClick={(e) => { e.stopPropagation(); removeFromWatchlist(item.code); }}
-                  title="移除"
-                >
-                  &times;
-                </button>
-              </div>
+    <>
+      {filteredList.map((item) => {
+        const snap = snapshots[item.code];
+        const isUp = snap ? snap.changeVal >= 0 : true;
+        return (
+          <div
+            key={item.code}
+            className={`watchlist-item${item.code === currentCode ? ' watchlist-item-active' : ''}`}
+            onClick={() => setCurrentStock(item.code, item.name)}
+          >
+            <div className="watchlist-item-left">
+              <span className="watchlist-item-name">{item.name}</span>
+              <span className="watchlist-item-code">{item.code}</span>
+              <MiniSparkline code={item.code} />
             </div>
-          );
-        })}
-      </div>
-    </div>
+            <div className="watchlist-item-right">
+              {snap ? (
+                <>
+                  <span className={`watchlist-price ${isUp ? 'watchlist-price-up' : 'watchlist-price-down'}`}>
+                    {snap.curPrice.toFixed(2)}
+                  </span>
+                  <span className={`watchlist-change ${isUp ? 'watchlist-change-up' : 'watchlist-change-down'}`}>
+                    {isUp ? '+' : ''}{snap.changeRate.toFixed(2)}%
+                  </span>
+                </>
+              ) : (
+                <span className="watchlist-price">--</span>
+              )}
+              <button
+                className="watchlist-remove"
+                onClick={(e) => { e.stopPropagation(); removeFromWatchlist(item.code); }}
+                title="移除"
+              >
+                &times;
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </>
   );
 };
 
-export default Watchlist;
+// ─── Positions content ─────────────────────────────────────
 
-// Mini sparkline component for watchlist items
+const PositionsContent: React.FC = () => {
+  const positions = useStore((s) => s.positions);
+  const setPositions = useStore((s) => s.setPositions);
+  const setCurrentStock = useStore((s) => s.setCurrentStock);
+  const currentCode = useStore((s) => s.currentCode);
+  const gatewayStatus = useStore((s) => s.gatewayStatus);
+  const snapshots = useStore((s) => s.snapshots);
+
+  const fetchPositions = useCallback(async () => {
+    const api = window.bangAPI;
+    const gwStatus = useStore.getState().gatewayStatus;
+    if (!api?.getPositions || !gwStatus.connected || !gwStatus.loggedIn) {
+      setPositions(generateMockPositions());
+      return;
+    }
+    try {
+      const result = await api.getPositions();
+      if (Array.isArray(result) && result.length > 0) setPositions(result);
+      else setPositions(generateMockPositions());
+    } catch {
+      setPositions(generateMockPositions());
+    }
+  }, [setPositions]);
+
+  useEffect(() => { fetchPositions(); }, [fetchPositions]);
+
+  if (positions.length === 0) {
+    return <div className="watchlist-empty">暂无持仓</div>;
+  }
+
+  return (
+    <>
+      {positions.map((pos) => {
+        const isUp = pos.pnl >= 0;
+        const snap = snapshots[pos.code];
+        const marketPrice = snap?.curPrice ?? pos.marketPrice;
+        return (
+          <div
+            key={pos.code}
+            className={`watchlist-item${pos.code === currentCode ? ' watchlist-item-active' : ''}`}
+            onClick={() => setCurrentStock(pos.code, pos.name)}
+          >
+            <div className="watchlist-item-left">
+              <span className="watchlist-item-name">{pos.name || pos.code}</span>
+              <span className="watchlist-item-code">{pos.code} · {pos.qty}股</span>
+            </div>
+            <div className="watchlist-item-right">
+              <span className={`watchlist-price ${isUp ? 'watchlist-price-up' : 'watchlist-price-down'}`}>
+                {marketPrice.toFixed(2)}
+              </span>
+              <span className={`watchlist-change ${isUp ? 'watchlist-change-up' : 'watchlist-change-down'}`}>
+                {isUp ? '+' : ''}{pos.pnlRatio.toFixed(2)}%
+              </span>
+            </div>
+          </div>
+        );
+      })}
+    </>
+  );
+};
+
+// ─── Sparkline ─────────────────────────────────────────────
+
 const MiniSparkline: React.FC<{ code: string }> = ({ code }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const data = useMemo(() => {
@@ -149,3 +261,5 @@ const MiniSparkline: React.FC<{ code: string }> = ({ code }) => {
 
   return <canvas ref={canvasRef} className="watchlist-sparkline" />;
 };
+
+export default Watchlist;

@@ -34,7 +34,12 @@ const mainConfig: Configuration = {
   module: { rules: [swcRule] },
   target: 'node',
   externals: [
-    { electron: 'commonjs electron', ws: 'commonjs ws' },
+    {
+      electron: 'commonjs electron',
+      ws: 'commonjs ws',
+      '@tigeropenapi/tigeropen': 'commonjs @tigeropenapi/tigeropen',
+      '@bufbuild/protobuf': 'commonjs @bufbuild/protobuf',
+    },
   ],
   optimization: { minimize: false },
   node: { __dirname: false, __filename: false },

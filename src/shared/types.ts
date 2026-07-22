@@ -19,9 +19,9 @@ export interface TigerGatewayConfig {
   tigerId: string;
   account: string;
   privateKey: string;
-  env: 'prod' | 'us' | 'sandbox';
-  httpBaseUrl?: string;
-  wsUrl?: string;
+  licenses: string[];
+  token?: string;
+  serverUrl?: string;
 }
 
 // Union type for gateway config
@@ -110,7 +110,7 @@ export interface OrderRecord {
   price: number;
   qty: number;
   filledQty: number;
-  status: 'PENDING' | 'FILLED' | 'CANCELLED' | 'REJECTED';
+  status: 'PENDING' | 'SUBMITTED' | 'PARTIAL' | 'PENDING_CANCEL' | 'FILLED' | 'CANCELLED' | 'REJECTED';
   time: number;
 }
 
@@ -384,9 +384,9 @@ export const DEFAULT_TIGER_CONFIG: TigerGatewayConfig = {
   tigerId: '',
   account: '',
   privateKey: '',
-  env: 'sandbox',
-  httpBaseUrl: 'https://openapi.itigerup.com',
-  wsUrl: 'wss://openapi.itigerup.com/stream',
+  licenses: ['TBUS', 'TBHK'],
+  token: '',
+  serverUrl: '',
 };
 
 // ===== Quantitative Trading Types =====
@@ -575,6 +575,7 @@ export const DEFAULT_CHART_STYLE: ChartStyle = {
   enableSoundAlerts: boolean;
   minimizeToTray: boolean;
   autoStart: boolean;
+  fontSize: 'small' | 'normal' | 'large' | 'xlarge';
 }
 
  export const DEFAULT_APP_SETTINGS: AppSettings = {
@@ -592,6 +593,7 @@ export const DEFAULT_CHART_STYLE: ChartStyle = {
   enableSoundAlerts: true,
   minimizeToTray: false,
   autoStart: false,
+  fontSize: 'normal',
 };
 
  // Theme color palettes

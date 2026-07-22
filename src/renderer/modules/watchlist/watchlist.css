@@ -56,3 +56,64 @@
 .watchlist-item:hover .watchlist-remove { opacity: 1; }
 
 .watchlist-sparkline { display: block; width: 48px; height: 16px; margin-top: 2px; }
+
+/* ─── Tab bar ─── */
+.watchlist-tabs {
+  display: flex;
+  height: 32px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.watchlist-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  border-bottom: 2px solid transparent;
+  padding-bottom: 0;
+}
+.watchlist-tab:hover { color: var(--text-primary); }
+.watchlist-tab-active {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent, #2962ff);
+}
+
+/* ─── Market filter ─── */
+.watchlist-market-filter {
+  display: flex;
+  gap: 2px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+.watchlist-market-btn {
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.watchlist-market-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.watchlist-market-btn-active {
+  background: var(--bg-active, rgba(41, 98, 255, 0.15));
+  color: var(--accent, #2962ff);
+}
+
+/* ─── Empty state ─── */
+.watchlist-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  font-size: 11px;
+  color: var(--text-muted);
+}

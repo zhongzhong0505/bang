@@ -141,6 +141,7 @@ const GeneralSettings: React.FC = () => {
   const appSettings = useStore((s) => s.appSettings);
   const setAppSettings = useStore((s) => s.setAppSettings);
   const setTheme = useStore((s) => s.setTheme);
+  const setFontSize = useStore((s) => s.setFontSize);
   const resolvedTheme = useStore((s) => s.resolvedTheme);
 
   return (
@@ -170,6 +171,27 @@ const GeneralSettings: React.FC = () => {
             当前系统主题: <span className="settings-hint-value">{resolvedTheme === 'dark' ? '暗色' : '亮色'}</span>
           </div>
         )}
+
+        <div className="settings-form-grid" style={{ marginTop: 12, gridTemplateColumns: '1fr' }}>
+          <div className="settings-field">
+            <label className="settings-label">字体大小</label>
+            <div className="settings-font-size-options">
+              {([
+                { value: 'small', label: '小' },
+                { value: 'normal', label: '标准' },
+                { value: 'large', label: '大' },
+                { value: 'xlarge', label: '特大' },
+              ] as const).map((opt) => (
+                <button
+                  key={opt.value}
+                  className={`settings-font-size-btn${(appSettings.fontSize ?? 'normal') === opt.value ? ' settings-font-size-btn-active' : ''}`}
+                  onClick={() => setFontSize(opt.value)}
+                >{opt.label}</button>
+              ))}
+            </div>
+            <span className="settings-hint">调整界面整体字体大小，顶部菜单、自选列表等会同步缩放</span>
+          </div>
+        </div>
       </div>
 
       {/* Language */}

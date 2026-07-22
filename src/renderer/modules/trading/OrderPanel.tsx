@@ -377,17 +377,32 @@ const OrderPanel: React.FC = () => {
                   <td className="order-td">{o.type === 'MARKET' ? '市价' : o.price.toFixed(2)}</td>
                   <td className="order-td">{o.qty}</td>
                   <td className="order-td">
-                    <span className={`order-status ${o.status === 'FILLED' ? 'order-status-filled' : o.status === 'PENDING' ? 'order-status-pending' : 'order-status-other'}`}>
-                      {o.status === 'FILLED' ? '已成' : o.status === 'PENDING' ? '待成' : o.status === 'CANCELLED' ? '已撤' : '拒单'}
+                    <span className={`order-status ${
+                      o.status === 'FILLED' ? 'order-status-filled' :
+                      o.status === 'CANCELLED' || o.status === 'REJECTED' ? 'order-status-other' :
+                      o.status === 'PARTIAL' ? 'order-status-filled' :
+                      'order-status-pending'
+                    }`}>
+                      {o.status === 'SUBMITTED' ? '已报' :
+                        o.status === 'PENDING' ? '待报' :
+                        o.status === 'PARTIAL' ? '部成' :
+                        o.status === 'PENDING_CANCEL' ? '待撤' :
+                        o.status === 'FILLED' ? '已成' :
+                        o.status === 'CANCELLED' ? '已撤' :
+                        o.status === 'REJECTED' ? '废单' : o.status}
                     </span>
                   </td>
                   <td className="order-td">
-                    {o.status === 'PENDING' && (
+                    {(o.status === 'PENDING' || o.status === 'SUBMITTED' || o.status === 'PARTIAL') ? (
                       <div style={{ display: 'flex', gap: 4 }}>
                         <button className="order-action-btn order-action-modify"
                           onClick={() => { setModifyOrderId(o.id); setModifyPrice(o.price.toFixed(2)); setModifyQty(String(o.qty)); }}>改单</button>
                         <button className="order-action-btn order-action-cancel" onClick={() => handleCancelOrder(o.id)}>撤单</button>
                       </div>
+                    ) : o.status === 'PENDING_CANCEL' ? (
+                      <span className="text-muted-sm">撤单中</span>
+                    ) : (
+                      <span className="text-muted-sm">—</span>
                     )}
                   </td>
                 </tr>

@@ -7,3 +7,6 @@ outputs/
 .env
 .env.*
 !.env.example
+
+# Gateway credentials (tiger_id, private_key, account, token)
+gateway-config.json

@@ -1,549 +1,222 @@
 /**
- * Tiger OpenAPI data adapter.
+ * Tiger OpenAPI data adapter (SDK-based).
  *
- * Converts raw Tiger OpenAPI REST/WebSocket responses into the app's
- * unified internal types.
- *
- * Tiger OpenAPI v3 reference:
- *   REST:  https://openapi.itigerup.com/v3/{method}
- *   WS:    wss://openapi.itigerup.com/stream
- *
- * Key REST methods:
- *   kline       — Historical K-line data
- *   quote       — Real-time quote snapshot
- *   positions   — Account positions
- *   orders      — Order list
- *   place_order — Place order
- *   modify_order — Modify order
- *   cancel_order — Cancel order
- *   assets      — Account asset summary
- *   timeline    — Account transaction timeline
- *
- * WebSocket push types (data_type):
- *   quote      — Quote update
- *   kline      — K-line update
- *   depth      — Order book depth
- *   trade      — Trade tick
- *   asset      — Account asset update
- *   order      — Order status update
- *   position   — Position update
+ * Maps strongly-typed SDK response objects to the app's unified internal types.
+ * Since the SDK (@tigeropenapi/tigeropen v0.3+) returns typed objects
+ * (Brief, Kline, Position, Order, Asset, Transaction, …), this adapter
+ * is purely a thin field-mapping layer — no raw-JSON parsing needed.
  */
 import type {
   KlineData, StockSnapshot, SubType, Position, OrderRecord,
-  OrderSide, OrderType,
+  OrderSide, OrderType, AccountSummary, AccountMarketDetail, Market,
+  HistoryDeal,
 } from '../../shared/types';
-import type { AccountSummary, AccountMarketDetail, Market } from '../../shared/types';
+import type {
+  Kline as SdkKline, Brief as SdkBrief,
+  Position as SdkPosition, Order as SdkOrder,
+  Asset as SdkAsset, AssetSegment,
+  Transaction as SdkTransaction,
+} from '@tigeropenapi/tigeropen';
+import { BarPeriod, normalizeOrderStatus } from '@tigeropenapi/tigeropen';
 
-// ===== Tiger period mapping =====
+// ===== Symbol format conversion =====
+// App internal format (Futu-style): HK.00700, US.AAPL, SH.600519, SZ.000858
+// Tiger SDK format: 00700.HK, AAPL, 600519.SH, 000858.SZ
 
-/** Map app SubType to Tiger period string */
-export function subTypeToTigerPeriod(subType: SubType): string {
+/** Convert app-internal code to Tiger SDK symbol */
+export function toTigerSymbol(code: string): string {
+  const dot = code.indexOf('.');
+  if (dot === -1) return code; // already Tiger format or unknown
+  const market = code.slice(0, dot);   // HK, US, SH, SZ
+  const symbol = code.slice(dot + 1);  // 00700, AAPL, 600519
+  switch (market) {
+    case 'US': return symbol;           // AAPL
+    case 'HK': return symbol + '.HK';   // 00700.HK
+    case 'SH': return symbol + '.SH';   // 600519.SH
+    case 'SZ': return symbol + '.SZ';   // 000858.SZ
+    default:   return symbol + '.' + market;
+  }
+}
+
+/** Convert Tiger SDK symbol back to app-internal code */
+export function fromTigerSymbol(symbol: string): string {
+  const dot = symbol.lastIndexOf('.');
+  if (dot === -1) return 'US.' + symbol; // AAPL → US.AAPL
+  const code = symbol.slice(0, dot);      // 00700
+  const market = symbol.slice(dot + 1);   // HK
+  switch (market.toUpperCase()) {
+    case 'HK': return 'HK.' + code;
+    case 'US': return 'US.' + code;
+    case 'SH': return 'SH.' + code;
+    case 'SZ': return 'SZ.' + code;
+    default:   return market.toUpperCase() + '.' + code;
+  }
+}
+
+// ===== Period mapping =====
+
+/** Map app SubType to SDK BarPeriod string */
+export function subTypeToBarPeriod(subType: SubType): string {
   const map: Record<SubType, string> = {
-    '1': '1min', '5': '5min', '15': '15min', '30': '30min', '60': '60min',
-    DAY: 'day', WEEK: 'week', MONTH: 'month',
+    '1': BarPeriod.Min1, '5': BarPeriod.Min5, '15': BarPeriod.Min15,
+    '30': BarPeriod.Min30, '60': BarPeriod.Min60,
+    DAY: BarPeriod.Day, WEEK: BarPeriod.Week, MONTH: BarPeriod.Month,
   };
-  return map[subType] ?? '1min';
+  return map[subType] ?? BarPeriod.Min1;
 }
 
-/** Map Tiger period string back to SubType */
-export function tigerPeriodToSubType(period: string): SubType {
-  const map: Record<string, SubType> = {
-    '1min': '1', '5min': '5', '15min': '15', '30min': '30', '60min': '60',
-    day: 'DAY', week: 'WEEK', month: 'MONTH',
-  };
-  return map[period] ?? '1';
+// ===== K-line =====
+
+/** Map SDK Kline[] to internal KlineData[] */
+export function mapSdkKline(klines: SdkKline[], _code: string): KlineData[] {
+  const items = klines.length > 0 ? klines[0].items : [];
+  return items.map(item => ({
+    time: item.time, // SDK returns ms timestamp
+    open: item.open,
+    high: item.high,
+    low: item.low,
+    close: item.close,
+    volume: item.volume,
+    turnover: item.amount ?? 0,
+  }));
 }
 
-// ===== Tiger REST response types =====
+// ===== Quote / Snapshot =====
 
-/**
- * Tiger K-line response format:
- *   { items: [[timestamp_ms, open, high, low, close, volume, turnover], ...], ... }
- *
- * Each item is a 7-element array. The exact column order may vary by API version
- * so we also support object format: { time, open, high, low, close, volume, turnover }
- */
-interface TigerKlineResponse {
-  items: (number[] | TigerKlineItemObj)[];
-  hasMore?: boolean;
-  nextToken?: string;
+/** Map SDK Brief[] to internal StockSnapshot[] */
+export function mapSdkBrief(briefs: SdkBrief[]): StockSnapshot[] {
+  return briefs.map(b => ({
+    code: fromTigerSymbol(b.symbol),
+    name: '',
+    curPrice: b.latestPrice ?? 0,
+    changeVal: b.change ?? 0,
+    changeRate: (b.changeRate ?? 0) * 100, // SDK returns decimal (0.025 = 2.5%)
+    volume: b.volume ?? 0,
+    turnover: 0, // Brief doesn't include turnover
+    high: b.high ?? 0,
+    low: b.low ?? 0,
+    open: b.open ?? 0,
+    prevClose: b.preClose ?? 0,
+  }));
 }
 
-interface TigerKlineItemObj {
-  time: number;       // timestamp ms
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-  turnover: number;
-}
+// ===== Position =====
 
-/**
- * Tiger quote (snapshot) response format:
- *   { items: [{ symbol, latestPrice, preClose, open, high, low, volume, turnover, ... }] }
- */
-interface TigerQuoteResponse {
-  items: TigerQuoteItem[];
-}
-
-interface TigerQuoteItem {
-  symbol: string;
-  identifier?: string;        // e.g. "00700.HK"
-  name?: string;
-  displayName?: string;
-  latestPrice?: number;       // current price
-  preClose?: number;
-  open?: number;
-  high?: number;
-  low?: number;
-  volume?: number;
-  turnover?: number;
-  change?: number;            // change value
-  changePct?: number;         // change rate (decimal, 0.025 = 2.5%)
-  askPrice?: number;
-  bidPrice?: number;
-  askSize?: number;
-  bidSize?: number;
-  high52w?: number;
-  low52w?: number;
-  status?: string;            // "NORMAL", "HALTED", etc.
-  updateTime?: number;        // timestamp ms
-}
-
-/**
- * Tiger positions response:
- *   { items: [{ symbol, qty, costPrice, marketPrice, pnl, pnlPct, ... }] }
- */
-interface TigerPositionsResponse {
-  items: TigerPositionItem[];
-  hasMore?: boolean;
-}
-
-interface TigerPositionItem {
-  symbol: string;
-  name?: string;
-  qty: number;
-  costPrice: number;          // average cost
-  marketPrice: number;
-  pnl: number;
-  pnlPct: number;             // decimal, 0.07 = 7%
-  avgFillPrice?: number;      // filled avg price (cost)
-  currency?: string;
-  side?: string;              // "long" / "short"
-  updateTimestamp?: number;
-}
-
-/**
- * Tiger orders response:
- *   { items: [{ id, symbol, action, orderType, price, quantity, filledQty, status, ... }] }
- */
-interface TigerOrdersResponse {
-  items: TigerOrderItem[];
-  hasMore?: boolean;
-}
-
-interface TigerOrderItem {
-  id: string;
-  orderId?: string;
-  symbol: string;
-  name?: string;
-  action: string;             // "BUY" / "SELL"
-  orderType: string;          // "MKT" / "LMT" / "STP" / "STP_LMT"
-  price?: number;
-  limitPrice?: number;
-  auxPrice?: number;          // stop price
-  quantity: number;
-  filledQty?: number;
-  avgFillPrice?: number;
-  status: string;             // "FILLED" / "NEW" / "CANCELLED" / "REJECTED" / "PARTIAL_FILLED"
-  reason?: string;
-  createTime?: number;        // timestamp ms
-  updateTime?: number;
-}
-
-/** Tiger place_order response */
-interface TigerPlaceOrderResponse {
-  id: string;
-  orderId?: string;
-  isSuccess?: boolean;
-  message?: string;
-}
-
-// ===== Tiger WebSocket push types =====
-
-interface TigerWsMessage {
-  cmd?: string;
-  id?: number;
-  data_type?: string;         // "quote", "kline", "depth", "trade", "asset", "order", "position"
-  data?: any;
-}
-
-// ===== Type conversion helpers =====
-
-function toNum(v: string | number | undefined | null, fallback = 0): number {
-  if (v === undefined || v === null || v === '') return fallback;
-  const n = typeof v === 'string' ? parseFloat(v) : v;
-  return isNaN(n) ? fallback : n;
-}
-
-/** Convert Tiger action string to OrderSide */
-function tigerActionToOrderSide(action: string): OrderSide {
-  const a = action.toUpperCase();
-  return a === 'SELL' || a === 'SELL_SHORT' ? 'SELL' : 'BUY';
-}
-
-/** Convert Tiger orderType string to app OrderType */
-function tigerOrderTypeToOrderType(orderType: string): OrderType {
-  const t = orderType.toUpperCase();
-  if (t === 'MKT' || t === 'MARKET') return 'MARKET';
-  if (t === 'LMT' || t === 'LIMIT') return 'LIMIT';
-  if (t === 'STP' || t === 'STOP') return 'STOP';
-  if (t === 'STP_LMT' || t === 'STOP_LIMIT') return 'STOP_LIMIT';
-  return 'LIMIT';
-}
-
-/** Convert Tiger order status to app status */
-function tigerStatusToStatus(status: string): OrderRecord['status'] {
-  const s = status.toUpperCase();
-  if (s === 'FILLED' || s === 'COMPLETE') return 'FILLED';
-  if (s === 'CANCELLED' || s === 'CANCELED') return 'CANCELLED';
-  if (s === 'REJECTED' || s === 'REJECT') return 'REJECTED';
-  if (s === 'PARTIAL_FILLED' || s === 'PARTIAL') return 'PENDING';
-  // NEW, PENDING_SUBMIT, PENDING_CANCEL, etc.
-  return 'PENDING';
-}
-
-// ===== Public adapter functions =====
-
-/** Parse K-line response from REST /v3/kline */
-export function parseTigerKline(body: any, code: string): KlineData[] {
-  const resp = body as TigerKlineResponse;
-  if (!resp?.items || !Array.isArray(resp.items)) return [];
-
-  return resp.items.map((item): KlineData => {
-    // Array format: [timestamp_ms, open, high, low, close, volume, turnover]
-    if (Array.isArray(item)) {
-      return {
-        time: Math.floor(toNum(item[0]) / 1000),
-        open: toNum(item[1]),
-        high: toNum(item[2]),
-        low: toNum(item[3]),
-        close: toNum(item[4]),
-        volume: toNum(item[5]),
-        turnover: toNum(item[6]),
-      };
-    }
-    // Object format
-    const obj = item as TigerKlineItemObj;
-    return {
-      time: Math.floor(toNum(obj.time) / 1000),
-      open: toNum(obj.open),
-      high: toNum(obj.high),
-      low: toNum(obj.low),
-      close: toNum(obj.close),
-      volume: toNum(obj.volume),
-      turnover: toNum(obj.turnover),
-    };
-  });
-}
-
-/** Parse quote (snapshot) response from REST /v3/quote */
-export function parseTigerSnapshot(body: any): Record<string, StockSnapshot> {
-  const resp = body as TigerQuoteResponse;
-  if (!resp?.items || !Array.isArray(resp.items)) return {};
-
-  const result: Record<string, StockSnapshot> = {};
-  for (const item of resp.items) {
-    const code = item.symbol ?? '';
-    const curPrice = toNum(item.latestPrice);
-    const prevClose = toNum(item.preClose);
-    // Tiger changePct is decimal (0.025 = 2.5%), convert to percentage
-    const changeRate = item.changePct !== undefined
-      ? item.changePct * 100
-      : (prevClose > 0 ? ((curPrice - prevClose) / prevClose) * 100 : 0);
-
-    result[code] = {
-      code,
-      name: item.name ?? item.displayName ?? '',
-      curPrice,
-      changeVal: item.change !== undefined ? item.change : +(curPrice - prevClose).toFixed(4),
-      changeRate: +changeRate.toFixed(2),
-      volume: toNum(item.volume),
-      turnover: toNum(item.turnover),
-      high: toNum(item.high),
-      low: toNum(item.low),
-      open: toNum(item.open),
-      prevClose,
-    };
-  }
-  return result;
-}
-
-/** Parse positions response from REST /v3/positions */
-export function parseTigerPositions(body: any): Position[] {
-  const resp = body as TigerPositionsResponse;
-  if (!resp?.items || !Array.isArray(resp.items)) return [];
-
-  return resp.items.map((p): Position => ({
-    code: p.symbol,
+/** Map SDK Position[] to internal Position[] */
+export function mapSdkPosition(positions: SdkPosition[]): Position[] {
+  return positions.map(p => ({
+    code: fromTigerSymbol(p.symbol ?? ''),
     name: p.name ?? '',
-    qty: p.qty,
-    avgPrice: p.costPrice ?? p.avgFillPrice ?? 0,
-    marketPrice: p.marketPrice,
-    pnl: p.pnl,
-    // Tiger pnlPct is decimal (0.07 = 7%), convert to percentage
-    pnlRatio: p.pnlPct !== undefined ? p.pnlPct * 100 : 0,
+    qty: p.positionQty ?? p.position ?? 0,
+    avgPrice: p.averageCost ?? 0,
+    marketPrice: p.latestPrice ?? 0,
+    pnl: p.unrealizedPnl ?? 0,
+    pnlRatio: (p.unrealizedPnlPercent ?? 0) * 100,
   }));
 }
 
-/** Parse orders response from REST /v3/orders */
-export function parseTigerOrders(body: any): OrderRecord[] {
-  const resp = body as TigerOrdersResponse;
-  if (!resp?.items || !Array.isArray(resp.items)) return [];
+// ===== Order =====
 
-  return resp.items.map((o): OrderRecord => ({
-    id: o.id ?? o.orderId ?? '',
-    code: o.symbol,
+/** Map SDK Order[] to internal OrderRecord[] */
+export function mapSdkOrder(orders: SdkOrder[]): OrderRecord[] {
+  return orders.map(o => ({
+    id: String(o.id ?? o.orderId ?? ''),
+    code: fromTigerSymbol(o.symbol ?? ''),
     name: o.name ?? '',
-    side: tigerActionToOrderSide(o.action),
-    type: tigerOrderTypeToOrderType(o.orderType),
-    price: o.price ?? o.limitPrice ?? 0,
-    qty: o.quantity,
-    filledQty: o.filledQty ?? 0,
-    status: tigerStatusToStatus(o.status),
-    time: o.createTime ? Math.floor(o.createTime / 1000) : Date.now(),
+    side: (o.action === 'BUY' ? 'BUY' : 'SELL') as OrderSide,
+    type: mapSdkOrderType(o.orderType),
+    price: o.limitPrice ?? o.avgFillPrice ?? 0,
+    qty: o.totalQuantity ?? 0,
+    filledQty: o.filledQuantity ?? 0,
+    status: mapSdkOrderStatus(o.status),
+    time: o.updateTime ?? o.openTime ?? Date.now(),
   }));
 }
 
-/** Parse place_order response */
-export function parseTigerPlaceOrder(body: any): { orderId: string; success: boolean; message?: string } {
-  const resp = body as TigerPlaceOrderResponse;
-  if (resp?.id || resp?.orderId) {
-    return { orderId: resp.id ?? resp.orderId ?? '', success: true };
+function mapSdkOrderType(orderType?: string): OrderType {
+  switch (orderType) {
+    case 'MKT': return 'MARKET';
+    case 'LMT': return 'LIMIT';
+    case 'STP': return 'STOP';
+    case 'STP_LMT': return 'STOP_LIMIT';
+    default: return 'LIMIT';
   }
-  if (resp?.isSuccess === false) {
-    return { orderId: '', success: false, message: resp.message ?? 'Order failed' };
-  }
-  return { orderId: '', success: false, message: 'Unknown response format' };
 }
 
-/** Parse WebSocket push message */
-export function parseTigerWsPush(msg: any): {
-  type: 'quote' | 'kline' | 'depth' | 'trade' | 'order' | 'position' | 'heartbeat' | 'unknown';
-  data: any;
-} | null {
-  if (!msg) return null;
-
-  const m = msg as TigerWsMessage;
-
-  // Heartbeat
-  if (m.cmd === 'heartbeat' || m.cmd === 'ping') {
-    return { type: 'heartbeat', data: null };
-  }
-
-  // Subscribe response
-  if (m.cmd === 'subscribe' || m.cmd === 'unsubscribe') {
-    return null;
-  }
-
-  // Data push
-  const dataType = (m.data_type ?? m.type ?? '').toLowerCase();
-  if (!dataType || !m.data) return null;
-
-  if (dataType.includes('quote')) return { type: 'quote', data: m.data };
-  if (dataType.includes('kline')) return { type: 'kline', data: m.data };
-  if (dataType.includes('depth')) return { type: 'depth', data: m.data };
-  if (dataType.includes('trade')) return { type: 'trade', data: m.data };
-  if (dataType.includes('order')) return { type: 'order', data: m.data };
-  if (dataType.includes('position')) return { type: 'position', data: m.data };
-
-  return { type: 'unknown', data: m.data };
-}
-
-/** Parse WebSocket quote push into partial StockSnapshot */
-export function parseTigerWsQuote(data: any): Partial<StockSnapshot> & { code: string } {
-  if (!data) return { code: '' };
-  const curPrice = toNum(data.latestPrice ?? data.lastPrice ?? data.close);
-  const prevClose = toNum(data.preClose ?? data.prevClose);
-  return {
-    code: data.symbol ?? data.code ?? '',
-    name: data.name ?? '',
-    curPrice,
-    changeVal: data.change !== undefined ? data.change : undefined,
-    changeRate: data.changePct !== undefined ? data.changePct * 100 : undefined,
-    volume: toNum(data.volume),
-    turnover: toNum(data.turnover ?? data.amount),
-    high: toNum(data.high),
-    low: toNum(data.low),
-    open: toNum(data.open),
-    prevClose,
-  };
-}
-
-/** Parse WebSocket K-line push into partial KlineData */
-export function parseTigerWsKline(data: any): KlineData | null {
-  if (!data) return null;
-  // Could be array or object format
-  if (Array.isArray(data)) {
-    return {
-      time: Math.floor(toNum(data[0]) / 1000),
-      open: toNum(data[1]),
-      high: toNum(data[2]),
-      low: toNum(data[3]),
-      close: toNum(data[4]),
-      volume: toNum(data[5]),
-      turnover: toNum(data[6]),
-    };
-  }
-  return {
-    time: Math.floor(toNum(data.time ?? data.timestamp) / 1000),
-    open: toNum(data.open),
-    high: toNum(data.high),
-    low: toNum(data.low),
-    close: toNum(data.close),
-    volume: toNum(data.volume),
-    turnover: toNum(data.turnover),
-  };
-}
-
-/** Build Tiger place_order request body */
-export function buildTigerPlaceOrderBody(
-  code: string,
-  side: OrderSide,
-  type: OrderType,
-  price: number,
-  qty: number,
-): Record<string, any> {
-  const action = side === 'SELL' ? 'SELL' : 'BUY';
-  let orderType: string;
-  let body: Record<string, any> = {
-    symbol: code,
-    action,
-    quantity: qty,
-  };
-
-  switch (type) {
-    case 'MARKET':
-      orderType = 'MKT';
-      break;
-    case 'LIMIT':
-      orderType = 'LMT';
-      body.limitPrice = price;
-      break;
-    case 'STOP':
-      orderType = 'STP';
-      body.auxPrice = price; // stop price
-      break;
-    case 'STOP_LIMIT':
-      orderType = 'STP_LMT';
-      body.auxPrice = price; // stop price
-      body.limitPrice = price; // limit price (same as stop in simple case)
-      break;
+function mapSdkOrderStatus(status?: string): OrderRecord['status'] {
+  const normalized = normalizeOrderStatus(status);
+  switch (normalized) {
+    case 'Filled': return 'FILLED';
+    case 'Submitted': return 'SUBMITTED';
+    case 'PendingCancel': return 'PENDING_CANCEL';
+    case 'PendingSubmit': return 'PENDING';
+    case 'Cancelled': return 'CANCELLED';
+    case 'Invalid':
+    case 'Inactive': return 'REJECTED';
     default:
-      orderType = 'LMT';
-      body.limitPrice = price;
+      // Partial fill detection: if raw status contains "Partial" or "partial"
+      if (status && /partial/i.test(status)) return 'PARTIAL';
+      return 'PENDING';
+  }
+}
+
+// ===== Account / Asset =====
+
+/** Map SDK Asset[] to internal AccountSummary */
+export function mapSdkAsset(assets: SdkAsset[]): AccountSummary {
+  if (!assets || assets.length === 0) {
+    return emptyAccountSummary();
   }
 
-  body.orderType = orderType;
-  return body;
-}
-
-// ===== Account Summary (REST /v3/assets) =====
-
-/**
- * Tiger assets response format:
- *   { items: [{ currency, cashBalance, grossPositionValue, netLiquidationValue,
- *      unrealizedPnl, unrealizedPnlPct, realizedPnl, buyingPower,
- *      withdrawableCash, frozenCash, initialMargin, maintenanceMargin, ... }] }
- */
-interface TigerAssetsResponse {
-  items: TigerAssetItem[];
-  hasMore?: boolean;
-}
-
-interface TigerAssetItem {
-  currency: string;
-  cashBalance: number;
-  grossPositionValue: number;
-  netLiquidationValue: number;       // net asset value
-  unrealizedPnl?: number;
-  unrealizedPnlPct?: number;
-  realizedPnl?: number;
-  buyingPower?: number;
-  maxPurchasingPower?: number;
-  withdrawableCash?: number;
-  frozenCash?: number;
-  initialMargin?: number;
-  maintenanceMargin?: number;
-  account?: string;
-  segment?: string;                  // e.g. "CASH", "MARGIN"
-}
-
-/** Parse account assets response from REST /v3/assets */
-export function parseTigerAccountSummary(body: any, provider: 'tiger'): AccountSummary {
-  const resp = body as TigerAssetsResponse;
-  if (!resp?.items || resp.items.length === 0) {
-    return emptyTigerAccountSummary(provider);
-  }
-
-  // Sum across all currency segments
+  // Aggregate across all asset entries (one per currency/segment)
   let totalAssets = 0;
   let cash = 0;
   let marketValue = 0;
   let unrealizedPnl = 0;
   let realizedPnl = 0;
   let buyingPower = 0;
-  let withdrawableCash = 0;
-  let frozenCash = 0;
-  let initialMargin = 0;
-  let maintenanceMargin = 0;
   let primaryCurrency = 'USD';
-
   const markets: AccountMarketDetail[] = [];
 
-  for (const item of resp.items) {
-    const itemAssets = toNum(item.netLiquidationValue);
-    const itemCash = toNum(item.cashBalance);
-    const itemMarketValue = toNum(item.grossPositionValue);
-    const itemPnl = toNum(item.unrealizedPnl);
-    const itemBuyPower = toNum(item.buyingPower ?? item.maxPurchasingPower);
-    const itemWithdraw = toNum(item.withdrawableCash);
-    const itemFrozen = toNum(item.frozenCash);
-    const itemInitMargin = toNum(item.initialMargin);
-    const itemMaintMargin = toNum(item.maintenanceMargin);
+  for (const a of assets) {
+    totalAssets += a.netLiquidation ?? 0;
+    cash += a.cashValue ?? 0;
+    unrealizedPnl += a.unrealizedPnL ?? 0;
+    realizedPnl += a.realizedPnL ?? 0;
+    buyingPower += a.buyingPower ?? 0;
 
-    totalAssets += itemAssets;
-    cash += itemCash;
-    marketValue += itemMarketValue;
-    unrealizedPnl += itemPnl;
-    realizedPnl += toNum(item.realizedPnl);
-    buyingPower += itemBuyPower;
-    withdrawableCash += itemWithdraw;
-    frozenCash += itemFrozen;
-    initialMargin += itemInitMargin;
-    maintenanceMargin += itemMaintMargin;
-
-    if (itemAssets > 0 && primaryCurrency === 'USD') {
-      primaryCurrency = item.currency ?? 'USD';
+    if ((a.netLiquidation ?? 0) > 0 && primaryCurrency === 'USD') {
+      primaryCurrency = a.currency ?? 'USD';
     }
 
-    // Derive market from currency for per-market breakdown
-    const market = currencyToMarket(item.currency ?? 'USD');
-    markets.push({
-      market,
-      totalAssets: itemAssets,
-      cash: itemCash,
-      marketValue: itemMarketValue,
-      unrealizedPnl: itemPnl,
-      buyingPower: itemBuyPower,
-      currency: item.currency ?? 'USD',
-    });
+    // Drill into segments for per-market detail
+    if (a.segments) {
+      for (const seg of a.segments) {
+        const segValue = seg.netLiquidation ?? 0;
+        const segCash = seg.cashValue ?? 0;
+        const segMarketValue = seg.grossPositionValue ?? 0;
+        if (segValue > 0) {
+          const market = currencyToMarket(a.currency ?? 'USD');
+          markets.push({
+            market,
+            totalAssets: segValue,
+            cash: segCash,
+            marketValue: segMarketValue,
+            unrealizedPnl: 0,
+            buyingPower: seg.availableFunds ?? 0,
+            currency: a.currency ?? 'USD',
+          });
+        }
+      }
+    }
   }
 
+  // marketValue = totalAssets - cash (approximation when not directly available)
+  marketValue = totalAssets - cash;
+
   return {
-    provider,
-    accountId: resp.items[0]?.account ?? '',
+    provider: 'tiger',
+    accountId: assets[0].account ?? '',
     totalAssets,
     cash,
     marketValue,
@@ -551,10 +224,10 @@ export function parseTigerAccountSummary(body: any, provider: 'tiger'): AccountS
     unrealizedPnlRatio: totalAssets > 0 ? (unrealizedPnl / (totalAssets - unrealizedPnl)) * 100 : 0,
     realizedPnl,
     buyingPower,
-    withdrawableCash,
-    frozenCash,
-    initialMargin,
-    maintenanceMargin,
+    withdrawableCash: 0,
+    frozenCash: 0,
+    initialMargin: 0,
+    maintenanceMargin: 0,
     currency: primaryCurrency,
     markets,
     updateTime: Math.floor(Date.now() / 1000),
@@ -573,66 +246,37 @@ function currencyToMarket(currency: string): Market {
   }
 }
 
-function emptyTigerAccountSummary(provider: 'tiger'): AccountSummary {
+function emptyAccountSummary(): AccountSummary {
   return {
-    provider,
+    provider: 'tiger',
     accountId: '',
-    totalAssets: 0,
-    cash: 0,
-    marketValue: 0,
-    unrealizedPnl: 0,
-    unrealizedPnlRatio: 0,
-    realizedPnl: 0,
-    buyingPower: 0,
-    withdrawableCash: 0,
-    frozenCash: 0,
-    initialMargin: 0,
-    maintenanceMargin: 0,
-    currency: 'USD',
-    markets: [],
+    totalAssets: 0, cash: 0, marketValue: 0,
+    unrealizedPnl: 0, unrealizedPnlRatio: 0, realizedPnl: 0,
+    buyingPower: 0, withdrawableCash: 0, frozenCash: 0,
+    initialMargin: 0, maintenanceMargin: 0,
+    currency: 'USD', markets: [],
     updateTime: Math.floor(Date.now() / 1000),
   };
 }
 
-// ===== Historical Fills (REST /v3/fills) =====
+// ===== Transaction / HistoryDeal =====
 
-interface TigerFillsResponse {
-  items: TigerFillItem[];
-  hasMore?: boolean;
-}
-
-interface TigerFillItem {
-  id: string;
-  orderId?: string;
-  symbol: string;
-  name?: string;
-  action: string;         // "BUY" / "SELL"
-  fillPrice: number;
-  quantity: number;
-  fillTime?: number;      // timestamp ms
-  commission?: number;
-  fee?: number;           // total fee
-  currency?: string;
-}
-
-/** Parse historical fills response from REST /v3/fills */
-export function parseTigerHistoryFills(body: any): import('../../shared/types').HistoryDeal[] {
-  const resp = body as TigerFillsResponse;
-  if (!resp?.items || !Array.isArray(resp.items)) return [];
-
-  return resp.items.map((f): import('../../shared/types').HistoryDeal => {
-    const price = toNum(f.fillPrice);
-    const qty = toNum(f.quantity);
+/** Map SDK Transaction[] to internal HistoryDeal[] */
+export function mapSdkTransaction(transactions: SdkTransaction[]): HistoryDeal[] {
+  if (!transactions || !Array.isArray(transactions)) return [];
+  return transactions.map(t => {
+    const price = t.filledPrice ?? t.price ?? 0;
+    const qty = t.filledQuantity ?? t.quantity ?? 0;
     return {
-      id: f.id ?? f.orderId ?? '',
-      code: f.symbol,
-      name: f.name ?? '',
-      side: tigerActionToOrderSide(f.action),
+      id: String(t.id ?? t.orderId ?? ''),
+      code: fromTigerSymbol(t.symbol ?? ''),
+      name: '',
+      side: (t.action === 'BUY' ? 'BUY' : 'SELL') as OrderSide,
       price,
       qty,
       amount: price * qty,
-      fee: toNum(f.fee ?? f.commission),
-      time: f.fillTime ? Math.floor(f.fillTime / 1000) : Date.now(),
+      fee: t.commission ?? 0,
+      time: t.transactionTime ? Math.floor(t.transactionTime / 1000) : Date.now(),
       provider: 'tiger',
     };
   });
