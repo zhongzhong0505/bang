@@ -82,10 +82,7 @@ ipcMain.handle(IPC.KLINE_REQUEST, (_e, code, subType, count) => {
   return true;
 });
 
-ipcMain.handle(IPC.SNAPSHOT_REQUEST, (_e, codes) => {
-  requestSnapshot(codes);
-  return true;
-});
+ipcMain.handle(IPC.SNAPSHOT_REQUEST, (_e, codes) => requestSnapshot(codes));
 
 ipcMain.handle(IPC.SUBSCRIBE, (_e, code, subTypes) => {
   subscribe(code, subTypes);

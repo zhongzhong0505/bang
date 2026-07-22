@@ -200,18 +200,20 @@ export class TigerGatewayClient {
     }
   }
 
-  async requestSnapshot(codes: string[]) {
-    if (codes.length === 0) return;
+  async requestSnapshot(codes: string[]): Promise<StockSnapshot[]> {
+    if (codes.length === 0) return [];
     const qc = this.getQuoteClient(codes[0]);
-    if (!qc) return;
+    if (!qc) return [];
     try {
       const tigerCodes = codes.map(toTigerSymbol);
       const briefs = await qc.getRealTimeQuote({ symbols: tigerCodes });
       const snapshots = mapSdkBrief(briefs);
       this.sendToRenderer('snapshot:data', snapshots);
+      return snapshots;
     } catch (err: unknown) {
       this.status.error = err instanceof Error ? err.message : String(err);
       this.sendStatus();
+      return [];
     }
   }
 

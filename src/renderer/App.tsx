@@ -122,7 +122,20 @@ const App: React.FC = () => {
     const api = window.bangAPI;
     if (!api) return;
 
-    api.getConfig().then((cfg) => { if (cfg) setGatewayConfig(cfg); });
+    api.getConfig().then((cfg) => {
+      if (cfg) {
+        setGatewayConfig(cfg);
+        // Auto-connect if credentials are present
+        const hasCredentials = cfg.provider === 'tiger'
+          ? cfg.tigerId && cfg.account && cfg.privateKey
+          : cfg.host;
+        if (hasCredentials) {
+          api.connectGateway(cfg).then(() => {
+            api.getGatewayStatus().then((status) => { if (status) setGatewayStatus(status); });
+          });
+        }
+      }
+    });
     if (api.getAppSettings) api.getAppSettings().then((saved) => {
       if (saved) {
         setAppSettings(saved);
@@ -136,8 +149,14 @@ const App: React.FC = () => {
     // Subscribe to real-time snapshot push (updates watchlist prices)
     if (api.onSubscribeData) {
       api.onSubscribeData((data: any) => {
-        if (data?.code && data?.snapshot) {
-          useStore.getState().updateSnapshot(data.code, data.snapshot);
+        if (data?.code) {
+          if (data.curPrice !== undefined) {
+            // Direct snapshot object (tiger push quote)
+            useStore.getState().updateSnapshot(data.code, data);
+          } else if (data.snapshot) {
+            // Wrapped format
+            useStore.getState().updateSnapshot(data.code, data.snapshot);
+          }
         }
       });
     }

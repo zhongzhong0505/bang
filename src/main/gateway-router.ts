@@ -1,6 +1,6 @@
 import { gateway as futuGateway } from './gateway';
 import { TigerGatewayClient } from './tiger-gateway';
-import type { GatewayConfig, GatewayStatus, SubType, SymbolSearchResult } from '../shared/types';
+import type { GatewayConfig, GatewayStatus, SubType, SymbolSearchResult, StockSnapshot } from '../shared/types';
 import { BrowserWindow } from 'electron';
 
 const tigerGateway = new TigerGatewayClient();
@@ -41,12 +41,12 @@ export function requestKline(code: string, subType: SubType, count?: number) {
   }
 }
 
-export function requestSnapshot(codes: string[]) {
+export function requestSnapshot(codes: string[]): Promise<StockSnapshot[]> {
   if (activeProvider === 'tiger') {
-    tigerGateway.requestSnapshot(codes);
-  } else {
-    futuGateway.requestSnapshot(codes);
+    return tigerGateway.requestSnapshot(codes);
   }
+  futuGateway.requestSnapshot(codes);
+  return Promise.resolve([]);
 }
 
 export function subscribe(code: string, subTypes: SubType[]) {
