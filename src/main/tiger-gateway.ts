@@ -431,4 +431,23 @@ export class TigerGatewayClient {
       if (this.config) this.connect(this.config);
     }, 5000);
   }
+
+  /** Search stocks via Tiger REST API /v3/search */
+  async searchStock(keyword: string): Promise<import('../shared/types').SymbolSearchResult[]> {
+    try {
+      const result = await this.restRequest('search', {
+        keyword,
+      });
+      // Tiger search returns items with symbol, name, market, type
+      const items = result?.items ?? result?.list ?? [];
+      return items.map((s: any) => ({
+        code: s.symbol ?? s.code ?? '',
+        name: s.name ?? s.symbolName ?? '',
+        market: s.market === 'HK' ? 'HK' : s.market === 'US' ? 'US' : s.market === 'SH' ? 'SH' : s.market === 'SZ' ? 'SZ' : 'HK',
+        type: s.type ?? '股票',
+      }));
+    } catch {
+      return [];
+    }
+  }
 }

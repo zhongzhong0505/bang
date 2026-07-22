@@ -64,8 +64,9 @@ declare global {
       setAIConfig: (settings: any) => Promise<any>;
       getAppSettings: () => Promise<any>;
       setAppSettings: (settings: any) => Promise<any>;
-      screenerSearch: (filter: any) => Promise<any>;
-      getFundamentals: (code: string) => Promise<any>;
+     screenerSearch: (filter: any) => Promise<any>;
+      searchStock: (keyword: string) => Promise<any>;
+     getFundamentals: (code: string) => Promise<any>;
       getCalendar: (date?: string) => Promise<any>;
       exportData: (req: any) => Promise<any>;
       getPanelLayout: () => Promise<any>;

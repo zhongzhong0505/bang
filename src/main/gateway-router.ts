@@ -1,6 +1,6 @@
 import { gateway as futuGateway } from './gateway';
 import { TigerGatewayClient } from './tiger-gateway';
-import type { GatewayConfig, GatewayStatus, SubType } from '../shared/types';
+import type { GatewayConfig, GatewayStatus, SubType, SymbolSearchResult } from '../shared/types';
 import { BrowserWindow } from 'electron';
 
 const tigerGateway = new TigerGatewayClient();
@@ -107,4 +107,11 @@ export function getHistoryDeals(startTime?: string, endTime?: string) {
     );
   }
   return futuGateway.getHistoryDeals(startTime, endTime);
+}
+
+export function searchStock(keyword: string): Promise<SymbolSearchResult[]> {
+  if (activeProvider === 'tiger') {
+    return tigerGateway.searchStock(keyword);
+  }
+  return futuGateway.searchStock(keyword);
 }

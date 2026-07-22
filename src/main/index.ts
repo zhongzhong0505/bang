@@ -4,6 +4,7 @@ import { setGatewayWindow, connectGateway, disconnectGateway, getGatewayStatus, 
 import { getAccountSummary } from './gateway-router';
 
 import { modifyGatewayOrder, getHistoryDeals } from './gateway-router';
+import { searchStock } from './gateway-router';
 import { analyzeWinRates } from './win-rate-service';
 import type { HistoryDeal } from '../shared/types';
 
@@ -119,6 +120,15 @@ ipcMain.handle(IPC.ORDER_MODIFY, (_e, req) => {
 // Screener search
 ipcMain.handle(IPC.SCREENER_SEARCH, (_e, filter) => {
   return generateScreenerResults(filter);
+});
+
+// Stock search — call gateway OpenAPI when connected, otherwise return empty
+ipcMain.handle(IPC.STOCK_SEARCH, async (_e, keyword: string) => {
+  try {
+    const results = await searchStock(keyword);
+    if (results && results.length > 0) return results;
+  } catch { /* gateway not connected or search failed */ }
+  return [];
 });
 
 // Fundamentals

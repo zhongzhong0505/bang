@@ -4,31 +4,69 @@ import type { SymbolSearchResult } from '../../../shared/types';
 import { COMPARISON_STOCK_LIST } from '../../../shared/types';
 import '../toolbar/toolbar.css';
 
-const MOCK_SYMBOLS = COMPARISON_STOCK_LIST;
-
 const SymbolSearch: React.FC = () => {
   const toggleSymbolSearch = useStore((s) => s.toggleSymbolSearch);
   const setCurrentStock = useStore((s) => s.setCurrentStock);
   const watchlist = useStore((s) => s.watchlist);
   const addToWatchlist = useStore((s) => s.addToWatchlist);
+  const gatewayConnected = useStore((s) => s.gatewayStatus.connected && s.gatewayStatus.loggedIn);
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SymbolSearchResult[]>(MOCK_SYMBOLS);
+  const [results, setResults] = useState<SymbolSearchResult[]>(COMPARISON_STOCK_LIST);
+  const [searching, setSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
   useEffect(() => {
-    if (!query.trim()) {
-      setResults(MOCK_SYMBOLS);
-      return;
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    const q = query.trim();
+
+    searchTimer.current = setTimeout(async () => {
+      if (gatewayConnected && window.bangAPI) {
+        if (!q) {
+          setResults(COMPARISON_STOCK_LIST);
+          return;
+        }
+        setSearching(true);
+        try {
+          const apiResults = await window.bangAPI.searchStock(q);
+          if (apiResults && apiResults.length > 0) {
+            setResults(apiResults);
+          } else {
+            // Fallback to local filter
+            const ql = q.toLowerCase();
+            setResults(COMPARISON_STOCK_LIST.filter(s =>
+              s.code.toLowerCase().includes(ql) || s.name.toLowerCase().includes(ql)
+            ));
+          }
+        } catch {
+          const ql = q.toLowerCase();
+          setResults(COMPARISON_STOCK_LIST.filter(s =>
+            s.code.toLowerCase().includes(ql) || s.name.toLowerCase().includes(ql)
+          ));
+        } finally {
+          setSearching(false);
+        }
+      } else {
+        // Offline: filter local list
+        if (!q) {
+          setResults(COMPARISON_STOCK_LIST);
+        } else {
+          const ql = q.toLowerCase();
+          setResults(COMPARISON_STOCK_LIST.filter(s =>
+            s.code.toLowerCase().includes(ql) || s.name.toLowerCase().includes(ql)
+          ));
+        }
+      }
+    }, 300);
+
+    return () => {
+      if (searchTimer.current) clearTimeout(searchTimer.current);
     }
-    const q = query.toLowerCase();
-    setResults(MOCK_SYMBOLS.filter((s) =>
-      s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
-    ));
-  }, [query]);
+  }, [query, gatewayConnected]);
 
   const handleSelect = (item: SymbolSearchResult) => {
     setCurrentStock(item.code, item.name);
@@ -79,9 +117,14 @@ const SymbolSearch: React.FC = () => {
               </div>
             </div>
           ))}
-          {results.length === 0 && (
+         {results.length === 0 && (
+           <div className="text-muted-sm text-center padding-24">
+             未找到匹配的股票
+           </div>
+         )}
+          {searching && (
             <div className="text-muted-sm text-center padding-24">
-              未找到匹配的股票
+              搜索中...
             </div>
           )}
         </div>

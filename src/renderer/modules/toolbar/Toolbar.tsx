@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../store';
 import { COMPARISON_STOCK_LIST } from '../../../shared/types';
-import type { SymbolSearchResult } from '../../../shared/types';
+import type { SymbolSearchResult, SubType, ChartLayout } from '../../../shared/types';
 import './toolbar.css';
-import type { SubType, ChartLayout } from '../../../shared/types';
 
 const SUB_TYPES: { label: string; value: SubType }[] = [
   { label: '1m', value: '1' }, { label: '5m', value: '5' },
@@ -82,20 +81,69 @@ const Toolbar: React.FC = () => {
   const toggleSymbolSearch = useStore((s) => s.toggleSymbolSearch);
   const chartLayout = useStore((s) => s.chartLayout);
   const setChartLayout = useStore((s) => s.setChartLayout);
+  const gatewayConnected = useStore((s) => s.gatewayStatus.connected && s.gatewayStatus.loggedIn);
 
   const [compareQuery, setCompareQuery] = useState('');
+  const [compareResults, setCompareResults] = useState<SymbolSearchResult[]>(COMPARISON_STOCK_LIST.filter(s => s.code !== currentCode));
+  const [compareLoading, setCompareLoading] = useState(false);
+  const compareSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentChartLabel = CHART_TYPES.find((ct) => ct.value === chartType)?.label ?? chartType;
   const activeIndicatorCount = indicators.length;
 
-  const filteredCompareList = React.useMemo(() => {
-    const q = compareQuery.toLowerCase().trim();
-    const available = COMPARISON_STOCK_LIST.filter(
-      (s) => s.code !== currentCode && !comparisonSymbols.find((c) => c.code === s.code)
-    );
-    if (!q) return available.slice(0, 20);
-    return available.filter((s) => s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)).slice(0, 20);
-  }, [compareQuery, currentCode, comparisonSymbols]);
+  // Debounced search: when gateway is connected, call OpenAPI; otherwise filter local list
+  useEffect(() => {
+    if (compareSearchTimer.current) clearTimeout(compareSearchTimer.current);
+    const q = compareQuery.trim();
+
+    compareSearchTimer.current = setTimeout(async () => {
+      if (gatewayConnected && window.bangAPI) {
+        if (!q) {
+          // When connected but no query, show some popular stocks from local list as default
+          const available = COMPARISON_STOCK_LIST.filter(
+            (s) => s.code !== currentCode && !comparisonSymbols.find((c) => c.code === s.code)
+          ).slice(0, 20);
+          setCompareResults(available);
+          return;
+        }
+        setCompareLoading(true);
+        try {
+          const apiResults = await window.bangAPI.searchStock(q);
+          let list: SymbolSearchResult[] = apiResults && apiResults.length > 0
+            ? apiResults
+            : COMPARISON_STOCK_LIST.filter(s =>
+                s.code.toLowerCase().includes(q.toLowerCase()) ||
+                s.name.toLowerCase().includes(q.toLowerCase())
+              );
+          list = list
+            .filter((s) => s.code !== currentCode && !comparisonSymbols.find((c) => c.code === s.code))
+            .slice(0, 20);
+          setCompareResults(list);
+        } catch {
+          setCompareResults([]);
+        } finally {
+          setCompareLoading(false);
+        }
+      } else {
+        // Offline: filter local list
+        const available = COMPARISON_STOCK_LIST.filter(
+          (s) => s.code !== currentCode && !comparisonSymbols.find((c) => c.code === s.code)
+        );
+        if (!q) {
+          setCompareResults(available.slice(0, 20));
+        } else {
+          setCompareResults(available.filter(s =>
+            s.code.toLowerCase().includes(q.toLowerCase()) ||
+            s.name.toLowerCase().includes(q.toLowerCase())
+          ).slice(0, 20));
+        }
+      }
+    }, 300);
+
+    return () => {
+      if (compareSearchTimer.current) clearTimeout(compareSearchTimer.current);
+    };
+  }, [compareQuery, currentCode, comparisonSymbols, gatewayConnected]);
 
   return (
     <div className="toolbar">
@@ -144,10 +192,13 @@ const Toolbar: React.FC = () => {
                   autoFocus
                 />
               </div>
-              {filteredCompareList.length === 0 && (
+              {compareLoading && (
+                <div className="tb-menu-item" style={{ color: 'var(--text-muted)', pointerEvents: 'none' }}>搜索中...</div>
+              )}
+              {!compareLoading && compareResults.length === 0 && (
                 <div className="tb-menu-item" style={{ color: 'var(--text-muted)', pointerEvents: 'none' }}>无匹配结果</div>
               )}
-              {filteredCompareList.map((s) => (
+              {compareResults.map((s) => (
                 <div key={s.code} className="tb-menu-item" onClick={() => { addComparison(s.code, s.name); setCompareQuery(''); }}>
                   <span className="tb-menu-check">+</span>
                   <span className="tb-compare-name">{s.name}</span>

@@ -10,6 +10,7 @@ import {
   parseFutuHistoryDeals, buildFutuHistoryDealRequest,
 } from './adapters/futu-adapter';
 import { parseFutuAccountSummary, buildFutuAccInfoRequest } from './adapters/futu-adapter';
+import type { SymbolSearchResult } from '../shared/types';
 
 // Futu OpenD WebSocket gateway client
 export class GatewayClient {
@@ -22,9 +23,12 @@ export class GatewayClient {
     host: '',
     port: 0,
   };
-  private win: BrowserWindow | null = null;
-  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private seq = 0;
+ private win: BrowserWindow | null = null;
+ private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+ private seq = 0;
+  // Pending search resolver — set by searchStock, resolved in handleMessage
+  private pendingSearchResolve: ((results: SymbolSearchResult[]) => void) | null = null;
+  private pendingSearchTimer: ReturnType<typeof setTimeout> | null = null;
 
   setWindow(win: BrowserWindow) {
     this.win = win;
@@ -196,6 +200,25 @@ export class GatewayClient {
           break;
         }
 
+        case 2001: { // GetStockList response
+          if (this.pendingSearchResolve) {
+            const list: SymbolSearchResult[] = (body?.s2c?.stockList ?? body?.s2c?.basicDataList ?? []).map((s: any) => ({
+              code: s.code ?? '',
+              name: s.name ?? s.stockName ?? '',
+              market: s.market === 1 ? 'HK' : s.market === 2 ? 'SH' : s.market === 3 ? 'SZ' : s.market === 11 ? 'US' : s.market === 21 ? 'HK' : 'HK',
+              type: s.stockType === 1 ? '股票' : s.stockType === 4 ? '指数' : '股票',
+            }));
+            const resolve = this.pendingSearchResolve;
+            this.pendingSearchResolve = null;
+            if (this.pendingSearchTimer) {
+              clearTimeout(this.pendingSearchTimer);
+              this.pendingSearchTimer = null;
+            }
+            resolve(list);
+          }
+          break;
+        }
+
         case 2212: { // PlaceOrder response — use adapter
           const result = parseFutuPlaceOrder(body);
          this.sendToRenderer('order:place:result', result);
@@ -287,6 +310,41 @@ export class GatewayClient {
     const body = buildFutuHistoryDealRequest(startTime, endTime);
     this.sendRequest(2221, body);
   }
+
+  /** Search stocks via Futu OpenD ProtoID 2001 (GetStockList) */
+  searchStock(keyword: string, market?: number): Promise<SymbolSearchResult[]> {
+    return new Promise((resolve) => {
+      const reqBody = {
+        c2s: {
+         filterPLList: [{ market: market ?? 0, stockType: 0, begin: 0, end: 100 }],
+         filterConditions: [{ fieldName: 6, filterLow: keyword, filterUp: keyword, sortBy: 6, isAsc: true }],
+          begin: 0,
+         needGetStockName: true,
+        },
+      };
+      // Register pending resolver — handleMessage will call it when protoId 2001 arrives
+      this.pendingSearchResolve = resolve;
+      // Timeout fallback: resolve with empty array if OpenD doesn't respond in 5s
+      this.pendingSearchTimer = setTimeout(() => {
+        if (this.pendingSearchResolve) {
+          this.pendingSearchResolve = null;
+          this.pendingSearchTimer = null;
+          resolve([]);
+        }
+      }, 5000);
+      try {
+        this.sendRequest(2001, reqBody);
+      } catch {
+        if (this.pendingSearchResolve) {
+          this.pendingSearchResolve = null;
+          if (this.pendingSearchTimer) clearTimeout(this.pendingSearchTimer);
+          this.pendingSearchTimer = null;
+          resolve([]);
+        }
+      }
+    });
+  }
 }
 
 export const gateway = new GatewayClient();
+export const gatewayClient = gateway;

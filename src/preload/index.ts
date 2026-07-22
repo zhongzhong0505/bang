@@ -50,9 +50,13 @@ const api = {
   modifyOrder: (req: any) =>
     ipcRenderer.invoke(IPC.ORDER_MODIFY, req),
 
-  // Screener
-  screenerSearch: (filter: any) =>
-    ipcRenderer.invoke(IPC.SCREENER_SEARCH, filter),
+ // Screener
+ screenerSearch: (filter: any) =>
+   ipcRenderer.invoke(IPC.SCREENER_SEARCH, filter),
+
+  // Stock search (gateway OpenAPI)
+  searchStock: (keyword: string) =>
+    ipcRenderer.invoke(IPC.STOCK_SEARCH, keyword),
 
   // Data export
   exportData: (req: any) =>
@@ -127,4 +131,3 @@ const api = {
 };
 
 contextBridge.exposeInMainWorld('bangAPI', api);
-
