@@ -180,9 +180,9 @@ export class TigerGatewayClient {
 
   // ─── Quote methods ───────────────────────────────────────
 
-  async requestKline(code: string, subType: SubType, count = 500) {
+  async requestKline(code: string, subType: SubType, count = 500): Promise<KlineData[]> {
     const qc = this.getQuoteClient(code);
-    if (!qc) return;
+    if (!qc) return [];
     try {
       const period = subTypeToBarPeriod(subType);
       const tigerCode = toTigerSymbol(code);
@@ -193,10 +193,12 @@ export class TigerGatewayClient {
         limit: count,
       });
       const klineData = mapSdkKline(klines, code);
-      this.sendToRenderer('kline:data', { code, data: klineData });
+      this.sendToRenderer('kline:data', { code, subType, data: klineData });
+      return klineData;
     } catch (err: unknown) {
       this.status.error = err instanceof Error ? err.message : String(err);
       this.sendStatus();
+      return [];
     }
   }
 

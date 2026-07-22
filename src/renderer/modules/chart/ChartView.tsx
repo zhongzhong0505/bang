@@ -134,22 +134,43 @@ const ChartView: React.FC = () => {
     // Subscribe for push updates
     api.subscribe(currentCode, [subType]);
     const unsub = api.onKlineData((d: any) => {
-      if (d.code !== currentCode || d.subType !== subType) return;
+      if (d.code !== currentCode) return;
       setRealtimeKline((prev) => {
         if (!prev) return prev;
         const updated = [...prev];
         const lastIdx = updated.length - 1;
-        if (lastIdx >= 0 && updated[lastIdx].time === d.data.time) {
-          // Update the last bar
-          updated[lastIdx] = { ...updated[lastIdx], ...d.data };
-        } else if (d.data.time > updated[lastIdx]?.time) {
-          // New bar
-          updated.push(d.data);
+        if (lastIdx >= 0 && d.data) {
+          if (updated[lastIdx].time === d.data.time) {
+            updated[lastIdx] = { ...updated[lastIdx], ...d.data };
+          } else if (d.data.time > updated[lastIdx]?.time) {
+            updated.push(d.data);
+          }
         }
         return updated;
       });
     });
-    return () => { unsub(); };
+    // Also listen for quote push to update the last bar's close in real time
+    let unsubQuote: (() => void) | undefined;
+    if (api.onSubscribeData) {
+      unsubQuote = api.onSubscribeData((d: any) => {
+        if (!d?.code || d.code !== currentCode || d.curPrice === undefined) return;
+        const livePrice = d.curPrice;
+        setRealtimeKline((prev) => {
+          if (!prev || prev.length === 0) return prev;
+          const updated = [...prev];
+          const lastIdx = updated.length - 1;
+          const last = updated[lastIdx];
+          updated[lastIdx] = {
+            ...last,
+            close: livePrice,
+            high: Math.max(last.high, livePrice),
+            low: Math.min(last.low, livePrice),
+          };
+          return updated;
+        });
+      });
+    }
+    return () => { unsub(); unsubQuote?.(); };
   }, [currentCode, subType, useRealtime]);
 
   const mockData = useMemo(() => {

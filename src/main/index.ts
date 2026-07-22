@@ -77,10 +77,7 @@ ipcMain.handle(IPC.GATEWAY_DISCONNECT, () => {
 
 ipcMain.handle(IPC.GATEWAY_STATUS, () => getGatewayStatus());
 
-ipcMain.handle(IPC.KLINE_REQUEST, (_e, code, subType, count) => {
-  requestKline(code, subType, count);
-  return true;
-});
+ipcMain.handle(IPC.KLINE_REQUEST, (_e, code, subType, count) => requestKline(code, subType, count));
 
 ipcMain.handle(IPC.SNAPSHOT_REQUEST, (_e, codes) => requestSnapshot(codes));
 
