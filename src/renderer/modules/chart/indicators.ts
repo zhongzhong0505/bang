@@ -11,17 +11,21 @@ export function computeMA(data: KlineData[], period: number): (number | null)[] 
 
 export function computeEMA(data: KlineData[], period: number): (number | null)[] {
   const k = 2 / (period + 1);
-  return data.map((d, i) => {
-    if (i < period - 1) return null;
+  const result: (number | null)[] = [];
+  let prev: number | null = null;
+  for (let i = 0; i < data.length; i++) {
+    if (i < period - 1) { result.push(null); continue; }
     if (i === period - 1) {
       let sum = 0;
       for (let j = 0; j < period; j++) sum += data[i - j].close;
-      return +(sum / period).toFixed(2);
+      prev = sum / period;
+      result.push(+prev.toFixed(2));
+      continue;
     }
-    const prev = computeEMA(data.slice(0, i), period);
-    const prevVal = prev[prev.length - 1] ?? data[i - 1].close;
-    return +(d.close * k + prevVal * (1 - k)).toFixed(2);
-  });
+    prev = data[i].close * k + prev! * (1 - k);
+    result.push(+prev.toFixed(2));
+  }
+  return result;
 }
 
 export function computeBollinger(data: KlineData[], period = 20, mult = 2): { upper: (number | null)[]; mid: (number | null)[]; lower: (number | null)[] } {
@@ -42,20 +46,20 @@ export function computeBollinger(data: KlineData[], period = 20, mult = 2): { up
 export function computeMACD(data: KlineData[], fast = 12, slow = 26, signal = 9) {
   const emaFast = computeEMA(data, fast);
   const emaSlow = computeEMA(data, slow);
-  const dif = data.map((_, i) => {
+  const dif: (number | null)[] = data.map((_, i) => {
     if (emaFast[i] === null || emaSlow[i] === null) return null;
     return +(emaFast[i]! - emaSlow[i]!).toFixed(4);
   });
-  const dea: (number | null)[] = data.map((_, i) => {
-    if (i < slow + signal - 2) return null;
-    let sum = 0;
-    let count = 0;
-    for (let j = 0; j < signal; j++) {
-      const idx = i - j;
-      if (idx >= 0 && dif[idx] !== null) { sum += dif[idx]!; count++; }
-    }
-    return count === signal ? +(sum / signal).toFixed(4) : null;
-  });
+  // DEA is EMA(signal) of DIF
+  const k = 2 / (signal + 1);
+  const dea: (number | null)[] = [];
+  let prevDea: number | null = null;
+  for (let i = 0; i < data.length; i++) {
+    if (dif[i] === null) { dea.push(null); continue; }
+    if (prevDea === null) { prevDea = dif[i]!; dea.push(+prevDea.toFixed(4)); continue; }
+    prevDea = dif[i]! * k + prevDea * (1 - k);
+    dea.push(+prevDea.toFixed(4));
+  }
   const histogram = data.map((_, i) => {
     if (dif[i] === null || dea[i] === null) return null;
     return +(dif[i]! - dea[i]!).toFixed(4);
