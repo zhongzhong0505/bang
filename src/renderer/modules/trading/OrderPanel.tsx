@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import './order-panel.css';
 import { useStore } from '../../store';
-import { generateMockPositions, generateMockOrders } from '../../mock';
 import type { OrderSide, OrderType, TradeRecord, AIEvaluationResult, AIEvaluationContext } from '../../../shared/types';
 import { getMarketFromCode, getCurrencyFromMarket } from '../../../shared/types';
 import { calculateFees, calculateNetAmount } from '../../utils/fee-calculator';
@@ -69,22 +68,12 @@ const OrderPanel: React.FC = () => {
 
   const loadData = useCallback(async () => {
     const api = window.bangAPI;
-    if (!api) return;
-    if (connected) {
-      try {
-        const [pos, ord] = await Promise.all([api.getPositions(), api.getOrders()]);
-        if (Array.isArray(pos) && pos.length > 0) setPositions(pos);
-        else setPositions(generateMockPositions());
-        if (Array.isArray(ord) && ord.length > 0) setOrders(ord);
-        else setOrders(generateMockOrders());
-      } catch {
-        setPositions(generateMockPositions());
-        setOrders(generateMockOrders());
-      }
-    } else {
-      setPositions(generateMockPositions());
-      setOrders(generateMockOrders());
-    }
+    if (!api || !connected) return;
+    try {
+      const [pos, ord] = await Promise.all([api.getPositions(), api.getOrders()]);
+      if (Array.isArray(pos)) setPositions(pos);
+      if (Array.isArray(ord)) setOrders(ord);
+    } catch { /* leave existing data */ }
   }, [connected, setPositions, setOrders]);
 
   useEffect(() => {

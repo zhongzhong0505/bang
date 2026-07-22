@@ -14,7 +14,6 @@ import {
   TickMarkType,
 } from 'lightweight-charts';
 import { useStore } from '../../store';
-import { generateMockKlineBySubType } from '../../mock';
 import type { GatewayStatus } from '../../../shared/types';
 import {
   computeMA, computeEMA, computeBollinger, computeMACD, computeRSI,
@@ -32,11 +31,7 @@ import type { FormatOptions } from '../../utils/format';
 import type { KlineData } from '../../../shared/types';
 import './chart.css';
 
-const STOCK_BASE_PRICES: Record<string, number> = {
-  'HK.00700': 380, 'HK.09988': 85, 'HK.03690': 155,
-  'US.AAPL': 195, 'US.TSLA': 245, 'US.NVDA': 125,
-  'SH.600519': 1520, 'SZ.000858': 145,
-};
+
 
 const INDICATOR_COLORS: Record<string, string> = {
   MA5: '#f59e0b', MA10: '#29b6f6', MA20: '#ab47bc', MA60: '#ef5350',
@@ -97,11 +92,8 @@ const ChartView: React.FC = () => {
   }, [indicators]);
   const isDaily = isDailySubType(subType);
 
-  const fullMockData = useMemo(() => {
-    const basePrice = STOCK_BASE_PRICES[currentCode] ?? 100;
-    const count = subType === '1' ? 500 : isDaily ? 200 : 300;
-    return generateMockKlineBySubType(count, basePrice, subType);
-  }, [currentCode, subType]);
+  // No mock data — chart only renders with real kline data
+  const fullMockData: KlineData[] = [];
 
   // Fetch real K-line data when gateway is connected
   useEffect(() => {
@@ -175,9 +167,7 @@ const ChartView: React.FC = () => {
 
   const mockData = useMemo(() => {
     if (!replayMode && useRealtime && realtimeKline) return realtimeKline;
-    if (!replayMode) return fullMockData;
-    const idx = useStore.getState().replayIndex;
-    return fullMockData.slice(0, Math.max(idx, 60));
+    return fullMockData;
   }, [fullMockData, replayMode, useRealtime, realtimeKline]);
 
   const heikinData = useMemo(() => {
@@ -220,28 +210,13 @@ const ChartView: React.FC = () => {
         fetches.push(
           api.requestKline(comp.code, subType, count).then((data: KlineData[]) => {
             if (data && data.length > 0) resultMap[comp.code] = data;
-            else {
-              const basePrice = STOCK_BASE_PRICES[comp.code] ?? 100;
-              resultMap[comp.code] = generateMockKlineBySubType(count, basePrice, subType);
-            }
-          }).catch(() => {
-            const basePrice = STOCK_BASE_PRICES[comp.code] ?? 100;
-            resultMap[comp.code] = generateMockKlineBySubType(count, basePrice, subType);
-          })
+          }).catch(() => { /* no data for this comparison symbol */ })
         );
-      } else {
-        const basePrice = STOCK_BASE_PRICES[comp.code] ?? 100;
-        resultMap[comp.code] = generateMockKlineBySubType(count, basePrice, subType);
       }
     }
 
-    // Show mock immediately, then replace with real data
-    const mockMap: Record<string, KlineData[]> = {};
-    for (const comp of comparisonSymbols) {
-      const basePrice = STOCK_BASE_PRICES[comp.code] ?? 100;
-      mockMap[comp.code] = generateMockKlineBySubType(count, basePrice, subType);
-    }
-    setComparisonDataMap(mockMap);
+    // Start with empty, replace with real data when fetched
+    setComparisonDataMap({});
 
     if (fetches.length > 0) {
       Promise.all(fetches).then(() => setComparisonDataMap({ ...resultMap }));
@@ -507,6 +482,18 @@ const ChartView: React.FC = () => {
   return (
     <div className="chart-container">
       <div className="chart-area">
+        {displayData.length === 0 && (
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            color: 'var(--text-muted)', fontSize: 14, flexDirection: 'column', gap: 8, zIndex: 1,
+          }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 6-10"/>
+            </svg>
+            <span>请连接网关以加载行情数据</span>
+          </div>
+        )}
         {drawingMode && chartApi && (
           <DrawingTools chart={chartApi} data={displayData} mode={drawingMode} onModeChange={setDrawingMode} drawings={drawings} onDrawingsChange={setDrawings} />
         )}

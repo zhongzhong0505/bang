@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useRef, useMemo, useState } from 'react';
 import { useStore } from '../../store';
-import { generateMockSnapshot, generateMockKline, STOCK_PRICES, generateMockPositions } from '../../mock';
+
 import { getMarketFromCode } from '../../../shared/types';
 import type { Market, Position } from '../../../shared/types';
 import './watchlist.css';
@@ -87,13 +87,8 @@ const WatchlistContent: React.FC<{ marketFilter: string }> = ({ marketFilter }) 
           currentUpdateSnapshot(s.code, { ...s, name: item?.name ?? s.name ?? s.code });
         });
       }).catch(() => { /* leave existing data */ });
-    } else {
-      currentWatchlist.forEach((item) => {
-        const snap = generateMockSnapshot(item.code);
-        snap.name = item.name;
-        currentUpdateSnapshot(item.code, snap);
-      });
     }
+    // Not connected: do nothing, leave existing snapshots as-is
   }, []);
 
   useEffect(() => {
@@ -165,17 +160,11 @@ const PositionsContent: React.FC = () => {
   const fetchPositions = useCallback(async () => {
     const api = window.bangAPI;
     const gwStatus = useStore.getState().gatewayStatus;
-    if (!api?.getPositions || !gwStatus.connected || !gwStatus.loggedIn) {
-      setPositions(generateMockPositions());
-      return;
-    }
+    if (!api?.getPositions || !gwStatus.connected || !gwStatus.loggedIn) return;
     try {
       const result = await api.getPositions();
-      if (Array.isArray(result) && result.length > 0) setPositions(result);
-      else setPositions(generateMockPositions());
-    } catch {
-      setPositions(generateMockPositions());
-    }
+      if (Array.isArray(result)) setPositions(result);
+    } catch { /* leave existing */ }
   }, [setPositions]);
 
   useEffect(() => { fetchPositions(); }, [fetchPositions]);
@@ -219,10 +208,13 @@ const PositionsContent: React.FC = () => {
 
 const MiniSparkline: React.FC<{ code: string }> = ({ code }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const klineData = useStore((s) => s.klineData);
   const data = useMemo(() => {
-    const base = STOCK_PRICES[code] ?? 100;
-    return generateMockKline(30, base);
-  }, [code]);
+    if (klineData && klineData.length > 0) {
+      return klineData.slice(-30);
+    }
+    return [];
+  }, [klineData]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -232,6 +224,14 @@ const MiniSparkline: React.FC<{ code: string }> = ({ code }) => {
     const dpr = window.devicePixelRatio || 1;
     const w = 48;
     const h = 16;
+    if (data.length < 2) {
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.clearRect(0, 0, w, h);
+      return;
+    }
     canvas.width = w * dpr;
     canvas.height = h * dpr;
     canvas.style.width = w + 'px';
