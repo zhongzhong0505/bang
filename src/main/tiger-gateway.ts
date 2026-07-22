@@ -365,7 +365,7 @@ export class TigerGatewayClient {
             const lic = marketToLicense(m);
             const qc = this.quoteClients.get(lic) ?? this.quoteClients.values().next().value;
             if (!qc) continue;
-            const names = await qc.getSymbolNames({ market: m });
+            const names = await qc.getSymbolNames({ market: m, lang: 'zh_CN' });
             this.symbolCache.set(m, names.map(n => ({
               symbol: n.symbol ?? '',
               name: n.name ?? '',
@@ -385,6 +385,7 @@ export class TigerGatewayClient {
         .map(s => ({
           code: fromTigerSymbol(s.symbol),
           name: s.name,
+          tigerSymbol: s.symbol, // keep for detail lookup
           market: s.market === 'HK' ? 'HK' as const
             : s.market === 'US' ? 'US' as const
             : s.market === 'SH' ? 'SH' as const
@@ -393,7 +394,28 @@ export class TigerGatewayClient {
           type: '股票',
         }));
 
-      return results;
+      // Fallback: fill empty names via getStockDetails
+      const emptyNameItems = results.filter((r: any) => !r.name && r.tigerSymbol);
+      if (emptyNameItems.length > 0) {
+        try {
+          const symbolsToLookup = emptyNameItems.map((r: any) => r.tigerSymbol as string);
+          const lic = marketToLicense(inferMarketFromCode(emptyNameItems[0].code));
+          const qc = this.quoteClients.get(lic) ?? this.quoteClients.values().next().value;
+          if (qc) {
+            const details = await qc.getStockDetails({ symbols: symbolsToLookup, lang: 'zh_CN' });
+            for (const detail of details) {
+              const code = fromTigerSymbol(detail.symbol ?? '');
+              const item = results.find((r: any) => r.code === code) as any;
+              if (item && !item.name) {
+                item.name = detail.nameCN || detail.nameEN || '';
+              }
+            }
+          }
+        } catch { /* ignore detail lookup failure */ }
+      }
+
+      // Strip internal tigerSymbol field before returning
+      return results.map(({ tigerSymbol, ...rest }: any) => rest);
     } catch {
       return [];
     }
