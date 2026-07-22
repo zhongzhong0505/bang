@@ -42,9 +42,10 @@ const SubChart: React.FC<SubChartProps> = ({ indicator, data, syncFromChart }) =
       chartRef.current = null;
     }
 
-    const chart = createChart(containerRef.current, {
-      layout: { background: { type: ColorType.Solid, color: '#131722' }, textColor: '#787b86', fontSize: 10 },
-      grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
+   const chart = createChart(containerRef.current, {
+     layout: { background: { type: ColorType.Solid, color: '#131722' }, textColor: '#787b86', fontSize: 10 },
+     attributionLogo: false,
+     grid: { vertLines: { color: '#2a2e39' }, horzLines: { color: '#2a2e39' } },
       rightPriceScale: { borderColor: '#2a2e39' },
       timeScale: { visible: false },
       crosshair: {

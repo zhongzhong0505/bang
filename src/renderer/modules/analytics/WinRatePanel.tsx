@@ -476,26 +476,37 @@ const WinRatePanel: React.FC = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  const fetchData = useCallback(async () => {
-    const api = window.bangAPI;
-    if (!api?.analyzeWinRate) {
-      // No live API available yet — show mock data for preview
-      setWinRateData(MOCK_WIN_RATE);
-      setIsMock(true);
-      setError(null);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await api.analyzeWinRate(
-        startDate || undefined,
-        endDate || undefined,
-      );
-      if (result?.error) {
-        setWinRateData(MOCK_WIN_RATE);
-        setIsMock(true);
-        setError(null);
+ const fetchData = useCallback(async () => {
+   const api = window.bangAPI;
+   // Check if gateway is connected — if not, always show mock for preview
+   const gwConnected = useStore.getState().gatewayStatus.connected && useStore.getState().gatewayStatus.loggedIn;
+
+   if (!api?.analyzeWinRate) {
+     // No live API available yet — show mock data for preview
+     setWinRateData(MOCK_WIN_RATE);
+     setIsMock(true);
+     setError(null);
+     return;
+   }
+   if (!gwConnected) {
+     // Gateway not connected — show mock data immediately instead of waiting 15s timeout
+     setWinRateData(MOCK_WIN_RATE);
+     setIsMock(true);
+     setError(null);
+     return;
+   }
+   setLoading(true);
+   setError(null);
+   try {
+     const result = await api.analyzeWinRate(
+       startDate || undefined,
+       endDate || undefined,
+     );
+     if (result?.error || !result || result.totalTrades === 0) {
+       // Error or no deals found — fall back to mock data for preview
+       setWinRateData(MOCK_WIN_RATE);
+       setIsMock(true);
+       setError(null);
       } else {
         setWinRateData(result as OverallWinRate);
         setIsMock(false);

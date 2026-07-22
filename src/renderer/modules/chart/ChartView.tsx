@@ -227,16 +227,17 @@ const ChartView: React.FC = () => {
 
     const chartHeight = hasSubChart ? containerRef.current.clientHeight - 140 : containerRef.current.clientHeight;
 
-    const chart = createChart(containerRef.current, {
-      layout: {
-        background: { type: ColorType.Solid, color: chartStyle.backgroundColor },
-        textColor: chartStyle.textColor,
-        fontSize: 11,
-      },
-      grid: chartStyle.showGrid ? {
-        vertLines: { color: chartStyle.gridColor },
-        horzLines: { color: chartStyle.gridColor },
-      } : { vertLines: { visible: false }, horzLines: { visible: false } },
+   const chart = createChart(containerRef.current, {
+     layout: {
+       background: { type: ColorType.Solid, color: chartStyle.backgroundColor },
+       textColor: chartStyle.textColor,
+       fontSize: 11,
+     },
+     attributionLogo: false,
+     grid: chartStyle.showGrid ? {
+       vertLines: { color: chartStyle.gridColor },
+       horzLines: { color: chartStyle.gridColor },
+     } : { vertLines: { visible: false }, horzLines: { visible: false } },
       crosshair: {
         mode: 0,
         vertLine: { color: chartStyle.crosshairColor, width: 1, style: 2, labelBackgroundColor: chartStyle.crosshairColor },

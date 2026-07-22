@@ -1,38 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../../store';
 import type { SymbolSearchResult } from '../../../shared/types';
+import { COMPARISON_STOCK_LIST } from '../../../shared/types';
 import '../toolbar/toolbar.css';
 
-const MOCK_SYMBOLS: SymbolSearchResult[] = [
-  { code: 'HK.00700', name: '腾讯控股', market: 'HK', type: '股票' },
-  { code: 'HK.09988', name: '阿里巴巴-W', market: 'HK', type: '股票' },
-  { code: 'HK.03690', name: '美团-W', market: 'HK', type: '股票' },
-  { code: 'HK.02318', name: '中国平安', market: 'HK', type: '股票' },
-  { code: 'HK.00939', name: '建设银行', market: 'HK', type: '股票' },
-  { code: 'HK.01299', name: '友邦保险', market: 'HK', type: '股票' },
-  { code: 'HK.00388', name: '港交所', market: 'HK', type: '股票' },
-  { code: 'HK.00941', name: '中国移动', market: 'HK', type: '股票' },
-  { code: 'HK.01109', name: '华润置地', market: 'HK', type: '股票' },
-  { code: 'US.AAPL', name: 'Apple Inc', market: 'US', type: '股票' },
-  { code: 'US.TSLA', name: 'Tesla Inc', market: 'US', type: '股票' },
-  { code: 'US.NVDA', name: 'NVIDIA Corp', market: 'US', type: '股票' },
-  { code: 'US.MSFT', name: 'Microsoft Corp', market: 'US', type: '股票' },
-  { code: 'US.AMZN', name: 'Amazon.com Inc', market: 'US', type: '股票' },
-  { code: 'US.GOOG', name: 'Alphabet Inc', market: 'US', type: '股票' },
-  { code: 'US.META', name: 'Meta Platforms', market: 'US', type: '股票' },
-  { code: 'US.NFLX', name: 'Netflix Inc', market: 'US', type: '股票' },
-  { code: 'US.AMD', name: 'AMD Inc', market: 'US', type: '股票' },
-  { code: 'US.INTEL', name: 'Intel Corp', market: 'US', type: '股票' },
-  { code: 'SH.600519', name: '贵州茅台', market: 'SH', type: '股票' },
-  { code: 'SH.600036', name: '招商银行', market: 'SH', type: '股票' },
-  { code: 'SH.601318', name: '中国平安', market: 'SH', type: '股票' },
-  { code: 'SH.600276', name: '恒瑞医药', market: 'SH', type: '股票' },
-  { code: 'SH.601012', name: '隆基绿能', market: 'SH', type: '股票' },
-  { code: 'SZ.000858', name: '五粮液', market: 'SZ', type: '股票' },
-  { code: 'SZ.000001', name: '平安银行', market: 'SZ', type: '股票' },
-  { code: 'SZ.002594', name: '比亚迪', market: 'SZ', type: '股票' },
-  { code: 'SZ.300750', name: '宁德时代', market: 'SZ', type: '股票' },
-];
+const MOCK_SYMBOLS = COMPARISON_STOCK_LIST;
 
 const SymbolSearch: React.FC = () => {
   const toggleSymbolSearch = useStore((s) => s.toggleSymbolSearch);

@@ -88,6 +88,24 @@
 }
 .tb-dropdown-right { left: auto; }
 
+/* Comparison search */
+.tb-compare-search-row { padding: 4px 8px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+.tb-compare-search {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-primary);
+ padding: 4px 8px;
+  font-size: 11px;
+  outline: none;
+}
+.tb-compare-search:focus { border-color: var(--accent); }
+.tb-compare-search::placeholder { color: var(--text-muted); }
+.tb-compare-name { font-size: 11px; color: var(--text-primary); }
+.tb-compare-code { font-size: 9px; color: var(--text-muted); margin-left: auto; }
+
 /* Dropdown menu items */
 .tb-menu-item {
   display: flex;

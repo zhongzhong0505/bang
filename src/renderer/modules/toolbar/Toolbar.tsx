@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../store';
+import { COMPARISON_STOCK_LIST } from '../../../shared/types';
+import type { SymbolSearchResult } from '../../../shared/types';
 import './toolbar.css';
 import type { SubType, ChartLayout } from '../../../shared/types';
 
@@ -57,6 +59,8 @@ const Dropdown: React.FC<{
   );
 };
 
+const COMPARISON_COLORS = ['#2962ff', '#f59e0b', '#ab47bc', '#26a69a', '#ef5350', '#06b6d4', '#8b5cf6', '#ec4899'];
+
 const Toolbar: React.FC = () => {
   const currentCode = useStore((s) => s.currentCode);
   const currentName = useStore((s) => s.currentName);
@@ -79,14 +83,19 @@ const Toolbar: React.FC = () => {
   const chartLayout = useStore((s) => s.chartLayout);
   const setChartLayout = useStore((s) => s.setChartLayout);
 
+  const [compareQuery, setCompareQuery] = useState('');
+
   const currentChartLabel = CHART_TYPES.find((ct) => ct.value === chartType)?.label ?? chartType;
   const activeIndicatorCount = indicators.length;
 
-  const QUICK_COMPARE = [
-    { code: 'HK.09988', name: '阿里巴巴' }, { code: 'HK.03690', name: '美团' },
-    { code: 'US.AAPL', name: 'Apple' }, { code: 'US.TSLA', name: 'Tesla' },
-    { code: 'SH.600519', name: '贵州茅台' },
-  ];
+  const filteredCompareList = React.useMemo(() => {
+    const q = compareQuery.toLowerCase().trim();
+    const available = COMPARISON_STOCK_LIST.filter(
+      (s) => s.code !== currentCode && !comparisonSymbols.find((c) => c.code === s.code)
+    );
+    if (!q) return available.slice(0, 20);
+    return available.filter((s) => s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)).slice(0, 20);
+  }, [compareQuery, currentCode, comparisonSymbols]);
 
   return (
     <div className="toolbar">
@@ -126,9 +135,24 @@ const Toolbar: React.FC = () => {
         <Dropdown trigger={<button className="toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 9 Q4 3, 7 7 T11 3" fill="none" stroke="#2962ff" strokeWidth="1.2"/><path d="M1 7 Q4 5, 7 5 T11 1" fill="none" stroke="#f59e0b" strokeWidth="1.2"/></svg>对比{comparisonSymbols.length > 0 ? ` (${comparisonSymbols.length})` : ''}</button>}>
           {(close) => (
             <>
-              <div className="tb-menu-section">添加对比</div>
-              {QUICK_COMPARE.filter((q) => !comparisonSymbols.find((c) => c.code === q.code) && q.code !== currentCode).map((q) => (
-                <div key={q.code} className="tb-menu-item" onClick={() => addComparison(q.code, q.name)}><span className="tb-menu-check">+</span>{q.name}</div>
+              <div className="tb-compare-search-row">
+                <input
+                  className="tb-compare-search"
+                  placeholder="搜索股票代码/名称..."
+                  value={compareQuery}
+                  onChange={(e) => setCompareQuery(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              {filteredCompareList.length === 0 && (
+                <div className="tb-menu-item" style={{ color: 'var(--text-muted)', pointerEvents: 'none' }}>无匹配结果</div>
+              )}
+              {filteredCompareList.map((s) => (
+                <div key={s.code} className="tb-menu-item" onClick={() => { addComparison(s.code, s.name); setCompareQuery(''); }}>
+                  <span className="tb-menu-check">+</span>
+                  <span className="tb-compare-name">{s.name}</span>
+                  <span className="tb-compare-code">{s.code}</span>
+                </div>
               ))}
               {comparisonSymbols.length > 0 && (<><div className="tb-menu-section">已添加对比</div>{comparisonSymbols.map((c) => (
                 <div key={c.code} className="tb-menu-item" onClick={() => removeComparison(c.code)}><span className="tb-menu-check" style={{ color: c.color }}>●</span>{c.name}<span className="tb-menu-check" style={{ marginLeft: 'auto', color: '#ef5350' }}>✕</span></div>
