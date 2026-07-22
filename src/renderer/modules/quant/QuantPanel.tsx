@@ -107,7 +107,7 @@ const QuantPanel: React.FC = () => {
             </button>
           ))}
         </div>
-        <button className="quant-close" onClick={() => useStore.getState().toggleQuantPanel()}>✕</button>
+        <button className="quant-close" onClick={() => useStore.getState().toggleQuantPanel()}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
       </div>
 
       <div className="quant-content">
@@ -320,7 +320,7 @@ const StrategyEditor: React.FC<StrategyEditorProps> = ({ strategy, onSave, onCan
             {cond.type === 'volume_surge' && (
               <input className="quant-cond-input" type="number" value={cond.params.mult ?? 2} onChange={(e) => updateCondition(i, { params: { ...cond.params, mult: +e.target.value } })} title="放量倍数" />
             )}
-            <button className="quant-mini-btn quant-mini-btn-red" onClick={() => removeCondition(i)}>✕</button>
+            <button className="quant-mini-btn quant-mini-btn-red" onClick={() => removeCondition(i)}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
           </div>
         ))}
         <button className="quant-add-cond-btn" onClick={addCondition}>+ 添加条件</button>

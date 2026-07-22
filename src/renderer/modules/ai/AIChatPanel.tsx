@@ -95,7 +95,7 @@ const AIChatPanel: React.FC = () => {
     <div className="ai-chat-overlay">
       <div className="ai-chat-header">
         <span>AI 分析助手</span>
-        <button className="ai-chat-close" onClick={toggleAIChat}>✕</button>
+        <button className="ai-chat-close" onClick={toggleAIChat}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
       </div>
       <div className="ai-chat-context">
         当前: {currentName} ({currentCode})

@@ -206,7 +206,7 @@ const Toolbar: React.FC = () => {
                 </div>
               ))}
               {comparisonSymbols.length > 0 && (<><div className="tb-menu-section">已添加对比</div>{comparisonSymbols.map((c) => (
-                <div key={c.code} className="tb-menu-item" onClick={() => removeComparison(c.code)}><span className="tb-menu-check" style={{ color: c.color }}>●</span>{c.name}<span className="tb-menu-check" style={{ marginLeft: 'auto', color: '#ef5350' }}>✕</span></div>
+                <div key={c.code} className="tb-menu-item" onClick={() => removeComparison(c.code)}><span className="tb-menu-check" style={{ color: c.color }}>●</span>{c.name}<span className="tb-menu-check" style={{ marginLeft: 'auto', color: '#ef5350' }}><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2.5 2.5l5 5M7.5 2.5l-5 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg></span></div>
               ))}</>)}
             </>
           )}

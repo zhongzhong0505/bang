@@ -40,7 +40,7 @@ const AlertPanel: React.FC = () => {
       <div className="indicator-settings-dialog indicator-settings-dialog-wide" onClick={(e) => e.stopPropagation()}>
         <div className="indicator-settings-header">
           <span>价格预警</span>
-          <button className="quant-close" onClick={toggleAlertPanel}>✕</button>
+          <button className="quant-close" onClick={toggleAlertPanel}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
         </div>
         <div className="indicator-settings-body">
           <div className="alert-current-info">
@@ -101,7 +101,7 @@ const AlertPanel: React.FC = () => {
                   </span>
                 </div>
                 <span className="alert-item-price">{alert.message}</span>
-                <button className="quant-mini-btn quant-mini-btn-red" onClick={() => removeAlert(alert.id)}>✕</button>
+                <button className="quant-mini-btn quant-mini-btn-red" onClick={() => removeAlert(alert.id)}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
               </div>
             ))}
           </div>

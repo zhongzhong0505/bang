@@ -47,7 +47,8 @@
   transition: all 0.15s;
 }
 .trade-list-btn:hover { border-color: var(--border-light); color: var(--text-primary); }
-.trade-list-close { width: 28px; padding: 4px; text-align: center; }
+.trade-list-close { width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: all 0.15s; }
+.trade-list-close:hover { background: var(--bg-hover); color: var(--text-primary); }
 
 /* Summary cards */
 .trade-list-summary {

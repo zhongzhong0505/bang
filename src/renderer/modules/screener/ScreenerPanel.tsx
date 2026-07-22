@@ -76,7 +76,7 @@ const ScreenerPanel: React.FC = () => {
       <div className="screener-panel">
         <div className="screener-header">
           <span>条件选股</span>
-          <button className="screener-close" onClick={toggleScreener}>✕</button>
+          <button className="screener-close" onClick={toggleScreener}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
         </div>
         <div className="screener-filters">
           <div className="screener-filter-group">

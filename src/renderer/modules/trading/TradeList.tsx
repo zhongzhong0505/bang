@@ -54,7 +54,7 @@ const TradeList: React.FC = () => {
           </div>
           <div className="trade-list-actions">
             <button className="trade-list-btn" onClick={clearTradeRecords}>清空</button>
-            <button className="trade-list-btn trade-list-close" onClick={toggleTradeList}>✕</button>
+            <button className="trade-list-btn trade-list-close" onClick={toggleTradeList}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
           </div>
         </div>
 
