@@ -1,5 +1,5 @@
 .order-panel {
-  width: 260px;
+  width: 290px;
   min-width: 260px;
   background: var(--bg-secondary);
   border-left: 1px solid var(--border);
@@ -84,7 +84,7 @@
 .order-submit-buy { background: var(--green); }
 .order-submit-sell { background: var(--red); }
 .order-price-info { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
-.order-table-container { flex: 1; overflow-y: auto; padding: 0 8px; }
+.order-table-container { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 8px; }
 .order-table { width: 100%; border-collapse: collapse; font-size: 11px; }
 .order-th {
   text-align: left;
@@ -97,10 +97,19 @@
 }
 .order-tr { border-bottom: 1px solid var(--border); }
 .order-td { padding: 6px 4px; color: var(--text-primary); vertical-align: top; }
+/* Fixed column widths for the 6-column order table */
+.order-th:nth-child(1), .order-td:nth-child(1) { width: 30%; min-width: 60px; }
+.order-th:nth-child(2), .order-td:nth-child(2) { width: 14%; white-space: nowrap; }
+.order-th:nth-child(3), .order-td:nth-child(3) { width: 14%; white-space: nowrap; }
+.order-th:nth-child(4), .order-td:nth-child(4) { width: 12%; white-space: nowrap; text-align: right; }
+.order-th:nth-child(5), .order-td:nth-child(5) { width: 16%; white-space: nowrap; }
+.order-th:nth-child(6), .order-td:nth-child(6) { width: 18%; white-space: nowrap; }
 .order-status {
-  padding: 1px 6px;
+  padding: 1px 4px;
   border-radius: 3px;
   font-size: 10px;
+  white-space: nowrap;
+  display: inline-block;
 }
 .order-status-filled { background: var(--green-bg); color: var(--green); }
 .order-status-pending { background: rgba(59,130,246,0.1); color: var(--accent); }
@@ -270,7 +279,7 @@
 .order-bracket-fields .order-field { flex: 1; }
 
 /* Order action buttons (modify/cancel) */
-.order-action-btn { font-size: 10px; padding: 2px 8px; border: none; border-radius: 2px; cursor: pointer; transition: all 0.15s; }
+.order-action-btn { font-size: 10px; padding: 2px 5px; border: none; border-radius: 2px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
 .order-action-modify { background: rgba(41,98,255,0.15); color: var(--accent); }
 .order-action-modify:hover { background: rgba(41,98,255,0.3); }
 .order-action-cancel { background: rgba(239,83,80,0.15); color: var(--red); }
