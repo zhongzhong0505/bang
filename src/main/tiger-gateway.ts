@@ -201,10 +201,12 @@ export class TigerGatewayClient {
   }
 
   async requestSnapshot(codes: string[]) {
-    if (!this.quoteClient) return;
+    if (codes.length === 0) return;
+    const qc = this.getQuoteClient(codes[0]);
+    if (!qc) return;
     try {
       const tigerCodes = codes.map(toTigerSymbol);
-      const briefs = await this.quoteClient.getRealTimeQuote({ symbols: tigerCodes });
+      const briefs = await qc.getRealTimeQuote({ symbols: tigerCodes });
       const snapshots = mapSdkBrief(briefs);
       this.sendToRenderer('snapshot:data', snapshots);
     } catch (err: unknown) {
