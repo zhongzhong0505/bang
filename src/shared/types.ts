@@ -454,8 +454,9 @@ export const IPC = {
   MODIFY_ORDER_GATEWAY: 'gateway:order:modify',
   HISTORY_DEALS_GET: 'history:deals:get',
  WIN_RATE_ANALYSIS: 'winrate:analyze',
-  SKILLHUB_FETCH: 'skillhub:fetch',
-  SKILLHUB_FETCH_URL: 'skillhub:fetch:url',
+ SKILLHUB_FETCH: 'skillhub:fetch',
+ SKILLHUB_FETCH_URL: 'skillhub:fetch:url',
+  SKILL_IMPORT_ZIP: 'skill:import:zip',
 } as const;
 
 // Default configs

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRef } from 'react';
 import './settings.css';
 import { useStore } from '../../store';
 import { useTBatch } from '../../i18n';
@@ -76,6 +77,8 @@ const AISettings: React.FC = () => {
     'settings.skillhubUrlLabel', 'settings.skillhubUrlHint', 'settings.skillhubUrlDefault',
     'settings.skillhubSourceRemote', 'settings.skillhubSourceLocal',
     'settings.skillhubRefresh',
+    'settings.importSkillZip', 'settings.importSkillZipHint',
+    'settings.zipImportError', 'settings.zipImportSuccess',
   ] as any);
 
   const [enabled, setEnabled] = useState(false);
@@ -103,6 +106,8 @@ const AISettings: React.FC = () => {
   const [skillHubSort, setSkillHubSort] = useState<'downloads' | 'name' | 'newest'>('downloads');
   const [skillhubUrl, setSkillhubUrl] = useState('');
   const [skillHubSource, setSkillHubSource] = useState<'remote' | 'local' | null>(null);
+  const [zipImportError, setZipImportError] = useState<string>('');
+  const zipInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const api = window.bangAPI;
@@ -202,6 +207,37 @@ const AISettings: React.FC = () => {
 
   // --- Custom skill CRUD ---
   const handleAddSkill = () => setEditingSkill(emptyForm());
+  const handleImportZip = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setZipImportError('');
+    try {
+      const buffer = await file.arrayBuffer();
+      const api = window.bangAPI;
+      if (!api?.importSkillZip) { setZipImportError('IPC not available'); return; }
+      const result = await api.importSkillZip(buffer);
+      if (result.error) { setZipImportError(result.error); return; }
+      const now = Date.now();
+      const skill: CustomSkill = {
+        id: `zip_${now}`,
+        name: result.name || file.name.replace(/\.zip$/i, ''),
+        description: result.description || '',
+        category: result.category || 'custom',
+        promptContent: result.promptContent,
+        source: 'custom',
+        author: result.author,
+        version: result.version,
+        createdAt: now,
+        updatedAt: now,
+      };
+      setCustomSkills(prev => [...prev, skill]);
+      if (!skills[skill.id]) setSkills(prev => ({ ...prev, [skill.id]: true }));
+    } catch (err: any) {
+      setZipImportError(err.message || 'Unknown error');
+    }
+    if (zipInputRef.current) zipInputRef.current.value = '';
+  };
+
 
   const handleEditSkill = (skill: CustomSkill) => {
     setEditingSkill({ id: skill.id, name: skill.name, description: skill.description, category: skill.category, promptContent: skill.promptContent });
@@ -459,7 +495,23 @@ const AISettings: React.FC = () => {
         )}
 
         {!editingSkill && (
-          <button className="settings-add-skill-btn" onClick={handleAddSkill}>+ {L['settings.addCustomSkill']}</button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button className="settings-add-skill-btn" onClick={handleAddSkill}>+ {L['settings.addCustomSkill']}</button>
+            <input
+              ref={zipInputRef}
+              type="file"
+              accept=".zip"
+              style={{ display: 'none' }}
+              onChange={handleImportZip}
+            />
+            <button className="settings-add-skill-btn" onClick={() => zipInputRef.current?.click()} style={{ opacity: 0.85 }}>
+              📦 {L['settings.importSkillZip']}
+            </button>
+            <span className="settings-hint" style={{ marginLeft: 4 }}>{L['settings.importSkillZipHint']}</span>
+          </div>
+        )}
+        {zipImportError && (
+          <p className="settings-test-fail" style={{ marginTop: 4, fontSize: 12 }}>{L['settings.zipImportError']}: {zipImportError}</p>
         )}
 
         {/* Skill form */}

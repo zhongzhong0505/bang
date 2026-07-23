@@ -148,7 +148,7 @@ Organized by feature under `modules/`, each module with its own CSS file:
 
 ### System Settings
 - Appearance: dark / light / system (with SVG mini-chart preview)
-- Language: Simplified Chinese / Traditional Chinese / English, full i18n integration with `useT()` / `useTBatch()` / `useLocale()` hooks, real-time language switching across all components
+- Language: Simplified Chinese / English, full i18n integration with `useT()` / `useTBatch()` / `useLocale()` hooks, real-time language switching across all components
 - Date/time format: 6 date formats + 4 time formats
 - Chart settings: color scheme, default chart type, default period
 - Trading settings: order confirmation, default quantity, per-order limit, daily loss limit
@@ -224,9 +224,18 @@ bang/
 │       ├── App.tsx            # Root component + routing + ErrorBoundary
 │       ├── mock.ts            # Mock data generation
 │       ├── store/
-│       │   └── index.ts       # Zustand global state
-│       ├── i18n/
-│       │   ├── en.ts          # English translations
+│       │   ├── index.ts       # Zustand store (slice composition)
+│       │   ├── gateway.ts     # Gateway connection slice
+│       │   ├── chart.ts       # Chart data slice
+│       │   ├── watchlist.ts   # Watchlist slice
+│       │   ├── trading.ts     # Trading slice
+│       │   ├── ui.ts          # UI state slice
+│       │   ├── settings.ts    # Settings slice
+│       │   ├── quant.ts       # Quant/backtest slice
+│       │   ├── screener.ts    # Screener slice
+│       │   ├── alerts.ts      # Alerts slice
+│       │   └── panels.ts      # Panel layout slice
+│       │   ├── en.ts          # English translations (lazy-loaded)
 │       │   ├── zh.ts          # Chinese translations
 │       │   └── index.ts       # i18n hooks (useT, useTBatch, useLocale)
 │       ├── utils/
@@ -279,6 +288,14 @@ npm run build:prod
 # Clean build artifacts
 npm run clean
 ```
+
+### Bundle Optimization
+
+The renderer entrypoint has been optimized for fast load times:
+- Lazy-loaded English translation file (`en.ts`) — only fetched when language is set to English
+- Lazy-loaded settings and shortcuts pages — only loaded when the user navigates to them
+- Rspack production minification and tree-shaking reduce the entrypoint from ~964KB to ~332KB
+- Zustand store split into 10 slice modules for better code organization and maintainability
 
 ---
 
@@ -444,22 +461,23 @@ Users can enable/disable AI skills that inject domain-specific knowledge into AI
 #### Custom Skills
 
 Users can create their own skills with custom prompt content:
-- Click **"Add Skill"** in the Custom Skills section of AI Settings
-- Fill in name, description, category, and the prompt text
+- Click **"Add Skill"** in the Custom Skills section of AI Settings, or **"Import ZIP"** to upload a skill package
+- Fill in name, description, category, and the prompt text manually, or import from a ZIP file
 - Custom skills appear alongside built-in skills with enable/disable toggles
 - Edit (pencil icon) or delete (x icon) custom skills at any time
+- ZIP packages should contain a `skill.json` (or `SKILL.md`/`prompt.txt`) with skill metadata and prompt content
 
 #### SkillHub Marketplace
 
 Browse and install community-contributed skills from SkillHub:
 - Configure a custom SkillHub URL in the SkillHub section (or leave empty for default)
-+- Click **"Browse Skills"** to fetch and display available skills
+- Click **"Browse Skills"** to fetch and display available skills
 - The app fetches the registry from a configurable URL (default: `https://zhongzhong0505.github.io/bang-skillhub/registry.json`), with local fallback to `skillhub/registry.json`
 - Each SkillHub skill shows name, author, description, and download count
 - Click **"Install"** to add a SkillHub skill to your custom skills list
 - Installed skills show a green **"Installed"** badge
-+- A **source indicator** shows whether data came from remote (green) or local fallback (yellow)
-+- **Refresh** button re-fetches from the configured URL
+- A **source indicator** shows whether data came from remote (green) or local fallback (yellow)
+- **Refresh** button re-fetches from the configured URL
 
 Built-in SkillHub skills include: Macro Economic Analysis, Sector Rotation Analysis, Options & Greeks Interpretation, Crypto Market Correlation, Behavioral Finance Biases
 

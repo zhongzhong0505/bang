@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, protocol, net } from 'electron';
 import path from 'path';
+import zlib from 'zlib';
 import { setGatewayWindow, connectGateway, disconnectGateway, getGatewayStatus, requestKline, requestSnapshot, subscribe, placeOrder, cancelOrder, getOrders, getPositions } from './gateway-router';
 import { getAccountSummary } from './gateway-router';
 
@@ -248,6 +249,72 @@ const fetchSkillHubRegistry = async (url?: string): Promise<{ items: any[]; sour
 
 ipcMain.handle(IPC.SKILLHUB_FETCH, async (_e, url?: string) => {
   return fetchSkillHubRegistry(url);
+});
+
+
+// ZIP skill import — parse a ZIP buffer and extract skill definition
+ipcMain.handle(IPC.SKILL_IMPORT_ZIP, async (_e, zipBuffer: ArrayBuffer) => {
+  try {
+    const buf = Buffer.from(zipBuffer);
+    const entries: { name: string; data: Buffer }[] = [];
+    // Find End of Central Directory (EOCD) signature 0x06054b50
+    let eocdOffset = -1;
+    for (let i = buf.length - 22; i >= Math.max(0, buf.length - 65536); i--) {
+      if (buf.readUInt32LE(i) === 0x06054b50) { eocdOffset = i; break; }
+    }
+    if (eocdOffset === -1) return { error: 'Invalid ZIP file: EOCD not found' };
+    const cdOffset = buf.readUInt32LE(eocdOffset + 16);
+    const cdCount = buf.readUInt16LE(eocdOffset + 8);
+    let pos = cdOffset;
+    for (let i = 0; i < cdCount && pos < buf.length - 46; i++) {
+      if (buf.readUInt32LE(pos) !== 0x02014b50) break;
+      const compMethod = buf.readUInt16LE(pos + 10);
+      const compSize = buf.readUInt32LE(pos + 20);
+      const nameLen = buf.readUInt16LE(pos + 28);
+      const extraLen = buf.readUInt16LE(pos + 30);
+      const commentLen = buf.readUInt16LE(pos + 32);
+      const localOffset = buf.readUInt32LE(pos + 42);
+      const name = buf.toString('utf8', pos + 46, pos + 46 + nameLen);
+      if (localOffset < buf.length - 30) {
+        const lhNameLen = buf.readUInt16LE(localOffset + 26);
+        const lhExtraLen = buf.readUInt16LE(localOffset + 28);
+        const dataStart = localOffset + 30 + lhNameLen + lhExtraLen;
+        const raw = buf.subarray(dataStart, dataStart + compSize);
+        let content: Buffer;
+        if (compMethod === 0) { content = raw; }
+        else if (compMethod === 8) { content = zlib.inflateRawSync(raw); }
+        else { content = raw; }
+        entries.push({ name, data: content });
+      }
+      pos += 46 + nameLen + extraLen + commentLen;
+    }
+    let skillData: Record<string, string> = {};
+    for (const entry of entries) {
+      const lowerName = entry.name.toLowerCase();
+      if (lowerName === 'skill.json' || lowerName.endsWith('/skill.json')) {
+        try { skillData = { ...skillData, ...JSON.parse(entry.data.toString('utf8')) }; } catch {}
+      }
+      if ((lowerName === 'skill.md' || lowerName.endsWith('/skill.md')) && !skillData.promptContent) {
+        skillData.promptContent = entry.data.toString('utf8');
+      }
+      if ((lowerName === 'prompt.txt' || lowerName.endsWith('/prompt.txt')) && !skillData.promptContent) {
+        skillData.promptContent = entry.data.toString('utf8');
+      }
+    }
+    if (!skillData.promptContent) {
+      return { error: 'No skill definition found. ZIP must contain skill.json, SKILL.md, or prompt.txt' };
+    }
+    return {
+      name: skillData.name || '',
+      description: skillData.description || '',
+      category: skillData.category || 'custom',
+      promptContent: skillData.promptContent,
+      author: skillData.author,
+      version: skillData.version,
+    };
+  } catch (err: any) {
+    return { error: `Failed to parse ZIP: ${err.message}` };
+  }
 });
 
 // App settings persistence

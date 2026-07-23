@@ -122,6 +122,10 @@ const api = {
   fetchSkillHub: (url?: string) =>
     ipcRenderer.invoke(IPC.SKILLHUB_FETCH, url),
 
+  // Skill ZIP import
+  importSkillZip: (zipBuffer: ArrayBuffer) =>
+    ipcRenderer.invoke(IPC.SKILL_IMPORT_ZIP, zipBuffer),
+
   // History deals & Win rate analysis
   getHistoryDeals: (startTime?: string, endTime?: string) =>
     ipcRenderer.invoke(IPC.HISTORY_DEALS_GET, startTime, endTime),
