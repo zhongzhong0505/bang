@@ -131,7 +131,7 @@ ipcMain.handle('fundamentals:get', (_e, code: string) => {
 });
 
 // Calendar
-ipcMain.handle('calendar:get', (_e, date?: string) => {
+ipcMain.handle('calendar:get', async (_e, date?: string) => {
   return getCalendarEvents(date);
 });
 
@@ -215,6 +215,39 @@ ipcMain.handle(IPC.AI_CONFIG_GET, () => {
 
 ipcMain.handle(IPC.AI_CONFIG_SET, (_e, settings) => {
   return saveAISettings(settings);
+});
+
+// SkillHub - fetch available skills from the registry
+// Shared SkillHub fetch logic
+const DEFAULT_SKILLHUB_URL = 'https://zhongzhong0505.github.io/bang-skillhub/registry.json';
+const fetchSkillHubRegistry = async (url?: string): Promise<{ items: any[]; source: 'remote' | 'local' }> => {
+  const targetUrl = url || DEFAULT_SKILLHUB_URL;
+  // Try remote first
+  try {
+    const https = await import('https');
+    const remote = await new Promise<any>((resolve) => {
+      const req = https.get(targetUrl, { timeout: 8000 }, (res: any) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (c: Buffer) => chunks.push(c));
+        res.on('end', () => {
+          try { resolve(JSON.parse(Buffer.concat(chunks).toString())); } catch { resolve(null); }
+        });
+      });
+      req.on('error', () => resolve(null));
+      req.setTimeout(8000, () => { req.destroy(); resolve(null); });
+    });
+    if (Array.isArray(remote) && remote.length > 0) return { items: remote, source: 'remote' };
+  } catch {}
+  // Fallback to bundled local registry
+  try {
+    const regPath = path.join(__dirname, 'skillhub', 'registry.json');
+    const data = fs.readFileSync(regPath, 'utf-8');
+    return { items: JSON.parse(data), source: 'local' };
+  } catch { return { items: [], source: 'local' }; }
+};
+
+ipcMain.handle(IPC.SKILLHUB_FETCH, async (_e, url?: string) => {
+  return fetchSkillHubRegistry(url);
 });
 
 // App settings persistence

@@ -257,18 +257,106 @@ export interface AISettings {
   model: string;
   baseUrl: string;
   systemPrompt: string;
-  tencentTokenPlan: TencentTokenPlanConfig;
+ tencentTokenPlan: TencentTokenPlanConfig;
+ skills: Record<string, boolean>;
+  customSkills: CustomSkill[];
+  /** Custom SkillHub registry URL (overrides default) */
+  skillhubUrl?: string;
 }
 
-export const DEFAULT_AI_SETTINGS: AISettings = {
-  enabled: false,
-  provider: 'openai',
-  apiKey: '',
-  model: 'gpt-5',
-  baseUrl: 'https://api.openai.com/v1',
-  systemPrompt: 'You are a professional trading analyst. Analyze the given order context and provide risk assessment in Chinese.',
-  tencentTokenPlan: { secretId: '', secretKey: '', region: 'ap-guangzhou' },
-};
+
+export type AISkillCategory = 'analysis' | 'market' | 'risk' | 'strategy' | 'fee' | 'pattern' | 'custom';
+
+export interface AISkillPreset {
+  id: string;
+  category: AISkillCategory;
+  /** i18n key suffix for the skill name */
+  nameKey: string;
+  /** i18n key suffix for the skill description */
+  descKey: string;
+  defaultEnabled: boolean;
+}
+
+export const AI_SKILL_PRESETS: AISkillPreset[] = [
+  {
+    id: 'technical_analysis',
+    category: 'analysis',
+    nameKey: 'skill.techAnalysis',
+    descKey: 'skill.techAnalysisDesc',
+    defaultEnabled: true,
+  },
+  {
+    id: 'market_knowledge',
+    category: 'market',
+    nameKey: 'skill.marketKnowledge',
+    descKey: 'skill.marketKnowledgeDesc',
+    defaultEnabled: true,
+  },
+  {
+    id: 'risk_assessment',
+    category: 'risk',
+    nameKey: 'skill.riskAssessment',
+    descKey: 'skill.riskAssessmentDesc',
+    defaultEnabled: true,
+  },
+  {
+    id: 'trading_strategy',
+    category: 'strategy',
+    nameKey: 'skill.tradingStrategy',
+    descKey: 'skill.tradingStrategyDesc',
+    defaultEnabled: false,
+  },
+  {
+    id: 'fee_calculation',
+    category: 'fee',
+    nameKey: 'skill.feeCalc',
+    descKey: 'skill.feeCalcDesc',
+    defaultEnabled: false,
+  },
+  {
+    id: 'pattern_recognition',
+    category: 'pattern',
+    nameKey: 'skill.patternRecognition',
+    descKey: 'skill.patternRecognitionDesc',
+    defaultEnabled: false,
+  },
+];
+
+export const DEFAULT_AI_SKILLS: Record<string, boolean> = AI_SKILL_PRESETS.reduce(
+  (acc, s) => { acc[s.id] = s.defaultEnabled; return acc; },
+  {} as Record<string, boolean>,
+);
+
+// User-defined custom skill (created locally or installed from SkillHub)
+export interface CustomSkill {
+  id: string;
+  name: string;
+  description: string;
+  category: AISkillCategory;
+  /** Full prompt text injected into the AI system message when enabled */
+  promptContent: string;
+  /** Author name (for SkillHub-installed skills) */
+  author?: string;
+  /** Version string (for SkillHub updates) */
+  version?: string;
+  /** Source: where this skill came from */
+  source: 'builtin' | 'custom' | 'skillhub';
+  createdAt: number;
+  updatedAt: number;
+}
+
+// SkillHub registry item (what the user sees when browsing the marketplace)
+export interface SkillHubItem {
+  id: string;
+  name: string;
+  description: string;
+  category: AISkillCategory;
+  promptContent: string;
+  author: string;
+  version: string;
+  tags?: string[];
+  downloads?: number;
+}
 
 export interface AIEvaluationContext {
   symbol: string;
@@ -321,6 +409,18 @@ export interface AIChatRequest {
   };
 }
 
+export const DEFAULT_AI_SETTINGS: AISettings = {
+  enabled: false,
+  provider: 'openai',
+  apiKey: '',
+  model: 'gpt-5',
+  baseUrl: 'https://api.openai.com/v1',
+  systemPrompt: 'You are a professional trading analyst. Analyze the given order context and provide risk assessment in Chinese.',
+  tencentTokenPlan: { secretId: '', secretKey: '', region: 'ap-guangzhou' },
+ skills: { ...DEFAULT_AI_SKILLS },
+  customSkills: [],
+};
+
 // IPC channels
 export const IPC = {
   GATEWAY_CONFIG_GET: 'gateway:config:get',
@@ -353,7 +453,9 @@ export const IPC = {
   EXPORT_DATA: 'data:export',
   MODIFY_ORDER_GATEWAY: 'gateway:order:modify',
   HISTORY_DEALS_GET: 'history:deals:get',
-  WIN_RATE_ANALYSIS: 'winrate:analyze',
+ WIN_RATE_ANALYSIS: 'winrate:analyze',
+  SKILLHUB_FETCH: 'skillhub:fetch',
+  SKILLHUB_FETCH_URL: 'skillhub:fetch:url',
 } as const;
 
 // Default configs

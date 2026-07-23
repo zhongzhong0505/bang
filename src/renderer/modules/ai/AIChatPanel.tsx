@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useStore } from '../../store';
 import './ai-chat.css';
+import { useT, useTBatch } from '../../i18n';
 
 interface ChatMsg {
   role: 'user' | 'assistant' | 'system';
@@ -12,6 +13,12 @@ const AIChatPanel: React.FC = () => {
   const currentCode = useStore((s) => s.currentCode);
   const currentName = useStore((s) => s.currentName);
   const klineData = useStore((s) => s.klineData);
+
+  const tr = useTBatch([
+    'ai.title', 'ai.current', 'ai.placeholder', 'ai.notConfigured',
+    'ai.noReply', 'ai.error', 'ai.requestFailed', 'ai.thinking',
+    'ai.send', 'ai.inputPlaceholder',
+  ]);
 
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
@@ -57,7 +64,7 @@ const AIChatPanel: React.FC = () => {
 
     const api = window.bangAPI;
     if (!api?.aiChat) {
-      setMessages((prev) => [...prev, { role: 'system', content: 'AI 未配置，请在设置中配置 API Key' }]);
+      setMessages((prev) => [...prev, { role: 'system', content: tr['ai.notConfigured'] }]);
       setStreaming(false);
       return;
     }
@@ -71,15 +78,15 @@ const AIChatPanel: React.FC = () => {
       if (result.success) {
         // Streaming handled by onAIStreamChunk
         if (!streamRef.current) {
-          setMessages((prev) => [...prev, { role: 'assistant', content: result.text || '无回复' }]);
+          setMessages((prev) => [...prev, { role: 'assistant', content: result.text || tr['ai.noReply'] }]);
           setStreaming(false);
         }
       } else {
-        setMessages((prev) => [...prev, { role: 'system', content: `AI 错误: ${result.error}` }]);
+        setMessages((prev) => [...prev, { role: 'system', content: tr['ai.error'].replace('{error}', result.error) }]);
         setStreaming(false);
       }
     } catch (err: any) {
-      setMessages((prev) => [...prev, { role: 'system', content: `请求失败: ${err.message}` }]);
+      setMessages((prev) => [...prev, { role: 'system', content: tr['ai.requestFailed'].replace('{error}', err.message) }]);
       setStreaming(false);
     }
   }, [input, messages, streaming]);
@@ -94,16 +101,16 @@ const AIChatPanel: React.FC = () => {
   return (
     <div className="ai-chat-overlay">
       <div className="ai-chat-header">
-        <span>AI 分析助手</span>
+        <span>{tr['ai.title']}</span>
         <button className="ai-chat-close" onClick={toggleAIChat}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
       </div>
       <div className="ai-chat-context">
-        当前: {currentName} ({currentCode})
+        {tr['ai.current']}: {currentName} ({currentCode})
       </div>
       <div className="ai-chat-messages">
         {messages.length === 0 && (
           <div className="ai-chat-msg ai-chat-msg-system">
-            向 AI 提问关于 {currentName} 的行情分析、技术面解读、交易建议等
+            {tr['ai.placeholder'].replace('{name}', currentName)}
           </div>
         )}
         {messages.map((msg, i) => (
@@ -117,9 +124,9 @@ const AIChatPanel: React.FC = () => {
       <div className="ai-chat-input-area">
         <textarea className="ai-chat-input" rows={1}
           value={input} onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown} placeholder="输入问题..." disabled={streaming} />
+          onKeyDown={handleKeyDown} placeholder={tr['ai.inputPlaceholder']} disabled={streaming} />
         <button className="ai-chat-send" onClick={handleSend} disabled={streaming || !input.trim()}>
-          {streaming ? '...' : '发送'}
+          {streaming ? '...' : tr['ai.send']}
         </button>
       </div>
     </div>

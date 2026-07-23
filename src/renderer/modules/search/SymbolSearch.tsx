@@ -3,6 +3,7 @@ import { useStore } from '../../store';
 import type { SymbolSearchResult } from '../../../shared/types';
 import { COMPARISON_STOCK_LIST } from '../../../shared/types';
 import '../toolbar/toolbar.css';
+import { useTBatch } from '../../i18n';
 
 const SymbolSearch: React.FC = () => {
   const toggleSymbolSearch = useStore((s) => s.toggleSymbolSearch);
@@ -14,6 +15,8 @@ const SymbolSearch: React.FC = () => {
   const [results, setResults] = useState<SymbolSearchResult[]>(COMPARISON_STOCK_LIST);
   const [searching, setSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const tr = useTBatch(['symbolSearch.placeholder', 'symbolSearch.addToWatchlist', 'symbolSearch.noMatch', 'symbolSearch.searching']);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -77,7 +80,7 @@ const SymbolSearch: React.FC = () => {
         <input
           ref={inputRef}
           className="symbol-search-input"
-          placeholder="搜索股票代码或名称..."
+          placeholder={tr['symbolSearch.placeholder']}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
@@ -101,7 +104,7 @@ const SymbolSearch: React.FC = () => {
                 <button
                   className="quant-mini-btn"
                   onClick={(e) => handleAddToWatchlist(item, e)}
-                  title="加入自选"
+                  title={tr['symbolSearch.addToWatchlist']}
                 >
                   +
                 </button>

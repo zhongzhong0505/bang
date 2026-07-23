@@ -1,6 +1,7 @@
 import React from 'react';
 import './settings.css';
 import { useStore } from '../../store';
+import { useTBatch } from '../../i18n';
 import type { ThemeMode, DateFormat, TimeFormat, Language } from '../../../shared/types';
 
 // Mini chart SVG preview for theme cards
@@ -110,9 +111,6 @@ const ThemePreview: React.FC<{ mode: ThemeMode }> = ({ mode }) => {
 };
 
 const THEME_OPTIONS: { value: ThemeMode; label: string; desc: string }[] = [
-  { value: 'dark', label: '暗色', desc: '深色背景，适合长时间使用' },
-  { value: 'light', label: '亮色', desc: '浅色背景，适合明亮环境' },
-  { value: 'system', label: '跟随系统', desc: '自动跟随操作系统外观设置' },
 ];
 
 const DATE_FORMAT_OPTIONS: { value: DateFormat; label: string; example: string }[] = [
@@ -143,16 +141,40 @@ const GeneralSettings: React.FC = () => {
   const setTheme = useStore((s) => s.setTheme);
   const setFontSize = useStore((s) => s.setFontSize);
   const resolvedTheme = useStore((s) => s.resolvedTheme);
+  const L = useTBatch([
+    'settings.appearance', 'settings.appearanceDesc',
+    'settings.themeDark', 'settings.themeDarkDesc',
+    'settings.themeLight', 'settings.themeLightDesc',
+    'settings.themeSystem', 'settings.themeSystemDesc',
+    'settings.systemTheme', 'settings.resolvedDark', 'settings.resolvedLight',
+    'settings.fontSize', 'settings.fontSizeSmall', 'settings.fontSizeNormal',
+    'settings.fontSizeLarge', 'settings.fontSizeXLarge', 'settings.fontSizeHint',
+    'settings.language', 'settings.languageDesc', 'settings.interfaceLanguage',
+    'settings.dateFormat', 'settings.dateFormatDesc',
+    'settings.dateFormatLabel', 'settings.dateFormatHint',
+    'settings.timeFormatLabel', 'settings.timeFormatHint',
+    'settings.crosshairSeconds', 'settings.crosshairSecondsHint',
+    'settings.dateFormatMonthDay', 'settings.dateFormatDayMonth',
+    'settings.system', 'settings.systemDesc',
+    'settings.closeWindow', 'settings.minimizeToTray', 'settings.directExit',
+    'settings.closeWindowHint', 'settings.autoStart', 'settings.autoStartHint',
+    'settings.soundAlerts', 'settings.soundAlertsHint',
+    'settings.on', 'settings.off',
+  ] as any);
 
   return (
     <div className="settings-section">
       {/* Appearance */}
       <div className="settings-card">
-        <h2 className="settings-card-title">外观</h2>
-        <p className="settings-card-desc">选择应用的主题模式，更改后立即生效</p>
+        <h2 className="settings-card-title">{L['settings.appearance']}</h2>
+        <p className="settings-card-desc">{L['settings.appearanceDesc']}</p>
 
         <div className="settings-theme-grid">
-          {THEME_OPTIONS.map((opt) => (
+          {([
+            { value: 'dark' as ThemeMode, label: L['settings.themeDark'], desc: L['settings.themeDarkDesc'] },
+            { value: 'light' as ThemeMode, label: L['settings.themeLight'], desc: L['settings.themeLightDesc'] },
+            { value: 'system' as ThemeMode, label: L['settings.themeSystem'], desc: L['settings.themeSystemDesc'] },
+          ]).map((opt) => (
             <button
               key={opt.value}
               className={`settings-theme-card${appSettings.theme === opt.value ? ' settings-theme-card-active' : ''}`}
@@ -168,19 +190,19 @@ const GeneralSettings: React.FC = () => {
         </div>
         {appSettings.theme === 'system' && (
           <div className="settings-hint-row">
-            当前系统主题: <span className="settings-hint-value">{resolvedTheme === 'dark' ? '暗色' : '亮色'}</span>
+            {L['settings.systemTheme']}: <span className="settings-hint-value">{resolvedTheme === 'dark' ? L['settings.resolvedDark'] : L['settings.resolvedLight']}</span>
           </div>
         )}
 
         <div className="settings-form-grid" style={{ marginTop: 12, gridTemplateColumns: '1fr' }}>
           <div className="settings-field">
-            <label className="settings-label">字体大小</label>
+            <label className="settings-label">{L['settings.fontSize']}</label>
             <div className="settings-font-size-options">
               {([
-                { value: 'small', label: '小' },
-                { value: 'normal', label: '标准' },
-                { value: 'large', label: '大' },
-                { value: 'xlarge', label: '特大' },
+                { value: 'small' as const, label: L['settings.fontSizeSmall'] },
+                { value: 'normal' as const, label: L['settings.fontSizeNormal'] },
+                { value: 'large' as const, label: L['settings.fontSizeLarge'] },
+                { value: 'xlarge' as const, label: L['settings.fontSizeXLarge'] },
               ] as const).map((opt) => (
                 <button
                   key={opt.value}
@@ -189,18 +211,18 @@ const GeneralSettings: React.FC = () => {
                 >{opt.label}</button>
               ))}
             </div>
-            <span className="settings-hint">调整界面整体字体大小，顶部菜单、自选列表等会同步缩放</span>
+            <span className="settings-hint">{L['settings.fontSizeHint']}</span>
           </div>
         </div>
       </div>
 
       {/* Language */}
       <div className="settings-card">
-        <h2 className="settings-card-title">语言</h2>
-        <p className="settings-card-desc">选择界面显示语言</p>
+        <h2 className="settings-card-title">{L['settings.language']}</h2>
+        <p className="settings-card-desc">{L['settings.languageDesc']}</p>
         <div className="settings-form-grid" style={{ gridTemplateColumns: '1fr' }}>
           <div className="settings-field">
-            <label className="settings-label">界面语言</label>
+            <label className="settings-label">{L['settings.interfaceLanguage']}</label>
             <select
               className="settings-select"
               value={appSettings.language}
@@ -216,11 +238,11 @@ const GeneralSettings: React.FC = () => {
 
       {/* Date & Time Format */}
       <div className="settings-card">
-        <h2 className="settings-card-title">日期与时间格式</h2>
-        <p className="settings-card-desc">自定义 K 线图时间轴和十字准线的日期时间显示格式</p>
+        <h2 className="settings-card-title">{L['settings.dateFormat']}</h2>
+        <p className="settings-card-desc">{L['settings.dateFormatDesc']}</p>
         <div className="settings-form-grid">
           <div className="settings-field">
-            <label className="settings-label">日期格式</label>
+            <label className="settings-label">{L['settings.dateFormatLabel']}</label>
             <select
               className="settings-select"
               value={appSettings.dateFormat}
@@ -230,10 +252,10 @@ const GeneralSettings: React.FC = () => {
                 <option key={opt.value} value={opt.value}>{opt.label} ({opt.example})</option>
               ))}
             </select>
-            <span className="settings-hint">K 线图时间轴日期刻度的显示格式</span>
+            <span className="settings-hint">{L['settings.dateFormatHint']}</span>
           </div>
           <div className="settings-field">
-            <label className="settings-label">时间格式</label>
+            <label className="settings-label">{L['settings.timeFormatLabel']}</label>
             <select
               className="settings-select"
               value={appSettings.timeFormat}
@@ -243,10 +265,10 @@ const GeneralSettings: React.FC = () => {
                 <option key={opt.value} value={opt.value}>{opt.label} ({opt.example})</option>
               ))}
             </select>
-            <span className="settings-hint">分钟线时间刻度的显示格式</span>
+            <span className="settings-hint">{L['settings.timeFormatHint']}</span>
           </div>
           <div className="settings-field">
-            <label className="settings-label">十字准线显示秒</label>
+            <label className="settings-label">{L['settings.crosshairSeconds']}</label>
             <div className="settings-toggle-row">
               <button
                 className={`settings-toggle${appSettings.showSecondsInCrosshair ? ' settings-toggle-on' : ''}`}
@@ -255,21 +277,21 @@ const GeneralSettings: React.FC = () => {
                 <span className="settings-toggle-knob" />
               </button>
               <span className="settings-toggle-text">
-                {appSettings.showSecondsInCrosshair ? '已开启' : '已关闭'}
+                {appSettings.showSecondsInCrosshair ? L['settings.on'] : L['settings.off']}
               </span>
             </div>
-            <span className="settings-hint">在十字准线悬浮时间中显示秒数</span>
+            <span className="settings-hint">{L['settings.crosshairSecondsHint']}</span>
           </div>
         </div>
       </div>
 
       {/* System */}
       <div className="settings-card">
-        <h2 className="settings-card-title">系统</h2>
-        <p className="settings-card-desc">应用的系统行为设置</p>
+        <h2 className="settings-card-title">{L['settings.system']}</h2>
+        <p className="settings-card-desc">{L['settings.systemDesc']}</p>
         <div className="settings-form-grid" style={{ gridTemplateColumns: '1fr' }}>
           <div className="settings-field">
-            <label className="settings-label">关闭窗口时</label>
+            <label className="settings-label">{L['settings.closeWindow']}</label>
             <div className="settings-toggle-row">
               <button
                 className={`settings-toggle${appSettings.minimizeToTray ? ' settings-toggle-on' : ''}`}
@@ -278,13 +300,13 @@ const GeneralSettings: React.FC = () => {
                 <span className="settings-toggle-knob" />
               </button>
               <span className="settings-toggle-text">
-                {appSettings.minimizeToTray ? '最小化到托盘' : '直接退出'}
+                {appSettings.minimizeToTray ? L['settings.minimizeToTray'] : L['settings.directExit']}
               </span>
             </div>
-            <span className="settings-hint">关闭窗口时是否最小化到系统托盘继续运行</span>
+            <span className="settings-hint">{L['settings.closeWindowHint']}</span>
           </div>
           <div className="settings-field">
-            <label className="settings-label">开机自启动</label>
+            <label className="settings-label">{L['settings.autoStart']}</label>
             <div className="settings-toggle-row">
               <button
                 className={`settings-toggle${appSettings.autoStart ? ' settings-toggle-on' : ''}`}
@@ -293,13 +315,13 @@ const GeneralSettings: React.FC = () => {
                 <span className="settings-toggle-knob" />
               </button>
               <span className="settings-toggle-text">
-                {appSettings.autoStart ? '已开启' : '已关闭'}
+                {appSettings.autoStart ? L['settings.on'] : L['settings.off']}
               </span>
             </div>
-            <span className="settings-hint">系统启动时自动运行本应用</span>
+            <span className="settings-hint">{L['settings.autoStartHint']}</span>
           </div>
           <div className="settings-field">
-            <label className="settings-label">价格预警提示音</label>
+            <label className="settings-label">{L['settings.soundAlerts']}</label>
             <div className="settings-toggle-row">
               <button
                 className={`settings-toggle${appSettings.enableSoundAlerts ? ' settings-toggle-on' : ''}`}
@@ -308,10 +330,10 @@ const GeneralSettings: React.FC = () => {
                 <span className="settings-toggle-knob" />
               </button>
               <span className="settings-toggle-text">
-                {appSettings.enableSoundAlerts ? '已开启' : '已关闭'}
+                {appSettings.enableSoundAlerts ? L['settings.on'] : L['settings.off']}
               </span>
             </div>
-            <span className="settings-hint">触发价格预警时播放提示音</span>
+            <span className="settings-hint">{L['settings.soundAlertsHint']}</span>
           </div>
         </div>
       </div>

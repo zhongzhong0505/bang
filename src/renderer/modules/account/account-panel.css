@@ -57,7 +57,7 @@
 .account-btn {
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: #5d6070;
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
@@ -100,7 +100,7 @@
 .account-loading {
   padding: 40px;
   text-align: center;
-  color: var(--text-muted);
+  color: #5d6070;
   font-size: 13px;
 }
 
@@ -113,12 +113,12 @@
 }
 
 .account-disconnected-text {
-  color: var(--text-secondary);
+  color: #9699a5;
   font-size: 14px;
 }
 
 .account-disconnected-hint {
-  color: var(--text-muted);
+  color: #5d6070;
   font-size: 12px;
 }
 
@@ -143,7 +143,7 @@
 
 .account-card-label {
   font-size: 11px;
-  color: var(--text-muted);
+  color: #5d6070;
   margin-bottom: 4px;
 }
 
@@ -157,7 +157,7 @@
 
 .account-card-sub {
   font-size: 10px;
-  color: var(--text-muted);
+  color: #5d6070;
   margin-top: 2px;
 }
 
@@ -168,7 +168,7 @@
 .account-section-title {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: #9699a5;
   margin-bottom: 10px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
@@ -191,7 +191,7 @@
 
 .account-pnl-label {
   font-size: 11px;
-  color: var(--text-muted);
+  color: #5d6070;
 }
 
 .account-pnl-value {
@@ -217,7 +217,7 @@
 
 .account-detail-label {
   font-size: 12px;
-  color: var(--text-muted);
+  color: #5d6070;
 }
 
 .account-detail-value {
@@ -236,7 +236,7 @@
 .account-th {
   text-align: left;
   padding: 8px 10px;
-  color: var(--text-muted);
+  color: #5d6070;
   font-weight: 500;
   font-size: 11px;
   border-bottom: 1px solid var(--border);
@@ -269,13 +269,13 @@
   padding: 1px 6px;
   border-radius: 3px;
   background: var(--bg-hover);
-  color: var(--text-secondary);
+  color: #9699a5;
   margin-right: 6px;
 }
 
 .account-market-currency {
   font-size: 10px;
-  color: var(--text-muted);
+  color: #5d6070;
 }
 
 .account-footer {
@@ -284,7 +284,7 @@
   padding-top: 12px;
   border-top: 1px solid var(--border);
   font-size: 11px;
-  color: var(--text-muted);
+  color: #5d6070;
 }
 
 .up { color: var(--green); }

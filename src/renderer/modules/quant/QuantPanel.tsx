@@ -1,20 +1,26 @@
 import React, { useState } from 'react';
 import './quant-panel.css';
 import { useStore } from '../../store';
+import { useTBatch } from '../../i18n';
+import type { TranslationKey } from '../../i18n';
 import { runBacktest, buildIndicatorContext, generateSignals } from './backtest';
 import { generateMockKline } from '../../mock';
 import type { Strategy, StrategyCondition, ConditionType, BacktestResult, RiskConfig, SignalRecord, StrategyRuntime } from '../../../shared/types';
 import { DEFAULT_RISK } from '../../../shared/types';
 
-const CONDITION_LABELS: Record<ConditionType, string> = {
-  ma_cross: 'MA均线交叉',
-  rsi_oversold: 'RSI超卖',
-  rsi_overbought: 'RSI超买',
-  macd_cross: 'MACD交叉',
-  boll_break: '布林突破',
-  price_cross: '价格穿越',
-  volume_surge: '放量突破',
-};
+type TLabel = Record<TranslationKey, string>;
+
+function buildConditionLabels(L: TLabel): Record<ConditionType, string> {
+  return {
+    ma_cross: L['quant.cond.ma_cross'],
+    rsi_oversold: L['quant.cond.rsi_oversold'],
+    rsi_overbought: L['quant.cond.rsi_overbought'],
+    macd_cross: L['quant.cond.macd_cross'],
+    boll_break: L['quant.cond.boll_break'],
+    price_cross: L['quant.cond.price_cross'],
+    volume_surge: L['quant.cond.volume_surge'],
+  };
+}
 
 const genId = () => 'strat-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
@@ -38,17 +44,19 @@ const QuantPanel: React.FC = () => {
   const [editingStrategy, setEditingStrategy] = useState<Strategy | null>(null);
   const [backtesting, setBacktesting] = useState<string | null>(null);
 
+  const L = useTBatch(['quant.strategies', 'quant.backtest', 'quant.signals', 'quant.monitor', 'quant.newStrategy', 'quant.newStrategyName', 'quant.cond.ma_cross', 'quant.cond.rsi_oversold', 'quant.cond.rsi_overbought', 'quant.cond.macd_cross', 'quant.cond.boll_break', 'quant.cond.price_cross', 'quant.cond.volume_surge', 'quant.backtesting', 'quant.stop', 'quant.run', 'quant.noDescription', 'quant.symbol', 'quant.conditions', 'quant.capital', 'quant.editStrategy', 'quant.strategyName', 'quant.description', 'quant.symbolCode', 'quant.initialCapital', 'quant.tradeConditions', 'quant.addCondition', 'quant.riskSettings', 'quant.stopLossPct', 'quant.takeProfitPct', 'quant.maxPositionPct', 'quant.maxHoldingBars', 'quant.runBacktest', 'quant.totalReturnPct', 'quant.totalReturn', 'quant.winRate', 'quant.totalTrades', 'quant.winTrades', 'quant.lossTrades', 'quant.maxDrawdown', 'quant.sharpeRatio', 'quant.profitFactor', 'quant.avgWin', 'quant.avgLoss', 'quant.finalCapital', 'quant.tradeDetails', 'quant.thSide', 'quant.thEntry', 'quant.thExit', 'quant.thPnl', 'quant.thReason', 'quant.backtestHint', 'quant.createStrategyHint', 'quant.realtimeSignals', 'quant.test', 'quant.clear', 'quant.noSignals', 'quant.runningStrategies', 'quant.noRunningStrategies', 'quant.runtime', 'quant.signalCount', 'quant.position', 'quant.noPosition', 'quant.realizedPnl', 'quant.status', 'quant.running', 'quant.buyShort', 'quant.sellShort', 'quant.durationMin', 'quant.durationHour', 'quant.durationDay', 'common.save', 'common.cancel', 'common.delete', 'common.edit', 'order.buy', 'order.sell'] as any);
+
   const tabs: { key: typeof activeTab; label: string }[] = [
-    { key: 'strategies', label: '策略' },
-    { key: 'backtest', label: '回测' },
-    { key: 'signals', label: '信号' },
-    { key: 'monitor', label: '监控' },
+    { key: 'strategies', label: L['quant.strategies'] },
+    { key: 'backtest', label: L['quant.backtest'] },
+    { key: 'signals', label: L['quant.signals'] },
+    { key: 'monitor', label: L['quant.monitor'] },
   ];
 
   const handleCreateStrategy = () => {
     const newStrat: Strategy = {
       id: genId(),
-      name: '新策略',
+      name: L['quant.newStrategyName'],
       description: '',
       enabled: false,
       symbol: currentCode,
@@ -123,10 +131,11 @@ const QuantPanel: React.FC = () => {
             onToggleRun={handleToggleRun}
             backtesting={backtesting}
             runtimes={strategyRuntimes}
+            L={L}
           />
         )}
         {activeTab === 'backtest' && (
-          <BacktestTab strategies={strategies} results={backtestResults} onBacktest={handleRunBacktest} backtesting={backtesting} />
+          <BacktestTab strategies={strategies} results={backtestResults} onBacktest={handleRunBacktest} backtesting={backtesting} L={L} />
         )}
         {activeTab === 'signals' && (
           <SignalsTab signals={signals} onClear={clearSignals} onTest={(strat) => {
@@ -146,10 +155,10 @@ const QuantPanel: React.FC = () => {
                 executed: false,
               });
             }
-          }} strategies={strategies} />
+          }} strategies={strategies} L={L} />
         )}
         {activeTab === 'monitor' && (
-          <MonitorTab strategies={strategies} runtimes={strategyRuntimes} onToggleRun={handleToggleRun} />
+          <MonitorTab strategies={strategies} runtimes={strategyRuntimes} onToggleRun={handleToggleRun} L={L} />
         )}
       </div>
     </div>
@@ -168,11 +177,14 @@ interface StrategiesTabProps {
   onToggleRun: (s: Strategy) => void;
   backtesting: string | null;
   runtimes: Record<string, any>;
+  L: TLabel;
 }
 
 const StrategiesTab: React.FC<StrategiesTabProps> = ({
-  strategies, editingStrategy, setEditingStrategy, onCreate, onUpdate, onRemove, onBacktest, onToggleRun, backtesting, runtimes,
+  strategies, editingStrategy, setEditingStrategy, onCreate, onUpdate, onRemove, onBacktest, onToggleRun, backtesting, runtimes, L,
 }) => {
+  const CONDITION_LABELS = buildConditionLabels(L);
+
   if (editingStrategy) {
     return (
       <StrategyEditor
@@ -182,13 +194,14 @@ const StrategiesTab: React.FC<StrategiesTabProps> = ({
           setEditingStrategy(null);
         }}
         onCancel={() => setEditingStrategy(null)}
+        L={L}
       />
     );
   }
 
   return (
     <div className="quant-tab-content">
-      <button className="quant-primary-btn" onClick={onCreate}>+ 新建策略</button>
+      <button className="quant-primary-btn" onClick={onCreate}>{L['quant.newStrategy']}</button>
       <div className="quant-list">
         {strategies.map((s) => {
           const rt = runtimes[s.id];
@@ -202,28 +215,28 @@ const StrategiesTab: React.FC<StrategiesTabProps> = ({
                 </div>
                 <div className="quant-card-actions">
                   <button className="quant-mini-btn" onClick={() => onBacktest(s)} disabled={backtesting === s.id}>
-                    {backtesting === s.id ? '回测中...' : '回测'}
+                    {backtesting === s.id ? L['quant.backtesting'] : L['quant.backtest']}
                   </button>
                   <button
                     className={`quant-mini-btn ${isRunning ? 'quant-mini-btn-red' : 'quant-mini-btn-green'}`}
                     onClick={() => onToggleRun(s)}
                   >
-                    {isRunning ? '停止' : '运行'}
+                    {isRunning ? L['quant.stop'] : L['quant.run']}
                   </button>
-                  <button className="quant-mini-btn" onClick={() => setEditingStrategy(s)}>编辑</button>
-                  <button className="quant-mini-btn quant-mini-btn-red" onClick={() => onRemove(s.id)}>删除</button>
+                  <button className="quant-mini-btn" onClick={() => setEditingStrategy(s)}>{L['common.edit']}</button>
+                  <button className="quant-mini-btn quant-mini-btn-red" onClick={() => onRemove(s.id)}>{L['common.delete']}</button>
                 </div>
               </div>
-              <div className="quant-card-desc">{s.description || '无描述'}</div>
+              <div className="quant-card-desc">{s.description || L['quant.noDescription']}</div>
               <div className="quant-card-meta">
-                <span>标的: {s.symbol}</span>
-                <span>条件: {s.conditions.length}</span>
-                <span>资金: ¥{s.initialCapital.toLocaleString()}</span>
+                <span>{L['quant.symbol']}: {s.symbol}</span>
+                <span>{L['quant.conditions']}: {s.conditions.length}</span>
+                <span>{L['quant.capital']}: ¥{s.initialCapital.toLocaleString()}</span>
               </div>
               <div className="quant-card-conditions">
                 {s.conditions.map((c, i) => (
                   <span key={i} className={`quant-cond-tag ${c.action === 'BUY' ? 'quant-cond-tag-buy' : 'quant-cond-tag-sell'}`}>
-                    {CONDITION_LABELS[c.type]}→{c.action === 'BUY' ? '买' : '卖'}
+                    {CONDITION_LABELS[c.type]}→{c.action === 'BUY' ? L['quant.buyShort'] : L['quant.sellShort']}
                   </span>
                 ))}
               </div>
@@ -240,10 +253,12 @@ interface StrategyEditorProps {
   strategy: Strategy;
   onSave: (partial: Partial<Strategy>) => void;
   onCancel: () => void;
+  L: TLabel;
 }
 
-const StrategyEditor: React.FC<StrategyEditorProps> = ({ strategy, onSave, onCancel }) => {
+const StrategyEditor: React.FC<StrategyEditorProps> = ({ strategy, onSave, onCancel, L }) => {
   const [draft, setDraft] = useState<Strategy>({ ...strategy });
+  const CONDITION_LABELS = buildConditionLabels(L);
 
   const update = (partial: Partial<Strategy>) => setDraft((d) => ({ ...d, ...partial }));
 
@@ -267,32 +282,32 @@ const StrategyEditor: React.FC<StrategyEditorProps> = ({ strategy, onSave, onCan
   return (
     <div className="quant-editor">
       <div className="quant-editor-header">
-        <span className="quant-editor-title">编辑策略</span>
+        <span className="quant-editor-title">{L['quant.editStrategy']}</span>
         <div className="quant-editor-actions">
-          <button className="quant-primary-btn" onClick={() => onSave(draft)}>保存</button>
-          <button className="quant-cancel-btn" onClick={onCancel}>取消</button>
+          <button className="quant-primary-btn" onClick={() => onSave(draft)}>{L['common.save']}</button>
+          <button className="quant-cancel-btn" onClick={onCancel}>{L['common.cancel']}</button>
         </div>
       </div>
 
       <div className="quant-editor-body">
         <div className="quant-form-row">
-          <label className="quant-form-label">策略名称</label>
+          <label className="quant-form-label">{L['quant.strategyName']}</label>
           <input className="quant-form-input" value={draft.name} onChange={(e) => update({ name: e.target.value })} />
         </div>
         <div className="quant-form-row">
-          <label className="quant-form-label">描述</label>
+          <label className="quant-form-label">{L['quant.description']}</label>
           <input className="quant-form-input" value={draft.description} onChange={(e) => update({ description: e.target.value })} />
         </div>
         <div className="quant-form-row">
-          <label className="quant-form-label">标的代码</label>
+          <label className="quant-form-label">{L['quant.symbolCode']}</label>
           <input className="quant-form-input" value={draft.symbol} onChange={(e) => update({ symbol: e.target.value })} />
         </div>
         <div className="quant-form-row">
-          <label className="quant-form-label">初始资金</label>
+          <label className="quant-form-label">{L['quant.initialCapital']}</label>
           <input className="quant-form-input" type="number" value={draft.initialCapital} onChange={(e) => update({ initialCapital: +e.target.value })} />
         </div>
 
-        <div className="quant-section-label">交易条件</div>
+        <div className="quant-section-label">{L['quant.tradeConditions']}</div>
         {draft.conditions.map((cond, i) => (
           <div key={i} className="quant-cond-editor">
             <select className="quant-cond-select" value={cond.type} onChange={(e) => updateCondition(i, { type: e.target.value as ConditionType })}>
@@ -301,46 +316,46 @@ const StrategyEditor: React.FC<StrategyEditorProps> = ({ strategy, onSave, onCan
               ))}
             </select>
             <select className="quant-cond-select" value={cond.action} onChange={(e) => updateCondition(i, { action: e.target.value as 'BUY' | 'SELL' })}>
-              <option value="BUY">买入</option>
-              <option value="SELL">卖出</option>
+              <option value="BUY">{L['order.buy']}</option>
+              <option value="SELL">{L['order.sell']}</option>
             </select>
             {cond.type === 'ma_cross' && (
               <>
-                <input className="quant-cond-input" type="number" value={cond.params.fast ?? 5} onChange={(e) => updateCondition(i, { params: { ...cond.params, fast: +e.target.value } })} title="快线周期" />
-                <input className="quant-cond-input" type="number" value={cond.params.slow ?? 20} onChange={(e) => updateCondition(i, { params: { ...cond.params, slow: +e.target.value } })} title="慢线周期" />
+                <input className="quant-cond-input" type="number" value={cond.params.fast ?? 5} onChange={(e) => updateCondition(i, { params: { ...cond.params, fast: +e.target.value } })} title="Fast" />
+                <input className="quant-cond-input" type="number" value={cond.params.slow ?? 20} onChange={(e) => updateCondition(i, { params: { ...cond.params, slow: +e.target.value } })} title="Slow" />
               </>
             )}
             {(cond.type === 'rsi_oversold' || cond.type === 'rsi_overbought') && (
-              <input className="quant-cond-input" type="number" value={cond.params.threshold ?? 30} onChange={(e) => updateCondition(i, { params: { ...cond.params, threshold: +e.target.value } })} title="RSI阈值" />
+              <input className="quant-cond-input" type="number" value={cond.params.threshold ?? 30} onChange={(e) => updateCondition(i, { params: { ...cond.params, threshold: +e.target.value } })} title="RSI" />
             )}
-            {cond.type === 'boll_break' && <span className="quant-cond-hint">布林带默认20,2</span>}
+            {cond.type === 'boll_break' && <span className="quant-cond-hint">BOLL 20,2</span>}
             {cond.type === 'price_cross' && (
-              <input className="quant-cond-input" type="number" value={cond.params.price ?? 0} onChange={(e) => updateCondition(i, { params: { ...cond.params, price: +e.target.value } })} title="目标价格" />
+              <input className="quant-cond-input" type="number" value={cond.params.price ?? 0} onChange={(e) => updateCondition(i, { params: { ...cond.params, price: +e.target.value } })} title="Price" />
             )}
             {cond.type === 'volume_surge' && (
-              <input className="quant-cond-input" type="number" value={cond.params.mult ?? 2} onChange={(e) => updateCondition(i, { params: { ...cond.params, mult: +e.target.value } })} title="放量倍数" />
+              <input className="quant-cond-input" type="number" value={cond.params.mult ?? 2} onChange={(e) => updateCondition(i, { params: { ...cond.params, mult: +e.target.value } })} title="Mult" />
             )}
             <button className="quant-mini-btn quant-mini-btn-red" onClick={() => removeCondition(i)}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
           </div>
         ))}
-        <button className="quant-add-cond-btn" onClick={addCondition}>+ 添加条件</button>
+        <button className="quant-add-cond-btn" onClick={addCondition}>{L['quant.addCondition']}</button>
 
-        <div className="quant-section-label">风控设置</div>
+        <div className="quant-section-label">{L['quant.riskSettings']}</div>
         <div className="quant-risk-grid">
           <div className="quant-risk-item">
-            <label className="quant-form-label">止损 (%)</label>
+            <label className="quant-form-label">{L['quant.stopLossPct']}</label>
             <input className="quant-form-input" type="number" value={draft.risk.stopLossPct} onChange={(e) => updateRisk({ stopLossPct: +e.target.value })} />
           </div>
           <div className="quant-risk-item">
-            <label className="quant-form-label">止盈 (%)</label>
+            <label className="quant-form-label">{L['quant.takeProfitPct']}</label>
             <input className="quant-form-input" type="number" value={draft.risk.takeProfitPct} onChange={(e) => updateRisk({ takeProfitPct: +e.target.value })} />
           </div>
           <div className="quant-risk-item">
-            <label className="quant-form-label">最大仓位 (%)</label>
+            <label className="quant-form-label">{L['quant.maxPositionPct']}</label>
             <input className="quant-form-input" type="number" value={draft.risk.maxPositionPct} onChange={(e) => updateRisk({ maxPositionPct: +e.target.value })} />
           </div>
           <div className="quant-risk-item">
-            <label className="quant-form-label">最大持仓周期</label>
+            <label className="quant-form-label">{L['quant.maxHoldingBars']}</label>
             <input className="quant-form-input" type="number" value={draft.risk.maxHoldingBars} onChange={(e) => updateRisk({ maxHoldingBars: +e.target.value })} />
           </div>
         </div>
@@ -355,9 +370,10 @@ interface BacktestTabProps {
   results: Record<string, BacktestResult>;
   onBacktest: (s: Strategy) => void;
   backtesting: string | null;
+  L: TLabel;
 }
 
-const BacktestTab: React.FC<BacktestTabProps> = ({ strategies, results, onBacktest, backtesting }) => {
+const BacktestTab: React.FC<BacktestTabProps> = ({ strategies, results, onBacktest, backtesting, L }) => {
   return (
     <div className="quant-tab-content">
       {strategies.map((s) => {
@@ -367,84 +383,84 @@ const BacktestTab: React.FC<BacktestTabProps> = ({ strategies, results, onBackte
             <div className="quant-card-header">
               <span className="quant-card-title">{s.name}</span>
               <button className="quant-primary-btn" onClick={() => onBacktest(s)} disabled={backtesting === s.id}>
-                {backtesting === s.id ? '回测中...' : '运行回测'}
+                {backtesting === s.id ? L['quant.backtesting'] : L['quant.runBacktest']}
               </button>
             </div>
             {result ? (
               <div className="quant-result-grid">
                 <div className="quant-result-item">
-                  <span className="quant-result-label">总收益率</span>
+                  <span className="quant-result-label">{L['quant.totalReturnPct']}</span>
                   <span className={`quant-result-value ${result.totalReturnPct >= 0 ? 'quant-result-value-up' : 'quant-result-value-down'}`}>
                     {result.totalReturnPct >= 0 ? '+' : ''}{result.totalReturnPct.toFixed(2)}%
                   </span>
                 </div>
                 <div className="quant-result-item">
-                  <span className="quant-result-label">总回报</span>
+                  <span className="quant-result-label">{L['quant.totalReturn']}</span>
                   <span className={`quant-result-value ${result.totalReturn >= 0 ? 'quant-result-value-up' : 'quant-result-value-down'}`}>
                     ¥{result.totalReturn.toFixed(0)}
                   </span>
                 </div>
                 <div className="quant-result-item">
-                  <span className="quant-result-label">胜率</span>
+                  <span className="quant-result-label">{L['quant.winRate']}</span>
                   <span className="quant-result-value">{result.winRate.toFixed(1)}%</span>
                 </div>
                 <div className="quant-result-item">
-                  <span className="quant-result-label">总交易</span>
+                  <span className="quant-result-label">{L['quant.totalTrades']}</span>
                   <span className="quant-result-value">{result.totalTrades}</span>
                 </div>
                 <div className="quant-result-item">
-                  <span className="quant-result-label">盈利交易</span>
+                  <span className="quant-result-label">{L['quant.winTrades']}</span>
                   <span className="quant-result-value quant-result-value-up">{result.winTrades}</span>
                 </div>
                 <div className="quant-result-item">
-                  <span className="quant-result-label">亏损交易</span>
+                  <span className="quant-result-label">{L['quant.lossTrades']}</span>
                   <span className="quant-result-value quant-result-value-down">{result.lossTrades}</span>
                 </div>
                 <div className="quant-result-item">
-                  <span className="quant-result-label">最大回撤</span>
+                  <span className="quant-result-label">{L['quant.maxDrawdown']}</span>
                   <span className="quant-result-value quant-result-value-down">{result.maxDrawdownPct.toFixed(2)}%</span>
                 </div>
                 <div className="quant-result-item">
-                  <span className="quant-result-label">夏普比率</span>
+                  <span className="quant-result-label">{L['quant.sharpeRatio']}</span>
                   <span className="quant-result-value">{result.sharpeRatio.toFixed(2)}</span>
                 </div>
                 <div className="quant-result-item">
-                  <span className="quant-result-label">盈亏比</span>
+                  <span className="quant-result-label">{L['quant.profitFactor']}</span>
                   <span className="quant-result-value">{result.profitFactor.toFixed(2)}</span>
                 </div>
                 <div className="quant-result-item">
-                  <span className="quant-result-label">平均盈利</span>
+                  <span className="quant-result-label">{L['quant.avgWin']}</span>
                   <span className="quant-result-value quant-result-value-up">¥{result.avgWin.toFixed(0)}</span>
                 </div>
                 <div className="quant-result-item">
-                  <span className="quant-result-label">平均亏损</span>
+                  <span className="quant-result-label">{L['quant.avgLoss']}</span>
                   <span className="quant-result-value quant-result-value-down">¥{result.avgLoss.toFixed(0)}</span>
                 </div>
                 <div className="quant-result-item">
-                  <span className="quant-result-label">期末资金</span>
+                  <span className="quant-result-label">{L['quant.finalCapital']}</span>
                   <span className="quant-result-value">¥{result.finalCapital.toFixed(0)}</span>
                 </div>
               </div>
             ) : (
-              <div className="quant-empty-hint">点击"运行回测"查看结果</div>
+              <div className="quant-empty-hint">{L['quant.backtestHint']}</div>
             )}
             {result && result.trades.length > 0 && (
               <div className="quant-trades-section">
-                <div className="quant-section-label">交易明细 (最近5条)</div>
+                <div className="quant-section-label">{L['quant.tradeDetails']}</div>
                 <table className="quant-trade-table">
                   <thead>
                     <tr>
-                      <th className="quant-trade-th">方向</th>
-                      <th className="quant-trade-th">入场价</th>
-                      <th className="quant-trade-th">出场价</th>
-                      <th className="quant-trade-th">盈亏</th>
-                      <th className="quant-trade-th">原因</th>
+                      <th className="quant-trade-th">{L['quant.thSide']}</th>
+                      <th className="quant-trade-th">{L['quant.thEntry']}</th>
+                      <th className="quant-trade-th">{L['quant.thExit']}</th>
+                      <th className="quant-trade-th">{L['quant.thPnl']}</th>
+                      <th className="quant-trade-th">{L['quant.thReason']}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {result.trades.slice(-5).reverse().map((t, i) => (
                       <tr key={i}>
-                        <td className={`quant-trade-td ${t.side === 'BUY' ? 'quant-trade-td-up' : 'quant-trade-td-down'}`}>{t.side === 'BUY' ? '买' : '卖'}</td>
+                        <td className={`quant-trade-td ${t.side === 'BUY' ? 'quant-trade-td-up' : 'quant-trade-td-down'}`}>{t.side === 'BUY' ? L['quant.buyShort'] : L['quant.sellShort']}</td>
                         <td className="quant-trade-td">{t.entryPrice.toFixed(2)}</td>
                         <td className="quant-trade-td">{t.exitPrice.toFixed(2)}</td>
                         <td className={`quant-trade-td ${t.pnl >= 0 ? 'quant-trade-td-up' : 'quant-trade-td-down'}`}>{t.pnlPct >= 0 ? '+' : ''}{t.pnlPct.toFixed(2)}%</td>
@@ -458,7 +474,7 @@ const BacktestTab: React.FC<BacktestTabProps> = ({ strategies, results, onBackte
           </div>
         );
       })}
-      {strategies.length === 0 && <div className="quant-empty-hint">请先在"策略"标签创建策略</div>}
+      {strategies.length === 0 && <div className="quant-empty-hint">{L['quant.createStrategyHint']}</div>}
     </div>
   );
 };
@@ -469,29 +485,30 @@ interface SignalsTabProps {
   onClear: () => void;
   onTest: (s: Strategy) => void;
   strategies: Strategy[];
+  L: TLabel;
 }
 
-const SignalsTab: React.FC<SignalsTabProps> = ({ signals, onClear, onTest, strategies }) => {
+const SignalsTab: React.FC<SignalsTabProps> = ({ signals, onClear, onTest, strategies, L }) => {
   return (
     <div className="quant-tab-content">
       <div className="quant-signals-header">
-        <span className="quant-section-label">实时信号</span>
+        <span className="quant-section-label">{L['quant.realtimeSignals']}</span>
         <div className="quant-signal-actions">
           {strategies.filter((s) => s.enabled).map((s) => (
-            <button key={s.id} className="quant-primary-btn" onClick={() => onTest(s)}>测试 {s.name}</button>
+            <button key={s.id} className="quant-primary-btn" onClick={() => onTest(s)}>{L['quant.test']} {s.name}</button>
           ))}
-          {signals.length > 0 && <button className="quant-cancel-btn" onClick={onClear}>清空</button>}
+          {signals.length > 0 && <button className="quant-cancel-btn" onClick={onClear}>{L['quant.clear']}</button>}
         </div>
       </div>
       {signals.length === 0 ? (
-        <div className="quant-empty-hint">暂无信号。运行策略后信号将自动生成。</div>
+        <div className="quant-empty-hint">{L['quant.noSignals']}</div>
       ) : (
         <div className="quant-signal-list">
           {signals.map((sig) => (
             <div key={sig.id} className="quant-signal-card">
               <div className="quant-signal-left">
                 <span className={`quant-signal-action ${sig.action === 'BUY' ? 'quant-signal-action-buy' : 'quant-signal-action-sell'}`}>
-                  {sig.action === 'BUY' ? '买入' : '卖出'}
+                  {sig.action === 'BUY' ? L['order.buy'] : L['order.sell']}
                 </span>
                 <span className="quant-signal-symbol">{sig.symbol}</span>
                 <span className="quant-signal-price">¥{sig.price.toFixed(2)}</span>
@@ -514,16 +531,17 @@ interface MonitorTabProps {
   strategies: Strategy[];
   runtimes: Record<string, StrategyRuntime>;
   onToggleRun: (s: Strategy) => void;
+  L: TLabel;
 }
 
-const MonitorTab: React.FC<MonitorTabProps> = ({ strategies, runtimes, onToggleRun }) => {
+const MonitorTab: React.FC<MonitorTabProps> = ({ strategies, runtimes, onToggleRun, L }) => {
   const runningStrategies = strategies.filter((s) => runtimes[s.id]?.status === 'running');
 
   return (
     <div className="quant-tab-content">
-      <div className="quant-section-label">运行中的策略</div>
+      <div className="quant-section-label">{L['quant.runningStrategies']}</div>
       {runningStrategies.length === 0 ? (
-        <div className="quant-empty-hint">暂无运行中的策略。在"策略"标签中点击"运行"启动策略。</div>
+        <div className="quant-empty-hint">{L['quant.noRunningStrategies']}</div>
       ) : (
         runningStrategies.map((s) => {
           const rt = runtimes[s.id];
@@ -532,34 +550,34 @@ const MonitorTab: React.FC<MonitorTabProps> = ({ strategies, runtimes, onToggleR
               <div className="quant-monitor-header">
                 <span className="quant-monitor-dot" />
                 <span className="quant-card-title">{s.name}</span>
-                <button className="quant-mini-btn quant-mini-btn-red" onClick={() => onToggleRun(s)}>停止</button>
+                <button className="quant-mini-btn quant-mini-btn-red" onClick={() => onToggleRun(s)}>{L['quant.stop']}</button>
               </div>
               <div className="quant-monitor-grid">
                 <div className="quant-monitor-item">
-                  <span className="quant-monitor-label">标的</span>
+                  <span className="quant-monitor-label">{L['quant.symbol']}</span>
                   <span className="quant-monitor-value">{s.symbol}</span>
                 </div>
                 <div className="quant-monitor-item">
-                  <span className="quant-monitor-label">运行时长</span>
-                  <span className="quant-monitor-value">{formatDuration(rt.startTime)}</span>
+                  <span className="quant-monitor-label">{L['quant.runtime']}</span>
+                  <span className="quant-monitor-value">{formatDuration(rt.startTime, L)}</span>
                 </div>
                 <div className="quant-monitor-item">
-                  <span className="quant-monitor-label">信号数</span>
+                  <span className="quant-monitor-label">{L['quant.signalCount']}</span>
                   <span className="quant-monitor-value">{rt.signalCount}</span>
                 </div>
                 <div className="quant-monitor-item">
-                  <span className="quant-monitor-label">持仓</span>
-                  <span className="quant-monitor-value">{rt.position > 0 ? `${rt.position}@${rt.entryPrice.toFixed(2)}` : '无持仓'}</span>
+                  <span className="quant-monitor-label">{L['quant.position']}</span>
+                  <span className="quant-monitor-value">{rt.position > 0 ? `${rt.position}@${rt.entryPrice.toFixed(2)}` : L['quant.noPosition']}</span>
                 </div>
                 <div className="quant-monitor-item">
-                  <span className="quant-monitor-label">已实现盈亏</span>
+                  <span className="quant-monitor-label">{L['quant.realizedPnl']}</span>
                   <span className={`quant-monitor-value ${rt.realizedPnl >= 0 ? 'quant-monitor-value-up' : 'quant-monitor-value-down'}`}>
                     ¥{rt.realizedPnl.toFixed(0)}
                   </span>
                 </div>
                 <div className="quant-monitor-item">
-                  <span className="quant-monitor-label">状态</span>
-                  <span className="quant-monitor-value quant-monitor-value-running">运行中</span>
+                  <span className="quant-monitor-label">{L['quant.status']}</span>
+                  <span className="quant-monitor-value quant-monitor-value-running">{L['quant.running']}</span>
                 </div>
               </div>
             </div>
@@ -570,13 +588,13 @@ const MonitorTab: React.FC<MonitorTabProps> = ({ strategies, runtimes, onToggleR
   );
 };
 
-function formatDuration(startTime: number): string {
+function formatDuration(startTime: number, L: TLabel): string {
   const diff = Date.now() - startTime;
   const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}分钟`;
+  if (mins < 60) return `${mins}${L['quant.durationMin']}`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}小时${mins % 60}分钟`;
-  return `${Math.floor(hours / 24)}天`;
+  if (hours < 24) return `${hours}${L['quant.durationHour']}${mins % 60}${L['quant.durationMin']}`;
+  return `${Math.floor(hours / 24)}${L['quant.durationDay']}`;
 }
 
 export default QuantPanel;

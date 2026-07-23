@@ -1,5 +1,7 @@
 import React from 'react';
 import { useStore } from '../../store';
+import { useTBatch } from '../../i18n';
+import type { TranslationKey } from '../../i18n';
 import {
   List,
   ArrowUpRight,
@@ -22,12 +24,20 @@ import './sidebar.css';
 
 interface NavItem {
   icon: React.ComponentType<{ size?: number }>;
-  label: string;
+  labelKey: TranslationKey;
   action: () => void;
   active: boolean;
 }
 
 const Sidebar: React.FC = () => {
+  const lang = useStore((s) => s.appSettings.language);
+  const L = useTBatch([
+    'sidebar.watchlist', 'sidebar.order', 'sidebar.dom', 'sidebar.quant',
+    'sidebar.screener', 'sidebar.ai', 'sidebar.alerts', 'sidebar.trades',
+    'sidebar.account', 'sidebar.winrate', 'sidebar.fundamentals', 'sidebar.calendar',
+    'sidebar.fullscreen', 'sidebar.exitFullscreen', 'sidebar.shortcuts', 'sidebar.settings',
+  ]);
+
   const showWatchlist = useStore((s) => s.showWatchlist);
   const showOrderPanel = useStore((s) => s.showOrderPanel);
   const showDOM = useStore((s) => s.showDOM);
@@ -59,18 +69,18 @@ const Sidebar: React.FC = () => {
   const setFullscreen = useStore((s) => s.setFullscreen);
 
   const topItems: NavItem[] = [
-    { icon: List, label: '自选列表', action: toggleWatchlist, active: showWatchlist },
-    { icon: ArrowUpRight, label: '下单交易', action: toggleOrderPanel, active: showOrderPanel },
-    { icon: Layers, label: '盘口深度', action: toggleDOM, active: showDOM },
-    { icon: LayoutGrid, label: '量化交易', action: toggleQuantPanel, active: showQuantPanel },
-    { icon: Search, label: '条件选股', action: toggleScreener, active: showScreener },
-    { icon: Brain, label: 'AI 分析', action: toggleAIChat, active: showAIChat },
-    { icon: Bell, label: '价格预警', action: toggleAlertPanel, active: showAlertPanel },
-    { icon: Receipt, label: '交易明细', action: toggleTradeList, active: showTradeList },
-    { icon: UserCircle, label: '账户详情', action: toggleAccountPanel, active: showAccountPanel },
-    { icon: Target, label: '胜率分析', action: toggleWinRate, active: showWinRate },
-    { icon: LineChart, label: '基本面', action: toggleFundamentals, active: showFundamentals },
-    { icon: CalendarDays, label: '财经日历', action: toggleCalendar, active: showCalendar },
+    { icon: List, labelKey: 'sidebar.watchlist', action: toggleWatchlist, active: showWatchlist },
+    { icon: ArrowUpRight, labelKey: 'sidebar.order', action: toggleOrderPanel, active: showOrderPanel },
+    { icon: Layers, labelKey: 'sidebar.dom', action: toggleDOM, active: showDOM },
+    { icon: LayoutGrid, labelKey: 'sidebar.quant', action: toggleQuantPanel, active: showQuantPanel },
+    { icon: Search, labelKey: 'sidebar.screener', action: toggleScreener, active: showScreener },
+    { icon: Brain, labelKey: 'sidebar.ai', action: toggleAIChat, active: showAIChat },
+    { icon: Bell, labelKey: 'sidebar.alerts', action: toggleAlertPanel, active: showAlertPanel },
+    { icon: Receipt, labelKey: 'sidebar.trades', action: toggleTradeList, active: showTradeList },
+    { icon: UserCircle, labelKey: 'sidebar.account', action: toggleAccountPanel, active: showAccountPanel },
+    { icon: Target, labelKey: 'sidebar.winrate', action: toggleWinRate, active: showWinRate },
+    { icon: LineChart, labelKey: 'sidebar.fundamentals', action: toggleFundamentals, active: showFundamentals },
+    { icon: CalendarDays, labelKey: 'sidebar.calendar', action: toggleCalendar, active: showCalendar },
   ];
 
   const handleFullscreen = () => {
@@ -79,6 +89,7 @@ const Sidebar: React.FC = () => {
       api.toggleFullscreen().then((fs: boolean) => setFullscreen(fs));
     }
   };
+  void lang;
 
   return (
     <div className="sidebar">
@@ -90,10 +101,10 @@ const Sidebar: React.FC = () => {
           const Icon = item.icon;
           return (
             <button
-              key={item.label}
+              key={item.labelKey}
               className={`sidebar-btn${item.active ? ' sidebar-btn-active' : ''}`}
               onClick={item.action}
-              title={item.label}
+              data-tooltip={L[item.labelKey]}
             >
               <Icon size={16} />
             </button>
@@ -101,13 +112,13 @@ const Sidebar: React.FC = () => {
         })}
       </nav>
       <div className="sidebar-footer">
-        <button className="sidebar-btn" onClick={handleFullscreen} title={isFullscreen ? '退出全屏' : '全屏'}>
+        <button className="sidebar-btn" onClick={handleFullscreen} data-tooltip={isFullscreen ? L['sidebar.exitFullscreen'] : L['sidebar.fullscreen']}>
           <Maximize2 size={16} />
         </button>
-        <button className="sidebar-btn" onClick={toggleShortcuts} title="快捷键">
+        <button className="sidebar-btn" onClick={toggleShortcuts} data-tooltip={L['sidebar.shortcuts']}>
           <Keyboard size={16} />
         </button>
-        <button className="sidebar-btn" onClick={() => setActivePanel('settings')} title="设置">
+        <button className="sidebar-btn" onClick={() => setActivePanel('settings')} data-tooltip={L['sidebar.settings']}>
           <Settings size={16} />
         </button>
       </div>

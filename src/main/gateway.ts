@@ -34,6 +34,24 @@ export class GatewayClient {
     this.win = win;
   }
 
+  private sendStatus() {
+    this.sendToRenderer('gateway:status:update', this.status);
+  }
+
+  private scheduleReconnect() {
+    if (this.reconnectTimer) return;
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      if (this.config) this.connect(this.config);
+    }, 5000);
+  }
+
+  private sendToRenderer(channel: string, data: any) {
+    if (this.win && !this.win.isDestroyed()) {
+      this.win.webContents.send(channel, data);
+    }
+  }
+
   getStatus(): GatewayStatus {
     return { ...this.status };
   }

@@ -20,7 +20,7 @@
   color: var(--text-primary);
 }
 .ai-chat-close {
-  background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 2px 6px;
+  background: none; border: none; color: #5d6070; cursor: pointer; font-size: 16px; padding: 2px 6px;
 }
 .ai-chat-close:hover { color: var(--text-primary); }
 .ai-chat-messages {
@@ -52,7 +52,7 @@
 }
 .ai-chat-msg-system {
   align-self: center;
-  color: var(--text-muted);
+  color: #5d6070;
   font-size: 11px;
   font-style: italic;
 }
@@ -87,7 +87,7 @@
 .ai-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
 .ai-chat-context {
   font-size: 10px;
-  color: var(--text-muted);
+  color: #5d6070;
   padding: 4px 14px;
   border-bottom: 1px solid var(--border);
 }

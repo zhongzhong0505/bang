@@ -3,6 +3,7 @@ import { useStore } from '../../store';
 import type { OverallWinRate, StockWinRate, MatchedTrade } from '../../../shared/types';
 import DatePicker from '../../components/DatePicker';
 import './analytics.css';
+import { useT, useTBatch } from '../../i18n';
 
 const MOCK_WIN_RATE: OverallWinRate = {
   "totalTrades": 17,
@@ -441,22 +442,10 @@ declare global {
 
 const fmtPct = (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
 const fmtNum = (v: number, dp = 2) => v.toFixed(dp);
-const fmtMoney = (v: number) => {
-  const sign = v >= 0 ? '' : '-';
-  const abs = Math.abs(v);
-  if (abs >= 10000) return `${sign}${(abs / 10000).toFixed(2)}万`;
-  return `${sign}${abs.toFixed(2)}`;
-};
 
 const fmtDate = (ts: number) => {
   const d = new Date(ts * 1000);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
-
-const fmtHoldTime = (seconds: number) => {
-  if (seconds < 3600) return `${Math.round(seconds / 60)}分钟`;
-  if (seconds < 86400) return `${(seconds / 3600).toFixed(1)}小时`;
-  return `${(seconds / 86400).toFixed(1)}天`;
 };
 
 type SortKey = 'winRate' | 'totalNetPnl' | 'totalTrades' | 'avgPnlPct';
@@ -475,6 +464,39 @@ const WinRatePanel: React.FC = () => {
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  const tr = useTBatch([
+    'winrate.title', 'winrate.mockBadge', 'winrate.startDate', 'winrate.endDate',
+    'winrate.to', 'winrate.query', 'winrate.close', 'winrate.loading',
+    'winrate.noData', 'winrate.noMatch', 'winrate.noMatchHint', 'winrate.confirmGateway',
+    'winrate.totalTrades', 'winrate.winRate', 'winrate.winTrades', 'winrate.lossTrades',
+    'winrate.totalNetPnl', 'winrate.avgPerTrade', 'winrate.profitFactor',
+    'winrate.totalFee', 'winrate.stockCount', 'winrate.stockDetail',
+    'winrate.thStock', 'winrate.thTrades', 'winrate.thWin', 'winrate.thLoss',
+    'winrate.thWinRate', 'winrate.thAvgPnlPct', 'winrate.thTotalNetPnl',
+    'winrate.thMaxWin', 'winrate.thMaxLoss', 'winrate.thTotalFee', 'winrate.thAvgHold',
+    'winrate.thBuyTime', 'winrate.thBuyPrice', 'winrate.thQty', 'winrate.thBuyFee',
+    'winrate.thSellTime', 'winrate.thSellPrice', 'winrate.thSellQty', 'winrate.thSellFee',
+    'winrate.thHoldTime', 'winrate.thGrossPnl', 'winrate.thTotalFee2', 'winrate.thNetPnl',
+    'winrate.thPnlPct', 'winrate.dataRange', 'winrate.bestStock', 'winrate.worstStock',
+    'winrate.analyzing', 'winrate.minute', 'winrate.hour', 'winrate.day',
+    'winrate.tenThousand', 'winrate.billion', 'winrate.trillion',
+  ]);
+
+  const fmtMoney = (v: number) => {
+    const sign = v >= 0 ? '' : '-';
+    const abs = Math.abs(v);
+    if (abs >= 1e12) return `${sign}${(abs / 1e12).toFixed(2)}${tr['winrate.trillion']}`;
+    if (abs >= 1e8) return `${sign}${(abs / 1e8).toFixed(2)}${tr['winrate.billion']}`;
+    if (abs >= 1e4) return `${sign}${(abs / 1e4).toFixed(2)}${tr['winrate.tenThousand']}`;
+    return `${sign}${abs.toFixed(2)}`;
+  };
+
+  const fmtHoldTime = (seconds: number) => {
+    if (seconds < 3600) return `${Math.round(seconds / 60)}${tr['winrate.minute']}`;
+    if (seconds < 86400) return `${(seconds / 3600).toFixed(1)}${tr['winrate.hour']}`;
+    return `${(seconds / 86400).toFixed(1)}${tr['winrate.day']}`;
+  };
 
  const fetchData = useCallback(async () => {
    const api = window.bangAPI;
@@ -558,47 +580,47 @@ const WinRatePanel: React.FC = () => {
     <div className="winrate-overlay" onClick={(e) => { if (e.target === e.currentTarget) toggleWinRate(); }}>
       <div className="winrate-panel">
        <div className="winrate-header">
-         <h2 className="winrate-title">交易胜率分析</h2>
-          {isMock && <span className="winrate-mock-badge">演示数据</span>}
+         <h2 className="winrate-title">{tr['winrate.title']}</h2>
+          {isMock && <span className="winrate-mock-badge">{tr['winrate.mockBadge']}</span>}
         <div className="winrate-controls">
             <DatePicker
               value={startDate}
               onChange={setStartDate}
-              placeholder="开始日期"
+              placeholder={tr['winrate.startDate']}
             />
-            <span style={{ color: 'var(--text-secondary)', fontSize: 12 }}>至</span>
+            <span style={{ color: '#9699a5', fontSize: 12 }}>{tr['winrate.to']}</span>
             <DatePicker
               value={endDate}
               onChange={setEndDate}
-              placeholder="结束日期"
+              placeholder={tr['winrate.endDate']}
             />
             <button className="winrate-btn" onClick={fetchData} disabled={loading}>
-              {loading ? '分析中...' : '查询'}
+              {loading ? tr['winrate.analyzing'] : tr['winrate.query']}
             </button>
-            <button className="winrate-btn winrate-btn-secondary" onClick={toggleWinRate}>关闭</button>
+            <button className="winrate-btn winrate-btn-secondary" onClick={toggleWinRate}>{tr['winrate.close']}</button>
           </div>
         </div>
 
         <div className="winrate-body">
-          {loading && <div className="winrate-loading">正在拉取历史成交记录并分析...</div>}
+          {loading && <div className="winrate-loading">{tr['winrate.loading']}</div>}
 
           {error && (
             <div className="winrate-empty">
               <span style={{ color: 'var(--red)' }}>{error}</span>
-              <span>请确认网关已连接，且券商支持历史成交记录查询</span>
+              <span>{tr['winrate.confirmGateway']}</span>
             </div>
           )}
 
           {!loading && !error && !winRateData && (
             <div className="winrate-empty">
-              <span>暂无数据，点击「查询」获取分析结果</span>
+              <span>{tr['winrate.noData']}</span>
             </div>
           )}
 
           {!loading && !error && winRateData && winRateData.totalTrades === 0 && (
             <div className="winrate-empty">
-              <span>未找到匹配的买卖记录</span>
-              <span style={{ fontSize: 12 }}>请确认所选时间范围内有已完成的交易</span>
+              <span>{tr['winrate.noMatch']}</span>
+              <span style={{ fontSize: 12 }}>{tr['winrate.noMatchHint']}</span>
             </div>
           )}
 
@@ -607,70 +629,70 @@ const WinRatePanel: React.FC = () => {
               {/* Summary cards */}
               <div className="winrate-summary">
                 <div className="winrate-stat-card">
-                  <div className="winrate-stat-label">总交易次数</div>
+                  <div className="winrate-stat-label">{tr['winrate.totalTrades']}</div>
                   <div className="winrate-stat-value">{winRateData.totalTrades}</div>
                 </div>
                 <div className="winrate-stat-card">
-                  <div className="winrate-stat-label">胜率</div>
+                  <div className="winrate-stat-label">{tr['winrate.winRate']}</div>
                   <div className={`winrate-stat-value winrate-winrate ${winRateData.winRate >= 50 ? 'positive' : 'negative'}`}>
                     {winRateData.winRate.toFixed(1)}%
                   </div>
                 </div>
                 <div className="winrate-stat-card">
-                  <div className="winrate-stat-label">盈利次数</div>
+                  <div className="winrate-stat-label">{tr['winrate.winTrades']}</div>
                   <div className="winrate-stat-value positive">{winRateData.winTrades}</div>
                 </div>
                 <div className="winrate-stat-card">
-                  <div className="winrate-stat-label">亏损次数</div>
+                  <div className="winrate-stat-label">{tr['winrate.lossTrades']}</div>
                   <div className="winrate-stat-value negative">{winRateData.lossTrades}</div>
                 </div>
                 <div className="winrate-stat-card">
-                  <div className="winrate-stat-label">总净盈亏</div>
+                  <div className="winrate-stat-label">{tr['winrate.totalNetPnl']}</div>
                   <div className={`winrate-stat-value ${winRateData.totalNetPnl >= 0 ? 'positive' : 'negative'}`}>
                     {fmtMoney(winRateData.totalNetPnl)}
                   </div>
                 </div>
                 <div className="winrate-stat-card">
-                  <div className="winrate-stat-label">平均每笔盈亏</div>
+                  <div className="winrate-stat-label">{tr['winrate.avgPerTrade']}</div>
                   <div className={`winrate-stat-value ${winRateData.avgNetPnl >= 0 ? 'positive' : 'negative'}`}>
                     {fmtMoney(winRateData.avgNetPnl)}
                   </div>
                 </div>
                <div className="winrate-stat-card">
-                 <div className="winrate-stat-label">盈亏比</div>
+                 <div className="winrate-stat-label">{tr['winrate.profitFactor']}</div>
                  <div className="winrate-stat-value">
                    {winRateData.profitFactor === Infinity ? '∞' : winRateData.profitFactor.toFixed(2)}
                  </div>
                </div>
                 <div className="winrate-stat-card">
-                  <div className="winrate-stat-label">总交易费用</div>
-                  <div className="winrate-stat-value" style={{ color: 'var(--text-muted)' }}>
+                  <div className="winrate-stat-label">{tr['winrate.totalFee']}</div>
+                  <div className="winrate-stat-value" style={{ color: '#5d6070' }}>
                     {fmtMoney(winRateData.totalFee)}
                   </div>
                 </div>
                <div className="winrate-stat-card">
-                 <div className="winrate-stat-label">交易标的数</div>
+                 <div className="winrate-stat-label">{tr['winrate.stockCount']}</div>
                  <div className="winrate-stat-value">{winRateData.stockRates.length}</div>
                </div>
               </div>
 
               {/* Per-stock table */}
               <div className="winrate-table-section">
-                <div className="winrate-section-title">个股胜率明细</div>
+                <div className="winrate-section-title">{tr['winrate.stockDetail']}</div>
                 <table className="winrate-table">
                   <thead>
                     <tr>
-                      <th>股票</th>
-                      <th onClick={() => handleSort('totalTrades')} style={{ cursor: 'pointer' }}>交易次数</th>
-                      <th>盈利</th>
-                      <th>亏损</th>
-                      <th onClick={() => handleSort('winRate')} style={{ cursor: 'pointer' }}>胜率</th>
-                      <th onClick={() => handleSort('avgPnlPct')} style={{ cursor: 'pointer' }}>平均盈亏%</th>
-                      <th onClick={() => handleSort('totalNetPnl')} style={{ cursor: 'pointer' }}>总净盈亏</th>
-                     <th>最大盈利</th>
-                     <th>最大亏损</th>
-                      <th>总费用</th>
-                     <th>平均持仓</th>
+                      <th>{tr['winrate.thStock']}</th>
+                      <th onClick={() => handleSort('totalTrades')} style={{ cursor: 'pointer' }}>{tr['winrate.thTrades']}</th>
+                      <th>{tr['winrate.thWin']}</th>
+                      <th>{tr['winrate.thLoss']}</th>
+                      <th onClick={() => handleSort('winRate')} style={{ cursor: 'pointer' }}>{tr['winrate.winRate']}</th>
+                      <th onClick={() => handleSort('avgPnlPct')} style={{ cursor: 'pointer' }}>{tr['winrate.thAvgPnlPct']}</th>
+                      <th onClick={() => handleSort('totalNetPnl')} style={{ cursor: 'pointer' }}>{tr['winrate.totalNetPnl']}</th>
+                     <th>{tr['winrate.thMaxWin']}</th>
+                     <th>{tr['winrate.thMaxLoss']}</th>
+                      <th>{tr['winrate.thTotalFee']}</th>
+                     <th>{tr['winrate.thAvgHold']}</th>
                    </tr>
                  </thead>
                  <tbody>
@@ -693,7 +715,7 @@ const WinRatePanel: React.FC = () => {
                          </td>
                          <td className="positive">{fmtMoney(stock.maxWin)}</td>
                          <td className="negative">{fmtMoney(stock.maxLoss)}</td>
-                          <td style={{ color: 'var(--text-muted)' }}>{fmtMoney(stock.totalFee)}</td>
+                          <td style={{ color: '#5d6070' }}>{fmtMoney(stock.totalFee)}</td>
                          <td>{fmtHoldTime(stock.avgHoldSeconds)}</td>
                        </tr>
                         {expandedStock === stock.code && (
@@ -703,19 +725,19 @@ const WinRatePanel: React.FC = () => {
                                <table className="winrate-trade-table">
                                  <thead>
                                    <tr>
-                                     <th>买入时间</th>
-                                     <th>买入价</th>
-                                     <th>数量</th>
-                                      <th>买入费</th>
-                                     <th>卖出时间</th>
-                                     <th>卖出价</th>
-                                     <th>数量</th>
-                                      <th>卖出费</th>
-                                     <th>持仓时间</th>
-                                     <th>毛盈亏</th>
-                                      <th>总费用</th>
-                                     <th>净盈亏</th>
-                                     <th>盈亏%</th>
+                                     <th>{tr['winrate.thBuyTime']}</th>
+                                     <th>{tr['winrate.thBuyPrice']}</th>
+                                     <th>{tr['winrate.thQty']}</th>
+                                      <th>{tr['winrate.thBuyFee']}</th>
+                                     <th>{tr['winrate.thSellTime']}</th>
+                                     <th>{tr['winrate.thSellPrice']}</th>
+                                     <th>{tr['winrate.thQty']}</th>
+                                      <th>{tr['winrate.thSellFee']}</th>
+                                     <th>{tr['winrate.thHoldTime']}</th>
+                                     <th>{tr['winrate.thGrossPnl']}</th>
+                                      <th>{tr['winrate.thTotalFee']}</th>
+                                     <th>{tr['winrate.thNetPnl']}</th>
+                                     <th>{tr['winrate.thPnlPct']}</th>
                                    </tr>
                                  </thead>
                                  <tbody>
@@ -724,16 +746,16 @@ const WinRatePanel: React.FC = () => {
                                        <td>{fmtDate(t.buyTime)}</td>
                                        <td>{fmtNum(t.buyPrice)}</td>
                                        <td>{t.buyQty}</td>
-                                        <td style={{ color: 'var(--text-muted)' }}>{fmtMoney(t.buyFee)}</td>
+                                        <td style={{ color: '#5d6070' }}>{fmtMoney(t.buyFee)}</td>
                                        <td>{fmtDate(t.sellTime)}</td>
                                        <td>{fmtNum(t.sellPrice)}</td>
                                        <td>{t.sellQty}</td>
-                                        <td style={{ color: 'var(--text-muted)' }}>{fmtMoney(t.sellFee)}</td>
+                                        <td style={{ color: '#5d6070' }}>{fmtMoney(t.sellFee)}</td>
                                        <td>{fmtHoldTime(t.holdSeconds)}</td>
                                        <td className={t.pnl >= 0 ? 'positive' : 'negative'}>
                                          {fmtMoney(t.pnl)}
                                        </td>
-                                        <td style={{ color: 'var(--text-muted)' }}>{fmtMoney(t.totalFee)}</td>
+                                        <td style={{ color: '#5d6070' }}>{fmtMoney(t.totalFee)}</td>
                                        <td className={t.netPnl >= 0 ? 'positive' : 'negative'}>
                                          {fmtMoney(t.netPnl)}
                                        </td>
@@ -754,12 +776,12 @@ const WinRatePanel: React.FC = () => {
                 </table>
               </div>
 
-              <div style={{ marginTop: 12, color: 'var(--text-secondary)', fontSize: 11 }}>
-                数据范围: {fmtDate(winRateData.startDate)} ~ {fmtDate(winRateData.endDate)}
+              <div style={{ marginTop: 12, color: '#9699a5', fontSize: 11 }}>
+                {tr['winrate.dataRange']}: {fmtDate(winRateData.startDate)} ~ {fmtDate(winRateData.endDate)}
                 {' | '}
-                最赚钱标的: <span style={{ color: 'var(--green)' }}>{winRateData.bestStock}</span>
+                {tr['winrate.bestStock']}: <span style={{ color: 'var(--green)' }}>{winRateData.bestStock}</span>
                 {' | '}
-                最亏钱标的: <span style={{ color: 'var(--red)' }}>{winRateData.worstStock}</span>
+                {tr['winrate.worstStock']}: <span style={{ color: 'var(--red)' }}>{winRateData.worstStock}</span>
               </div>
             </>
           )}

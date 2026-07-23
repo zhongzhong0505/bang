@@ -12,19 +12,19 @@
   flex: 1;
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: #9699a5;
   padding: 8px 0;
   font-size: 12px;
   cursor: pointer;
   border-bottom: 2px solid transparent;
   transition: all 0.15s;
 }
-.order-tab:hover { color: var(--text-secondary); }
+.order-tab:hover { color: var(--text-primary); }
 .order-tab-active { color: var(--text-primary); border-bottom-color: var(--accent); }
 .order-form { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
 .order-symbol-row { display: flex; align-items: baseline; gap: 6px; }
 .order-symbol-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
-.order-symbol-code { font-size: 11px; color: var(--text-muted); }
+.order-symbol-code { font-size: 11px; color: #5d6070; }
 .order-side-toggle { display: flex; gap: 4px; }
 .order-side-btn {
   flex: 1;
@@ -32,7 +32,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: transparent;
-  color: var(--text-secondary);
+  color: #9699a5;
   font-size: 13px;
   cursor: pointer;
   transition: all 0.15s;
@@ -40,7 +40,7 @@
 .order-side-buy-active { background: var(--green-bg); color: var(--green); border-color: var(--green); }
 .order-side-sell-active { background: var(--red-bg); color: var(--red); border-color: var(--red); }
 .order-field { display: flex; flex-direction: column; gap: 4px; }
-.order-label { font-size: 11px; color: var(--text-muted); }
+.order-label { font-size: 11px; color: #5d6070; }
 .order-input {
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
@@ -67,7 +67,7 @@
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   border-radius: 3px;
-  color: var(--text-secondary);
+  color: #9699a5;
   font-size: 11px;
   cursor: pointer;
 }
@@ -83,13 +83,13 @@
 }
 .order-submit-buy { background: var(--green); }
 .order-submit-sell { background: var(--red); }
-.order-price-info { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+.order-price-info { display: flex; justify-content: space-between; font-size: 12px; color: #5d6070; }
 .order-table-container { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 8px; }
 .order-table { width: 100%; border-collapse: collapse; font-size: 11px; }
 .order-th {
   text-align: left;
   padding: 8px 4px;
-  color: var(--text-muted);
+  color: #5d6070;
   font-weight: 500;
   border-bottom: 1px solid var(--border);
   font-size: 10px;
@@ -128,9 +128,9 @@
   display: flex;
   justify-content: space-between;
   padding: 2px 0;
-  color: var(--text-secondary);
+  color: #9699a5;
 }
-.order-fee-label { color: var(--text-muted); }
+.order-fee-label { color: #5d6070; }
 .order-fee-value { font-family: var(--font-mono); color: var(--text-primary); }
 .order-fee-total {
   border-top: 1px solid var(--border);
@@ -173,7 +173,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-secondary);
+  color: #9699a5;
   padding: 4px 0;
 }
 .order-ai-spinner {
@@ -200,7 +200,7 @@
   font-weight: 600;
 }
 .order-ai-score {
-  color: var(--text-secondary);
+  color: #9699a5;
   font-family: var(--font-mono);
 }
 .order-ai-recommendation {
@@ -210,7 +210,7 @@
 .order-ai-close {
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: #5d6070;
   font-size: 14px;
   cursor: pointer;
   padding: 0 2px;
@@ -242,7 +242,7 @@
 }
 
 .order-ai-analysis {
-  color: var(--text-secondary);
+  color: #9699a5;
   line-height: 1.5;
   max-height: 120px;
   overflow-y: auto;
@@ -257,14 +257,14 @@
   align-items: center;
   padding: 8px;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: #9699a5;
   border-bottom: 1px solid var(--border);
 }
 .order-refresh-btn {
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   border-radius: 3px;
-  color: var(--text-secondary);
+  color: #9699a5;
   font-size: 11px;
   padding: 3px 8px;
   cursor: pointer;
@@ -273,7 +273,7 @@
 
 /* Bracket / OCO order styles */
 .order-bracket-toggle { display: flex; align-items: center; padding: 4px 0; }
-.order-bracket-label { font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.order-bracket-label { font-size: 11px; color: #9699a5; display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .order-bracket-label input[type="checkbox"] { accent-color: var(--accent); }
 .order-bracket-fields { display: flex; gap: 8px; }
 .order-bracket-fields .order-field { flex: 1; }

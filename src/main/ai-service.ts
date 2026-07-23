@@ -23,6 +23,7 @@ import fs from 'fs';
 import crypto from 'crypto';
 import type { AISettings, AIEvaluationContext, AIEvaluationResult, AIChatMessage, AIProvider, AIProviderPreset } from '../shared/types';
 import { DEFAULT_AI_SETTINGS, AI_PROVIDER_PRESETS } from '../shared/types';
+import { buildSkillPrompt } from './ai-skills';
 
 const AI_CONFIG_FILE = path.join(app.getPath('userData'), 'ai-config.json');
 
@@ -38,6 +39,9 @@ export function loadAISettings(): AISettings {
         ...DEFAULT_AI_SETTINGS,
         ...parsed,
         tencentTokenPlan: { ...DEFAULT_AI_SETTINGS.tencentTokenPlan, ...(parsed.tencentTokenPlan ?? {}) },
+        skills: { ...DEFAULT_AI_SKILLS, ...(parsed.skills ?? {}) },
+        customSkills: Array.isArray(parsed.customSkills) ? parsed.customSkills : [],
+        skillhubUrl: parsed.skillhubUrl ?? '',
       };
       return cachedSettings;
     }
@@ -54,6 +58,9 @@ export function saveAISettings(settings: Partial<AISettings>): AISettings {
     ...current,
     ...settings,
     tencentTokenPlan: { ...current.tencentTokenPlan, ...(settings.tencentTokenPlan ?? {}) },
+    skills: { ...current.skills, ...(settings.skills ?? {}) },
+    customSkills: settings.customSkills ?? current.customSkills ?? [],
+    skillhubUrl: settings.skillhubUrl ?? current.skillhubUrl ?? '',
   };
   cachedSettings = merged;
   try {
@@ -275,7 +282,7 @@ function buildChatRequest(
 
   if (settings.provider === 'claude') {
     // Claude: system is a top-level field, not a message role; endpoint is /v1/messages
-    const systemContent = messages.find((m) => m.role === 'system')?.content ?? settings.systemPrompt;
+    const systemContent = messages.find((m) => m.role === 'system')?.content ?? buildSystemPrompt(settings);
     const chatMessages = messages
       .filter((m) => m.role !== 'system')
       .map((m) => ({ role: m.role, content: m.content }));
@@ -433,6 +440,17 @@ function isConfigured(settings: AISettings): boolean {
   return !!settings.apiKey;
 }
 
+
+/** Build the full system prompt by combining the base prompt with enabled skill context. */
+function buildSystemPrompt(settings: AISettings): string {
+  const parts: string[] = [settings.systemPrompt];
+  const skillPrompt = buildSkillPrompt(settings.skills ?? {}, settings.customSkills ?? []);
+  if (skillPrompt) {
+    parts.push("\n\n# Enabled AI Skills\n", skillPrompt);
+  }
+  return parts.join("");
+}
+
 export async function evaluateOrder(ctx: AIEvaluationContext): Promise<AIEvaluationResult> {
   const settings = loadAISettings();
   if (!settings.enabled || !isConfigured(settings)) {
@@ -449,7 +467,7 @@ export async function evaluateOrder(ctx: AIEvaluationContext): Promise<AIEvaluat
 
   const prompt = buildEvaluationPrompt(ctx);
   const messages: AIChatMessage[] = [
-    { role: 'system', content: settings.systemPrompt },
+    { role: 'system', content: buildSystemPrompt(settings) },
     { role: 'user', content: prompt },
   ];
 
@@ -504,7 +522,7 @@ export async function streamChat(
   }
 
   const fullMessages: AIChatMessage[] = [
-    { role: 'system', content: settings.systemPrompt },
+    { role: 'system', content: buildSystemPrompt(settings) },
     ...messages,
   ];
 
@@ -533,4 +551,83 @@ export async function streamChat(
   }
 
   return fullText;
+}
+
+// ===== Calendar =====
+
+export interface AICalendarResult {
+  events: Array<{
+    type: string;
+    title: string;
+    code?: string;
+    name?: string;
+    date: string;
+    time?: string;
+    importance: string;
+    country?: string;
+    actual?: string;
+    forecast?: string;
+    previous?: string;
+    description?: string;
+  }>;
+}
+
+export async function fetchCalendarEvents(date: string): Promise<AICalendarResult | null> {
+  const settings = loadAISettings();
+  if (!settings.enabled || !isConfigured(settings)) {
+    return null;
+  }
+
+  const prompt = `You are a financial calendar data assistant. Return today's major financial events for ${date} as a JSON array.
+
+Include: earnings reports, dividend ex-dates, key economic data releases, IPOs, and stock splits.
+Focus on US, HK, and CN markets. Prioritize high-impact events.
+
+Each event must have:
+- type: one of "earnings", "dividend", "economic", "ipo", "split"
+- title: event description (in the market's language — Chinese for HK/CN, English for US)
+- code: stock code if applicable (e.g. "US.AAPL", "HK.00700", "SH.600519")
+- name: company/indicator name
+- date: "${date}" (YYYY-MM-DD)
+- time: scheduled time in HH:MM format (use market timezone: US=ET, HK=HKT, CN=CST)
+- importance: "high", "medium", or "low"
+- country: "US", "HK", or "CN"
+- actual: actual value if released (empty string if not yet released)
+- forecast: consensus forecast/estimate
+- previous: previous period value
+- description: brief note (optional)
+
+Return ONLY a JSON object with a single key "events" containing the array. No markdown, no commentary.
+Example: {"events": [{"type":"economic","title":"US Nonfarm Payrolls","date":"${date}","time":"08:30","importance":"high","country":"US","actual":"","forecast":"180K","previous":"206K"}]}`;
+
+  const messages: AIChatMessage[] = [
+    { role: 'system', content: 'You are a precise financial data API. Return only valid JSON. No explanations.' },
+    { role: 'user', content: prompt },
+  ];
+
+  try {
+    const { url, body } = buildChatRequest(settings, messages, {
+      temperature: 0.1,
+      maxTokens: 4000,
+      jsonMode: true,
+    });
+
+    const response = await httpPostJSON(url, body, settings);
+    const content = extractContent(response, settings.provider) ?? '{}';
+
+    let parsed: any;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      const match = content.match(/\{[\s\S]*\}/);
+      parsed = match ? JSON.parse(match[0]) : null;
+    }
+
+    if (parsed && Array.isArray(parsed.events)) {
+      return parsed as AICalendarResult;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }

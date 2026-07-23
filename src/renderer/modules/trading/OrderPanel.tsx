@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import './order-panel.css';
 import { useStore } from '../../store';
+import { useTBatch, t } from '../../i18n';
 import type { OrderSide, OrderType, TradeRecord, AIEvaluationResult, AIEvaluationContext } from '../../../shared/types';
 import { getMarketFromCode, getCurrencyFromMarket } from '../../../shared/types';
 import { calculateFees, calculateNetAmount } from '../../utils/fee-calculator';
@@ -36,6 +37,8 @@ const OrderPanel: React.FC = () => {
   const [modifyOrderId, setModifyOrderId] = useState<string | null>(null);
   const [modifyPrice, setModifyPrice] = useState('');
   const [modifyQty, setModifyQty] = useState('');
+
+  const L = useTBatch(['order.tabOrder', 'order.tabPositions', 'order.tabHistory', 'order.buy', 'order.sell', 'order.orderType', 'order.limitShort', 'order.marketShort', 'order.stopShort', 'order.stopLimitShort', 'order.price', 'order.quantity', 'order.quantityPlaceholder', 'order.bracketOrder', 'order.takeProfit', 'order.stopLoss', 'order.takeProfitPlaceholder', 'order.stopLossPlaceholder', 'order.aiAnalyzing', 'order.highRisk', 'order.mediumRisk', 'order.lowRisk', 'order.riskScore', 'order.reject', 'order.caution', 'order.proceed', 'order.suggestionLabel', 'order.evaluating', 'order.aiEvaluate', 'order.amount', 'order.payable', 'order.receivable', 'order.currentPrice', 'order.positionsList', 'order.ordersList', 'order.refresh', 'order.thSecurity', 'order.thPosition', 'order.thCost', 'order.thPnl', 'order.thSide', 'order.thPrice', 'order.thQty', 'order.thStatus', 'order.thAction', 'order.buyShort', 'order.sellShort', 'order.marketShort2', 'order.statusSubmitted', 'order.statusPending', 'order.statusPartial', 'order.statusPendingCancel', 'order.statusFilled', 'order.statusCancelled', 'order.statusRejected', 'order.modify', 'order.cancel', 'order.cancelling', 'order.modifyOrder', 'order.newPrice', 'order.newQty', 'order.confirmModify', 'order.aiEvalFailed', 'order.manualEval', 'common.cancel'] as any);
 
   // AI evaluation state
   const [aiEvaluating, setAiEvaluating] = useState(false);
@@ -150,7 +153,7 @@ const OrderPanel: React.FC = () => {
     } catch (err: any) {
       setAiResult({
         riskLevel: 'medium', riskScore: 50, positionRatio: 0,
-        warnings: [`AI 评估失败: ${err.message}`], suggestion: '建议手动评估',
+       warnings: [`${t('order.aiEvalFailed' as any)}: ${err.message}`], suggestion: t('order.manualEval' as any),
         recommendation: 'caution', analysis: err.message,
       });
     }
@@ -179,7 +182,7 @@ const OrderPanel: React.FC = () => {
       <div className="order-tabs">
         {(['order', 'positions', 'history'] as const).map((tab) => (
           <button key={tab} className={`order-tab${activeTab === tab ? ' order-tab-active' : ''}`} onClick={() => setActiveTab(tab)}>
-            {tab === 'order' ? '下单' : tab === 'positions' ? '持仓' : '委托'}
+            {tab === 'order' ? L['order.tabOrder'] : tab === 'positions' ? L['order.tabPositions'] : L['order.tabHistory']}
           </button>
         ))}
       </div>
@@ -191,27 +194,27 @@ const OrderPanel: React.FC = () => {
             <span className="order-symbol-code">{currentCode}</span>
           </div>
           <div className="order-side-toggle">
-            <button className={`order-side-btn${side === 'BUY' ? ' order-side-buy-active' : ''}`} onClick={() => setSide('BUY')}>买入</button>
-            <button className={`order-side-btn${side === 'SELL' ? ' order-side-sell-active' : ''}`} onClick={() => setSide('SELL')}>卖出</button>
+            <button className={`order-side-btn${side === 'BUY' ? ' order-side-buy-active' : ''}`} onClick={() => setSide('BUY')}>{L['order.buy']}</button>
+            <button className={`order-side-btn${side === 'SELL' ? ' order-side-sell-active' : ''}`} onClick={() => setSide('SELL')}>{L['order.sell']}</button>
           </div>
           <div className="order-field">
-            <label className="order-label">订单类型</label>
+            <label className="order-label">{L['order.orderType']}</label>
             <select className="order-select" value={orderType} onChange={(e) => setOrderType(e.target.value as OrderType)}>
-              <option value="LIMIT">限价单</option>
-              <option value="MARKET">市价单</option>
-              <option value="STOP">止损单</option>
-              <option value="STOP_LIMIT">止损限价</option>
+              <option value="LIMIT">{L['order.limitShort']}</option>
+              <option value="MARKET">{L['order.marketShort']}</option>
+              <option value="STOP">{L['order.stopShort']}</option>
+              <option value="STOP_LIMIT">{L['order.stopLimitShort']}</option>
             </select>
           </div>
           {orderType !== 'MARKET' && (
             <div className="order-field">
-              <label className="order-label">价格</label>
+              <label className="order-label">{L['order.price']}</label>
               <input className="order-input" type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} />
             </div>
           )}
           <div className="order-field">
-            <label className="order-label">数量</label>
-            <input className="order-input" type="number" step="100" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="输入数量" />
+            <label className="order-label">{L['order.quantity']}</label>
+            <input className="order-input" type="number" step="100" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder={L['order.quantityPlaceholder']} />
           </div>
           <div className="order-quick-qty">
             {[100, 200, 500, 1000].map((q) => (
@@ -223,18 +226,18 @@ const OrderPanel: React.FC = () => {
           <div className="order-bracket-toggle">
             <label className="order-bracket-label">
               <input type="checkbox" checked={showBracket} onChange={(e) => setShowBracket(e.target.checked)} />
-              条件单 (止盈/止损)
+              {L['order.bracketOrder']}
             </label>
           </div>
           {showBracket && (
             <div className="order-bracket-fields">
               <div className="order-field">
-                <label className="order-label">止盈价</label>
-                <input className="order-input" type="number" step="0.01" value={takeProfitPrice} onChange={(e) => setTakeProfitPrice(e.target.value)} placeholder="止盈价" />
+                <label className="order-label">{L['order.takeProfit']}</label>
+                <input className="order-input" type="number" step="0.01" value={takeProfitPrice} onChange={(e) => setTakeProfitPrice(e.target.value)} placeholder={L['order.takeProfitPlaceholder']} />
               </div>
               <div className="order-field">
-                <label className="order-label">止损价</label>
-                <input className="order-input" type="number" step="0.01" value={stopLossPrice} onChange={(e) => setStopLossPrice(e.target.value)} placeholder="止损价" />
+                <label className="order-label">{L['order.stopLoss']}</label>
+                <input className="order-input" type="number" step="0.01" value={stopLossPrice} onChange={(e) => setStopLossPrice(e.target.value)} placeholder={L['order.stopLossPlaceholder']} />
               </div>
             </div>
           )}
@@ -245,18 +248,18 @@ const OrderPanel: React.FC = () => {
               {aiEvaluating && (
                 <div className="order-ai-loading">
                   <div className="order-ai-spinner" />
-                  <span>AI 正在分析订单风险...</span>
+                  <span>{L['order.aiAnalyzing']}</span>
                 </div>
               )}
               {aiResult && !aiEvaluating && (
                 <>
                   <div className="order-ai-header">
                     <span className="order-ai-risk-badge" style={{ background: `${riskColor}22`, color: riskColor, borderColor: riskColor }}>
-                      {aiResult.riskLevel === 'high' ? '高风险' : aiResult.riskLevel === 'medium' ? '中风险' : '低风险'}
+                      {aiResult.riskLevel === 'high' ? L['order.highRisk'] : aiResult.riskLevel === 'medium' ? L['order.mediumRisk'] : L['order.lowRisk']}
                     </span>
-                    <span className="order-ai-score">风险评分: {aiResult.riskScore}/100</span>
+                    <span className="order-ai-score">{L['order.riskScore']}: {aiResult.riskScore}/100</span>
                     <span className="order-ai-recommendation" style={{ color: aiResult.recommendation === 'reject' ? 'var(--red)' : aiResult.recommendation === 'caution' ? '#f59e0b' : 'var(--green)' }}>
-                      {aiResult.recommendation === 'reject' ? '不建议' : aiResult.recommendation === 'caution' ? '谨慎操作' : '可以操作'}
+                      {aiResult.recommendation === 'reject' ? L['order.reject'] : aiResult.recommendation === 'caution' ? L['order.caution'] : L['order.proceed']}
                     </span>
                     <button className="order-ai-close" onClick={() => setShowAIPanel(false)}>x</button>
                   </div>
@@ -267,7 +270,7 @@ const OrderPanel: React.FC = () => {
                   )}
                   {aiResult.suggestion && (
                     <div className="order-ai-suggestion">
-                      <span className="order-ai-suggestion-label">建议</span>
+                      <span className="order-ai-suggestion-label">{L['order.suggestionLabel']}</span>
                       <span className="order-ai-suggestion-text">{aiResult.suggestion}</span>
                     </div>
                   )}
@@ -278,16 +281,16 @@ const OrderPanel: React.FC = () => {
           )}
 
           <button className="order-ai-btn" onClick={handleAIEvaluate} disabled={!feePreview || aiEvaluating}>
-            {aiEvaluating ? '评估中...' : 'AI 评估'}
+            {aiEvaluating ? L['order.evaluating'] : L['order.aiEvaluate']}
           </button>
 
           <button className={`order-submit ${side === 'BUY' ? 'order-submit-buy' : 'order-submit-sell'}`} onClick={handleSubmit}>
-            {side === 'BUY' ? '买入' : '卖出'} {currentName}
+            {side === 'BUY' ? L['order.buy'] : L['order.sell']} {currentName}
           </button>
           {feePreview && (
             <div className="order-fee-preview">
               <div className="order-fee-row">
-                <span className="order-fee-label">成交金额</span>
+                <span className="order-fee-label">{L['order.amount']}</span>
                 <span className="order-fee-value">{feePreview.amount.toFixed(2)} {feePreview.currency}</span>
               </div>
               {feePreview.feeBreakdown.fees.map((f, i) => (
@@ -297,18 +300,18 @@ const OrderPanel: React.FC = () => {
                 </div>
               ))}
               <div className="order-fee-row order-fee-total">
-                <span className="order-fee-label">费用合计</span>
+                <span className="order-fee-label">{L['order.totalFee']}</span>
                 <span className="order-fee-value">{feePreview.feeBreakdown.totalFee.toFixed(2)} {feePreview.currency}</span>
               </div>
               <div className="order-fee-row order-fee-net">
-                <span className="order-fee-label">{side === 'BUY' ? '应付总额' : '应收净额'}</span>
+                <span className="order-fee-label">{side === 'BUY' ? L['order.payable'] : L['order.receivable']}</span>
                 <span className="order-fee-value">{feePreview.netAmount.toFixed(2)} {feePreview.currency}</span>
               </div>
             </div>
           )}
           {currentSnap && (
             <div className="order-price-info">
-              <span>现价 <b className={currentSnap.changeVal >= 0 ? 'up' : 'down'}>{currentSnap.curPrice.toFixed(2)}</b></span>
+              <span>{L['order.currentPrice']} <b className={currentSnap.changeVal >= 0 ? 'up' : 'down'}>{currentSnap.curPrice.toFixed(2)}</b></span>
               <span className={currentSnap.changeVal >= 0 ? 'up' : 'down'}>
                 {currentSnap.changeVal >= 0 ? '+' : ''}{currentSnap.changeRate.toFixed(2)}%
               </span>
@@ -320,12 +323,12 @@ const OrderPanel: React.FC = () => {
       {activeTab === 'positions' && (
         <div className="order-table-container">
           <div className="order-table-header">
-            <span>持仓列表</span>
-            <button className="order-refresh-btn" onClick={loadData}>刷新</button>
+            <span>{L['order.positionsList']}</span>
+            <button className="order-refresh-btn" onClick={loadData}>{L['order.refresh']}</button>
           </div>
           <table className="order-table">
             <thead>
-              <tr><th className="order-th">证券</th><th className="order-th">持仓</th><th className="order-th">成本</th><th className="order-th">盈亏</th></tr>
+              <tr><th className="order-th">{L['order.thSecurity']}</th><th className="order-th">{L['order.thPosition']}</th><th className="order-th">{L['order.thCost']}</th><th className="order-th">{L['order.thPnl']}</th></tr>
             </thead>
             <tbody>
               {positions.map((p) => (
@@ -347,23 +350,23 @@ const OrderPanel: React.FC = () => {
       {activeTab === 'history' && (
         <div className="order-table-container">
           <div className="order-table-header">
-            <span>委托记录</span>
-            <button className="order-refresh-btn" onClick={loadData}>刷新</button>
+            <span>{L['order.ordersList']}</span>
+            <button className="order-refresh-btn" onClick={loadData}>{L['order.refresh']}</button>
           </div>
           <table className="order-table">
             <thead>
               <tr>
-                <th className="order-th">证券</th><th className="order-th">方向</th>
-                <th className="order-th">价格</th><th className="order-th">数量</th>
-                <th className="order-th">状态</th><th className="order-th">操作</th>
+                <th className="order-th">{L['order.thSecurity']}</th><th className="order-th">{L['order.thSide']}</th>
+                <th className="order-th">{L['order.thPrice']}</th><th className="order-th">{L['order.thQty']}</th>
+                <th className="order-th">{L['order.thStatus']}</th><th className="order-th">{L['order.thAction']}</th>
               </tr>
             </thead>
             <tbody>
               {orders.map((o) => (
                 <tr key={o.id} className="order-tr">
                   <td className="order-td"><div>{o.name}</div><div className="text-muted-sm">{o.code}</div></td>
-                  <td className={`order-td ${o.side === 'BUY' ? 'up' : 'down'}`}>{o.side === 'BUY' ? '买' : '卖'}</td>
-                  <td className="order-td">{o.type === 'MARKET' ? '市价' : o.price.toFixed(2)}</td>
+                  <td className={`order-td ${o.side === 'BUY' ? 'up' : 'down'}`}>{o.side === 'BUY' ? L['order.buyShort'] : L['order.sellShort']}</td>
+                  <td className="order-td">{o.type === 'MARKET' ? L['order.marketShort2'] : o.price.toFixed(2)}</td>
                   <td className="order-td">{o.qty}</td>
                   <td className="order-td">
                     <span className={`order-status ${
@@ -372,24 +375,24 @@ const OrderPanel: React.FC = () => {
                       o.status === 'PARTIAL' ? 'order-status-filled' :
                       'order-status-pending'
                     }`}>
-                      {o.status === 'SUBMITTED' ? '已报' :
-                        o.status === 'PENDING' ? '待报' :
-                        o.status === 'PARTIAL' ? '部成' :
-                        o.status === 'PENDING_CANCEL' ? '待撤' :
-                        o.status === 'FILLED' ? '已成' :
-                        o.status === 'CANCELLED' ? '已撤' :
-                        o.status === 'REJECTED' ? '废单' : o.status}
+                      {o.status === 'SUBMITTED' ? L['order.statusSubmitted'] :
+                       o.status === 'PENDING' ? L['order.statusPending'] :
+                       o.status === 'PARTIAL' ? L['order.statusPartial'] :
+                       o.status === 'PENDING_CANCEL' ? L['order.statusPendingCancel'] :
+                       o.status === 'FILLED' ? L['order.statusFilled'] :
+                       o.status === 'CANCELLED' ? L['order.statusCancelled'] :
+                       o.status === 'REJECTED' ? L['order.statusRejected'] : o.status}
                     </span>
                   </td>
                   <td className="order-td">
                     {(o.status === 'PENDING' || o.status === 'SUBMITTED' || o.status === 'PARTIAL') ? (
                       <div style={{ display: 'flex', gap: 4 }}>
                         <button className="order-action-btn order-action-modify"
-                          onClick={() => { setModifyOrderId(o.id); setModifyPrice(o.price.toFixed(2)); setModifyQty(String(o.qty)); }}>改单</button>
-                        <button className="order-action-btn order-action-cancel" onClick={() => handleCancelOrder(o.id)}>撤单</button>
+                          onClick={() => { setModifyOrderId(o.id); setModifyPrice(o.price.toFixed(2)); setModifyQty(String(o.qty)); }}>{L['order.modify']}</button>
+                        <button className="order-action-btn order-action-cancel" onClick={() => handleCancelOrder(o.id)}>{L['order.cancel']}</button>
                       </div>
                     ) : o.status === 'PENDING_CANCEL' ? (
-                      <span className="text-muted-sm">撤单中</span>
+                      <span className="text-muted-sm">{L['order.cancelling']}</span>
                     ) : (
                       <span className="text-muted-sm">—</span>
                     )}
@@ -400,18 +403,18 @@ const OrderPanel: React.FC = () => {
           </table>
           {modifyOrderId && (
             <div className="order-modify-dialog">
-              <div className="order-modify-title">修改委托 {modifyOrderId}</div>
+              <div className="order-modify-title">{L['order.modifyOrder']} {modifyOrderId}</div>
               <div className="order-field">
-                <label className="order-label">新价格</label>
+                <label className="order-label">{L['order.newPrice']}</label>
                 <input className="order-input" type="number" step="0.01" value={modifyPrice} onChange={(e) => setModifyPrice(e.target.value)} />
               </div>
               <div className="order-field">
-                <label className="order-label">新数量</label>
+                <label className="order-label">{L['order.newQty']}</label>
                 <input className="order-input" type="number" step="100" value={modifyQty} onChange={(e) => setModifyQty(e.target.value)} />
               </div>
               <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <button className="order-submit order-submit-buy" style={{ flex: 1 }} onClick={handleModifyOrder}>确认改单</button>
-                <button className="order-submit" style={{ flex: 1, background: 'var(--bg-tertiary)' }} onClick={() => setModifyOrderId(null)}>取消</button>
+                <button className="order-submit order-submit-buy" style={{ flex: 1 }} onClick={handleModifyOrder}>{L['order.confirmModify']}</button>
+                <button className="order-submit" style={{ flex: 1, background: 'var(--bg-tertiary)' }} onClick={() => setModifyOrderId(null)}>{L['common.cancel']}</button>
               </div>
             </div>
           )}

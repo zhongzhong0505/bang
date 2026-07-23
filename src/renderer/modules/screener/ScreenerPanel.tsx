@@ -3,32 +3,26 @@ import { useStore } from '../../store';
 import type { ScreenerFilter, ScreenerResult, Market } from '../../../shared/types';
 import { DEFAULT_SCREENER_FILTER } from '../../../shared/types';
 import './screener.css';
+import { useT, useTBatch } from '../../i18n';
 
-const MARKETS: { label: string; value: Market | 'ALL' }[] = [
-  { label: '全部', value: 'ALL' },
-  { label: '港股', value: 'HK' },
-  { label: '美股', value: 'US' },
-  { label: '沪A', value: 'SH' },
-  { label: '深A', value: 'SZ' },
-];
+const MARKET_KEYS: Record<string, string> = {
+  ALL: 'screener.allMarkets', HK: 'screener.marketHK', US: 'screener.marketUS', SH: 'screener.marketSH', SZ: 'screener.marketSZ',
+};
 
-const SORT_OPTIONS = [
-  { label: '涨跌幅', value: 'changeRate' },
-  { label: '成交量', value: 'volume' },
-  { label: '成交额', value: 'turnover' },
-  { label: '价格', value: 'price' },
-];
+const SORT_KEYS: Record<string, string> = {
+  changeRate: 'screener.sortChangeRate', volume: 'screener.sortVolume', turnover: 'screener.sortTurnover', price: 'screener.sortPrice',
+};
 
-const formatNum = (n: number, digits = 2) => {
-  if (n >= 1e12) return (n / 1e12).toFixed(digits) + '万亿';
-  if (n >= 1e8) return (n / 1e8).toFixed(digits) + '亿';
-  if (n >= 1e4) return (n / 1e4).toFixed(digits) + '万';
+const formatNum = (n: number, digits = 2, tr?: Record<string, string>) => {
+  if (n >= 1e12) return (n / 1e12).toFixed(digits) + (tr?.['winrate.trillion'] ?? 'T');
+  if (n >= 1e8) return (n / 1e8).toFixed(digits) + (tr?.['winrate.billion'] ?? 'B');
+  if (n >= 1e4) return (n / 1e4).toFixed(digits) + (tr?.['winrate.tenThousand'] ?? 'K');
   return n.toFixed(digits);
 };
 
-const formatVolume = (n: number) => {
-  if (n >= 1e8) return (n / 1e8).toFixed(2) + '亿';
-  if (n >= 1e4) return (n / 1e4).toFixed(0) + '万';
+const formatVolume = (n: number, tr?: Record<string, string>) => {
+  if (n >= 1e8) return (n / 1e8).toFixed(2) + (tr?.['winrate.billion'] ?? 'B');
+  if (n >= 1e4) return (n / 1e4).toFixed(0) + (tr?.['winrate.tenThousand'] ?? 'K');
   return n.toString();
 };
 
@@ -42,6 +36,14 @@ const ScreenerPanel: React.FC = () => {
 
   const [sortCol, setSortCol] = useState<string>('changeRate');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const tr = useTBatch([
+    'screener.title', 'screener.market', 'screener.minPrice', 'screener.maxPrice',
+    'screener.noLimit', 'screener.changeRate', 'screener.sort', 'screener.search',
+    'screener.thCode', 'screener.thName', 'screener.thPrice', 'screener.thChange',
+    'screener.thVolume', 'screener.thTurnover', 'screener.thPE', 'screener.thMarketCap',
+    'winrate.trillion', 'winrate.billion', 'winrate.tenThousand',
+  ] + Object.values(MARKET_KEYS) + Object.values(SORT_KEYS) as any);
 
   const handleSearch = useCallback(async () => {
     const api = window.bangAPI;
@@ -75,53 +77,53 @@ const ScreenerPanel: React.FC = () => {
     <div className="screener-overlay" onClick={(e) => { if (e.target === e.currentTarget) toggleScreener(); }}>
       <div className="screener-panel">
         <div className="screener-header">
-          <span>条件选股</span>
+          <span>{tr['screener.title']}</span>
           <button className="screener-close" onClick={toggleScreener}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
         </div>
         <div className="screener-filters">
           <div className="screener-filter-group">
-            <span className="screener-filter-label">市场</span>
+            <span className="screener-filter-label">{tr['screener.market']}</span>
             <select className="screener-filter-select" value={screenerFilter.market}
               onChange={(e) => setScreenerFilter({ market: e.target.value as any })}>
-              {MARKETS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+              {Object.entries(MARKET_KEYS).map(([v, k]) => <option key={v} value={v}>{tr[k as any]}</option>)}
             </select>
           </div>
           <div className="screener-filter-group">
-            <span className="screener-filter-label">最低价</span>
+            <span className="screener-filter-label">{tr['screener.minPrice']}</span>
             <input className="screener-filter-input" type="number" placeholder="0"
               value={screenerFilter.minPrice || ''} onChange={(e) => setScreenerFilter({ minPrice: +e.target.value || 0 })} />
           </div>
           <div className="screener-filter-group">
-            <span className="screener-filter-label">最高价</span>
-            <input className="screener-filter-input" type="number" placeholder="不限"
+            <span className="screener-filter-label">{tr['screener.maxPrice']}</span>
+            <input className="screener-filter-input" type="number" placeholder={tr['screener.noLimit']}
               value={screenerFilter.maxPrice || ''} onChange={(e) => setScreenerFilter({ maxPrice: +e.target.value || 0 })} />
           </div>
           <div className="screener-filter-group">
-            <span className="screener-filter-label">涨跌幅(%)</span>
-            <input className="screener-filter-input" type="number" placeholder="不限"
+            <span className="screener-filter-label">{tr['screener.changeRate']}</span>
+            <input className="screener-filter-input" type="number" placeholder={tr['screener.noLimit']}
               value={screenerFilter.minChangeRate || ''} onChange={(e) => setScreenerFilter({ minChangeRate: +e.target.value || 0 })} />
           </div>
           <div className="screener-filter-group">
-            <span className="screener-filter-label">排序</span>
+            <span className="screener-filter-label">{tr['screener.sort']}</span>
             <select className="screener-filter-select" value={screenerFilter.sortBy}
               onChange={(e) => setScreenerFilter({ sortBy: e.target.value as any })}>
-              {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              {Object.entries(SORT_KEYS).map(([v, k]) => <option key={v} value={v}>{tr[k as any]}</option>)}
             </select>
           </div>
-          <button className="screener-search-btn" onClick={handleSearch}>筛选</button>
+          <button className="screener-search-btn" onClick={handleSearch}>{tr['screener.search']}</button>
         </div>
         <div className="screener-results">
           <table className="screener-table">
             <thead>
               <tr>
-                <th onClick={() => handleSort('code')}>代码</th>
-                <th>名称</th>
-                <th onClick={() => handleSort('price')}>最新价{sortCol === 'price' && <span className="screener-sort-arrow">{sortDir === 'asc' ? '↑' : '↓'}</span>}</th>
-                <th onClick={() => handleSort('changeRate')}>涨跌幅{sortCol === 'changeRate' && <span className="screener-sort-arrow">{sortDir === 'asc' ? '↑' : '↓'}</span>}</th>
-                <th onClick={() => handleSort('volume')}>成交量{sortCol === 'volume' && <span className="screener-sort-arrow">{sortDir === 'asc' ? '↑' : '↓'}</span>}</th>
-                <th onClick={() => handleSort('turnover')}>成交额{sortCol === 'turnover' && <span className="screener-sort-arrow">{sortDir === 'asc' ? '↑' : '↓'}</span>}</th>
+                <th onClick={() => handleSort('code')}>{tr['screener.thCode']}</th>
+                <th>{tr['screener.thName']}</th>
+                <th onClick={() => handleSort('price')}>{tr['screener.thPrice']}{sortCol === 'price' && <span className="screener-sort-arrow">{sortDir === 'asc' ? '↑' : '↓'}</span>}</th>
+                <th onClick={() => handleSort('changeRate')}>{tr['screener.thChange']}{sortCol === 'changeRate' && <span className="screener-sort-arrow">{sortDir === 'asc' ? '↑' : '↓'}</span>}</th>
+                <th onClick={() => handleSort('volume')}>{tr['screener.thVolume']}{sortCol === 'volume' && <span className="screener-sort-arrow">{sortDir === 'asc' ? '↑' : '↓'}</span>}</th>
+                <th onClick={() => handleSort('turnover')}>{tr['screener.thTurnover']}{sortCol === 'turnover' && <span className="screener-sort-arrow">{sortDir === 'asc' ? '↑' : '↓'}</span>}</th>
                 <th onClick={() => handleSort('peRatio')}>PE{sortCol === 'peRatio' && <span className="screener-sort-arrow">{sortDir === 'asc' ? '↑' : '↓'}</span>}</th>
-                <th onClick={() => handleSort('marketCap')}>市值{sortCol === 'marketCap' && <span className="screener-sort-arrow">{sortDir === 'asc' ? '↑' : '↓'}</span>}</th>
+                <th onClick={() => handleSort('marketCap')}>{tr['screener.thMarketCap']}{sortCol === 'marketCap' && <span className="screener-sort-arrow">{sortDir === 'asc' ? '↑' : '↓'}</span>}</th>
               </tr>
             </thead>
             <tbody>
@@ -131,10 +133,10 @@ const ScreenerPanel: React.FC = () => {
                   <td>{r.name}</td>
                   <td>{r.price.toFixed(2)}</td>
                   <td className={r.changeRate > 0 ? 'up' : r.changeRate < 0 ? 'down' : ''}>{r.changeRate > 0 ? '+' : ''}{r.changeRate.toFixed(2)}%</td>
-                  <td>{formatVolume(r.volume)}</td>
-                  <td>{formatNum(r.turnover)}</td>
+                  <td>{formatVolume(r.volume, tr)}</td>
+                  <td>{formatNum(r.turnover, 2, tr)}</td>
                   <td>{r.peRatio.toFixed(1)}</td>
-                  <td>{formatNum(r.marketCap)}</td>
+                  <td>{formatNum(r.marketCap, 2, tr)}</td>
                 </tr>
               ))}
             </tbody>

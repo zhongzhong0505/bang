@@ -1,6 +1,7 @@
 import type { CalendarEvent, CalendarEventType } from '../shared/types';
+import { fetchCalendarEvents } from './ai-service';
 
-// Mock calendar events — in production this would fetch from financial data APIs
+// Mock calendar events — used as fallback when AI is not configured
 function generateMockEvents(date: string): CalendarEvent[] {
   const d = date || new Date().toISOString().split('T')[0];
 
@@ -33,6 +34,39 @@ function generateMockEvents(date: string): CalendarEvent[] {
   return events;
 }
 
-export function getCalendarEvents(date?: string): CalendarEvent[] {
-  return generateMockEvents(date || new Date().toISOString().split('T')[0]);
+const VALID_TYPES = new Set<string>(['earnings', 'dividend', 'economic', 'ipo', 'split']);
+const VALID_IMPORTANCE = new Set<string>(['high', 'medium', 'low']);
+
+export async function getCalendarEvents(date?: string): Promise<{ events: CalendarEvent[]; source: 'ai' | 'mock' }> {
+  const d = date || new Date().toISOString().split('T')[0];
+
+  // Try AI first
+  try {
+    const aiResult = await fetchCalendarEvents(d);
+    if (aiResult && aiResult.events.length > 0) {
+      const events: CalendarEvent[] = aiResult.events
+        .filter((e) => VALID_TYPES.has(e.type) && VALID_IMPORTANCE.has(e.importance))
+        .map((e, i) => ({
+          id: `ai-${i}`,
+          type: e.type as CalendarEventType,
+          title: e.title,
+          code: e.code,
+          name: e.name,
+          date: e.date || d,
+          time: e.time,
+          importance: e.importance as 'high' | 'medium' | 'low',
+          country: e.country,
+          actual: e.actual ?? '',
+          forecast: e.forecast ?? '',
+          previous: e.previous ?? '',
+          description: e.description,
+        }));
+      return { events, source: 'ai' };
+    }
+  } catch {
+    // AI failed, fall through to mock
+  }
+
+  // Fallback to mock
+  return { events: generateMockEvents(d), source: 'mock' };
 }

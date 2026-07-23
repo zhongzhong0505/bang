@@ -1,26 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../store';
+import { useTBatch } from '../../i18n';
 import { COMPARISON_STOCK_LIST } from '../../../shared/types';
 import type { SymbolSearchResult, SubType, ChartLayout } from '../../../shared/types';
 import './toolbar.css';
 
-const SUB_TYPES: { label: string; value: SubType }[] = [
+const SUB_TYPES_MIN: { label: string; value: SubType }[] = [
   { label: '1m', value: '1' }, { label: '5m', value: '5' },
   { label: '15m', value: '15' }, { label: '30m', value: '30' }, { label: '1h', value: '60' },
-  { label: '日K', value: 'DAY' }, { label: '周K', value: 'WEEK' }, { label: '月K', value: 'MONTH' },
-];
-
-const CHART_TYPES = [
-  { label: 'K线', value: 'candle' }, { label: '空心K', value: 'hollow' },
-  { label: '阳线K', value: 'heikin' }, { label: '柱状', value: 'bar' },
-  { label: '折线', value: 'line' }, { label: '面积', value: 'area' },
 ];
 
 const INDICATORS_MAIN = ['MA5', 'MA10', 'MA20', 'MA60', 'EMA12', 'EMA26', 'BOLL', 'SAR', 'VWAP'];
 const INDICATORS_SUB = ['MACD', 'KDJ', 'RSI', 'STOCH', 'WR', 'CCI', 'OBV', 'ATR', 'ADX'];
 
-const CHART_LAYOUTS: { label: string; value: ChartLayout }[] = [
-  { label: '单图', value: 'single' }, { label: '2×1', value: '2x1' },
+const CHART_LAYOUTS_FIXED: { label: string; value: ChartLayout }[] = [
+  { label: '2×1', value: '2x1' },
   { label: '1×2', value: '1x2' }, { label: '2×2', value: '2x2' },
 ];
 
@@ -87,9 +81,26 @@ const Toolbar: React.FC = () => {
   const [compareResults, setCompareResults] = useState<SymbolSearchResult[]>(COMPARISON_STOCK_LIST.filter(s => s.code !== currentCode));
   const [compareLoading, setCompareLoading] = useState(false);
   const compareSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const L = useTBatch(['toolbar.searchStock', 'toolbar.day', 'toolbar.week', 'toolbar.month', 'toolbar.morePeriods', 'toolbar.candle', 'toolbar.hollow', 'toolbar.heikin', 'toolbar.bar', 'toolbar.line', 'toolbar.area', 'toolbar.mainIndicators', 'toolbar.subIndicators', 'toolbar.searching', 'toolbar.noMatch', 'toolbar.addedComparisons', 'toolbar.layout', 'toolbar.singleChart', 'toolbar.chartTools', 'toolbar.chipDistribution', 'toolbar.volumeProfile', 'toolbar.klineReplay', 'toolbar.searchPlaceholder', 'toolbar.indicators', 'toolbar.compare'] as any);
+
+  const SUB_TYPES: { label: string; value: SubType }[] = [
+    ...SUB_TYPES_MIN,
+    { label: L['toolbar.day'], value: 'DAY' }, { label: L['toolbar.week'], value: 'WEEK' }, { label: L['toolbar.month'], value: 'MONTH' },
+  ];
+
+  const CHART_TYPES = [
+    { label: L['toolbar.candle'], value: 'candle' }, { label: L['toolbar.hollow'], value: 'hollow' },
+    { label: L['toolbar.heikin'], value: 'heikin' }, { label: L['toolbar.bar'], value: 'bar' },
+    { label: L['toolbar.line'], value: 'line' }, { label: L['toolbar.area'], value: 'area' },
+  ];
+
+  const CHART_LAYOUTS: { label: string; value: ChartLayout }[] = [
+    { label: L['toolbar.singleChart'], value: 'single' }, ...CHART_LAYOUTS_FIXED,
+  ];
+
+  const activeIndicatorCount = indicators.length;
 
   const currentChartLabel = CHART_TYPES.find((ct) => ct.value === chartType)?.label ?? chartType;
-  const activeIndicatorCount = indicators.length;
 
   // Debounced search: when gateway is connected, call OpenAPI; otherwise filter local list
   useEffect(() => {
@@ -148,7 +159,7 @@ const Toolbar: React.FC = () => {
   return (
     <div className="toolbar">
       <div className="toolbar-left">
-        <button className="toolbar-symbol-btn" onClick={toggleSymbolSearch} title="搜索股票">
+        <button className="toolbar-symbol-btn" onClick={toggleSymbolSearch} title={L['toolbar.searchStock']}>
           <span className="toolbar-symbol">{currentName}</span>
           <span className="toolbar-code">{currentCode}</span>
           <svg width="10" height="10" viewBox="0 0 10 10" className="toolbar-caret"><path d="M2 4l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.2"/></svg>
@@ -158,7 +169,7 @@ const Toolbar: React.FC = () => {
           {SUB_TYPES.slice(0, 5).map((t) => (
             <button key={t.value} className={`toolbar-btn${subType === t.value ? ' toolbar-btn-active' : ''}`} onClick={() => setSubType(t.value)}>{t.label}</button>
           ))}
-          <Dropdown trigger={<button className="toolbar-btn toolbar-btn-icon" title="更多周期"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 4l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.2"/></svg></button>}>
+          <Dropdown trigger={<button className="toolbar-btn toolbar-btn-icon" title={L['toolbar.morePeriods']}><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 4l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.2"/></svg></button>}>
             {(close) => SUB_TYPES.slice(5).map((t) => (
               <div key={t.value} className={`tb-menu-item${subType === t.value ? ' tb-menu-item-active' : ''}`} onClick={() => { setSubType(t.value); close(); }}>{t.label}</div>
             ))}
@@ -170,33 +181,33 @@ const Toolbar: React.FC = () => {
             <div key={ct.value} className={`tb-menu-item${chartType === ct.value ? ' tb-menu-item-active' : ''}`} onClick={() => { setChartType(ct.value as any); close(); }}>{ct.label}</div>
           ))}
         </Dropdown>
-        <Dropdown trigger={<button className="toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 8 Q4 2, 6 6 T11 2" fill="none" stroke="#2962ff" strokeWidth="1.2"/><circle cx="11" cy="2" r="1.2" fill="#2962ff"/></svg>指标{activeIndicatorCount > 0 ? ` (${activeIndicatorCount})` : ''}</button>}>
+        <Dropdown trigger={<button className="toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 8 Q4 2, 6 6 T11 2" fill="none" stroke="#2962ff" strokeWidth="1.2"/><circle cx="11" cy="2" r="1.2" fill="#2962ff"/></svg>{L['toolbar.indicators']}{activeIndicatorCount > 0 ? ` (${activeIndicatorCount})` : ''}</button>}>
           {(close) => (
             <>
-              <div className="tb-menu-section">主图指标</div>
+              <div className="tb-menu-section">{L['toolbar.mainIndicators']}</div>
               {INDICATORS_MAIN.map((ind) => (<div key={ind} className={`tb-menu-item${indicators.includes(ind) ? ' tb-menu-item-active' : ''}`} onClick={() => toggleIndicator(ind)}><span className="tb-menu-check">{indicators.includes(ind) ? '\u2713' : ''}</span>{ind}</div>))}
-              <div className="tb-menu-section">副图指标</div>
+              <div className="tb-menu-section">{L['toolbar.subIndicators']}</div>
               {INDICATORS_SUB.map((ind) => (<div key={ind} className={`tb-menu-item${indicators.includes(ind) ? ' tb-menu-item-active' : ''}`} onClick={() => toggleIndicator(ind)}><span className="tb-menu-check">{indicators.includes(ind) ? '\u2713' : ''}</span>{ind}</div>))}
             </>
           )}
         </Dropdown>
-        <Dropdown trigger={<button className="toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 9 Q4 3, 7 7 T11 3" fill="none" stroke="#2962ff" strokeWidth="1.2"/><path d="M1 7 Q4 5, 7 5 T11 1" fill="none" stroke="#f59e0b" strokeWidth="1.2"/></svg>对比{comparisonSymbols.length > 0 ? ` (${comparisonSymbols.length})` : ''}</button>}>
+        <Dropdown trigger={<button className="toolbar-btn"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 9 Q4 3, 7 7 T11 3" fill="none" stroke="#2962ff" strokeWidth="1.2"/><path d="M1 7 Q4 5, 7 5 T11 1" fill="none" stroke="#f59e0b" strokeWidth="1.2"/></svg>{L['toolbar.compare']}{comparisonSymbols.length > 0 ? ` (${comparisonSymbols.length})` : ''}</button>}>
           {(close) => (
             <>
               <div className="tb-compare-search-row">
                 <input
                   className="tb-compare-search"
-                  placeholder="搜索股票代码/名称..."
+                  placeholder={L['toolbar.searchPlaceholder']}
                   value={compareQuery}
                   onChange={(e) => setCompareQuery(e.target.value)}
                   autoFocus
                 />
               </div>
               {compareLoading && (
-                <div className="tb-menu-item" style={{ color: 'var(--text-muted)', pointerEvents: 'none' }}>搜索中...</div>
+                <div className="tb-menu-item" style={{ color: '#5d6070', pointerEvents: 'none' }}>{L['toolbar.searching']}</div>
               )}
               {!compareLoading && compareResults.length === 0 && (
-                <div className="tb-menu-item" style={{ color: 'var(--text-muted)', pointerEvents: 'none' }}>无匹配结果</div>
+                <div className="tb-menu-item" style={{ color: '#5d6070', pointerEvents: 'none' }}>{L['toolbar.noMatch']}</div>
               )}
               {compareResults.map((s) => (
                 <div key={s.code} className="tb-menu-item" onClick={() => { addComparison(s.code, s.name); setCompareQuery(''); }}>
@@ -205,23 +216,23 @@ const Toolbar: React.FC = () => {
                   <span className="tb-compare-code">{s.code}</span>
                 </div>
               ))}
-              {comparisonSymbols.length > 0 && (<><div className="tb-menu-section">已添加对比</div>{comparisonSymbols.map((c) => (
+              {comparisonSymbols.length > 0 && (<><div className="tb-menu-section">{L['toolbar.addedComparisons']}</div>{comparisonSymbols.map((c) => (
                 <div key={c.code} className="tb-menu-item" onClick={() => removeComparison(c.code)}><span className="tb-menu-check" style={{ color: c.color }}>●</span>{c.name}<span className="tb-menu-check" style={{ marginLeft: 'auto', color: '#ef5350' }}><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2.5 2.5l5 5M7.5 2.5l-5 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg></span></div>
               ))}</>)}
             </>
           )}
         </Dropdown>
-        <Dropdown trigger={<button className="toolbar-btn toolbar-btn-icon" title="布局"><svg width="12" height="12" viewBox="0 0 12 12"><rect x="1" y="1" width="4" height="4" fill="none" stroke="currentColor" strokeWidth="1"/><rect x="7" y="1" width="4" height="4" fill="none" stroke="currentColor" strokeWidth="1"/><rect x="1" y="7" width="4" height="4" fill="none" stroke="currentColor" strokeWidth="1"/><rect x="7" y="7" width="4" height="4" fill="none" stroke="currentColor" strokeWidth="1"/></svg></button>}>
+        <Dropdown trigger={<button className="toolbar-btn toolbar-btn-icon" title={L['toolbar.layout']}><svg width="12" height="12" viewBox="0 0 12 12"><rect x="1" y="1" width="4" height="4" fill="none" stroke="currentColor" strokeWidth="1"/><rect x="7" y="1" width="4" height="4" fill="none" stroke="currentColor" strokeWidth="1"/><rect x="1" y="7" width="4" height="4" fill="none" stroke="currentColor" strokeWidth="1"/><rect x="7" y="7" width="4" height="4" fill="none" stroke="currentColor" strokeWidth="1"/></svg></button>}>
           {(close) => CHART_LAYOUTS.map((l) => (
             <div key={l.value} className={`tb-menu-item${chartLayout === l.value ? ' tb-menu-item-active' : ''}`} onClick={() => { setChartLayout(l.value); close(); }}>{l.label}</div>
           ))}
         </Dropdown>
-        <Dropdown trigger={<button className="toolbar-btn toolbar-btn-icon" title="图表工具"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="2" cy="6" r="1.2" fill="currentColor"/><circle cx="6" cy="6" r="1.2" fill="currentColor"/><circle cx="10" cy="6" r="1.2" fill="currentColor"/></svg></button>}>
+        <Dropdown trigger={<button className="toolbar-btn toolbar-btn-icon" title={L['toolbar.chartTools']}><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="2" cy="6" r="1.2" fill="currentColor"/><circle cx="6" cy="6" r="1.2" fill="currentColor"/><circle cx="10" cy="6" r="1.2" fill="currentColor"/></svg></button>}>
           {(close) => (
             <>
-              <div className={`tb-menu-item${showChipDistribution ? ' tb-menu-item-active' : ''}`} onClick={() => { toggleChipDistribution(); close(); }}>筹码分布</div>
-              <div className={`tb-menu-item${showVolumeProfile ? ' tb-menu-item-active' : ''}`} onClick={() => { toggleVolumeProfile(); close(); }}>量分布</div>
-              <div className={`tb-menu-item${replayMode ? ' tb-menu-item-active' : ''}`} onClick={() => { toggleReplayMode(); close(); }}>K线回放</div>
+              <div className={`tb-menu-item${showChipDistribution ? ' tb-menu-item-active' : ''}`} onClick={() => { toggleChipDistribution(); close(); }}>{L['toolbar.chipDistribution']}</div>
+              <div className={`tb-menu-item${showVolumeProfile ? ' tb-menu-item-active' : ''}`} onClick={() => { toggleVolumeProfile(); close(); }}>{L['toolbar.volumeProfile']}</div>
+              <div className={`tb-menu-item${replayMode ? ' tb-menu-item-active' : ''}`} onClick={() => { toggleReplayMode(); close(); }}>{L['toolbar.klineReplay']}</div>
             </>
           )}
         </Dropdown>

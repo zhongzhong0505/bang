@@ -1,6 +1,7 @@
 import React, { useState, Suspense, lazy } from 'react';
 import './settings.css';
 import { useStore } from '../../store';
+import { useTBatch, useT } from '../../i18n';
 import type { GatewayConfig, GatewayStatus, FutuGatewayConfig, TigerGatewayConfig, GatewayProvider } from '../../../shared/types';
 import { DEFAULT_FUTU_CONFIG, DEFAULT_TIGER_CONFIG } from '../../../shared/types';
 import {
@@ -20,25 +21,40 @@ const FutuSettings = lazy(() => import('./FutuSettings'));
 const TigerSettings = lazy(() => import('./TigerSettings'));
 const AISettings = lazy(() => import('./AISettings'));
 
-const Loading = () => (
-  <div className="settings-loading">
-    <div className="settings-spinner" />
-    <span>加载中...</span>
-  </div>
-);
+const Loading = () => {
+  const text = useT('settings.loading');
+  return (
+    <div className="settings-loading">
+      <div className="settings-spinner" />
+      <span>{text}</span>
+    </div>
+  );
+};
 
 type SettingsCategory = 'general' | 'chart' | 'gateway' | 'trade' | 'ai';
 
-const NAV_ITEMS: { id: SettingsCategory; icon: React.ComponentType<{ size?: number }>; label: string }[] = [
-  { id: 'general', icon: Settings, label: '基础设置' },
-  { id: 'chart', icon: BarChart3, label: '图表设置' },
-  { id: 'gateway', icon: Network, label: '行情网关' },
-  { id: 'trade', icon: ArrowLeftRight, label: '交易设置' },
-  { id: 'ai', icon: Brain, label: 'AI 分析' },
+const NAV_ITEMS: { id: SettingsCategory; icon: React.ComponentType<{ size?: number }>; labelKey: string }[] = [
+  { id: 'general', icon: Settings, labelKey: 'settings.basic' },
+  { id: 'chart', icon: BarChart3, labelKey: 'settings.chart' },
+  { id: 'gateway', icon: Network, labelKey: 'settings.gatewayNav' },
+  { id: 'trade', icon: ArrowLeftRight, labelKey: 'settings.tradeNav' },
+  { id: 'ai', icon: Brain, labelKey: 'settings.ai' },
 ];
 
 const SettingsPage: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<SettingsCategory>('general');
+  const L = useTBatch([
+    'settings.basic', 'settings.chart', 'settings.gatewayNav', 'settings.tradeNav', 'settings.ai',
+    'settings.loading', 'settings.notConnected', 'settings.connectedHost', 'settings.loggedIn',
+    'settings.futuOpenD', 'settings.tigerOpenAPI', 'settings.saved', 'settings.saveConfig',
+    'settings.connecting', 'settings.connectGateway', 'settings.disconnectGateway',
+    'settings.instructions', 'settings.backToChart', 'settings.title',
+    'settings.generalSub', 'settings.chartSub', 'settings.gatewaySub', 'settings.tradeSub', 'settings.aiSub',
+    'settings.futuStep1Title', 'settings.futuStep1Desc', 'settings.futuStep2Title', 'settings.futuStep2Desc',
+    'settings.futuStep3Title', 'settings.futuStep3Desc', 'settings.futuStep4Title', 'settings.futuStep4Desc',
+    'settings.tigerStep1Title', 'settings.tigerStep1Desc', 'settings.tigerStep2Title', 'settings.tigerStep2Desc',
+    'settings.tigerStep3Title', 'settings.tigerStep3Desc', 'settings.tigerStep4Title', 'settings.tigerStep4Desc',
+  ] as any);
 
   // Gateway state
   const gatewayConfig = useStore((s) => s.gatewayConfig);
@@ -114,14 +130,14 @@ const SettingsPage: React.FC = () => {
                 onClick={() => setActiveProvider('futu')}
               >
                 <span className="settings-provider-icon">F</span>
-                富途 OpenD
+                {L['settings.futuOpenD']}
               </button>
               <button
                 className={`settings-provider-tab${activeProvider === 'tiger' ? ' settings-provider-tab-active' : ''}`}
                 onClick={() => setActiveProvider('tiger')}
               >
                 <span className="settings-provider-icon">T</span>
-                老虎 OpenAPI
+                {L['settings.tigerOpenAPI']}
               </button>
             </div>
 
@@ -130,18 +146,18 @@ const SettingsPage: React.FC = () => {
               <span className="settings-status-text">
                 {gatewayStatus.connected
                   ? gatewayStatus.provider === 'tiger'
-                    ? `已连接 ${gatewayStatus.host ?? ''}`
-                    : `已连接 ${gatewayStatus.host}:${gatewayStatus.port}`
-                  : '未连接'}
+                    ? `${L['settings.connectedHost']} ${gatewayStatus.host ?? ''}`
+                    : `${L['settings.connectedHost']} ${gatewayStatus.host}:${gatewayStatus.port}`
+                  : L['settings.notConnected']}
               </span>
               {gatewayStatus.loggedIn && (
-                <span className="settings-status-text up">&middot; 已登录</span>
+                <span className="settings-status-text up">&middot; {L['settings.loggedIn']}</span>
               )}
               {gatewayStatus.error && (
                 <span className="settings-status-text down">&middot; {gatewayStatus.error}</span>
               )}
               <span className="settings-status-text settings-status-text-meta">
-                {gatewayStatus.provider === 'futu' ? '富途 OpenD' : '老虎 OpenAPI'}
+                {gatewayStatus.provider === 'futu' ? L['settings.futuOpenD'] : L['settings.tigerOpenAPI']}
               </span>
             </div>
 
@@ -164,28 +180,28 @@ const SettingsPage: React.FC = () => {
 
             <div className="settings-actions">
               <button className="settings-save-btn" onClick={handleSave}>
-                {saved ? '✓ 已保存' : '保存配置'}
+                {saved ? L['settings.saved'] : L['settings.saveConfig']}
               </button>
               {!gatewayStatus.connected ? (
                 <button className="settings-connect-btn" onClick={handleConnect} disabled={connecting}>
-                  {connecting ? '连接中...' : '连接网关'}
+                  {connecting ? L['settings.connecting'] : L['settings.connectGateway']}
                 </button>
               ) : (
                 <button className="settings-disconnect-btn" onClick={handleDisconnect}>
-                  断开连接
+                  {L['settings.disconnectGateway']}
                 </button>
               )}
             </div>
 
             <div className="settings-card">
-              <h2 className="settings-card-title">使用说明</h2>
+              <h2 className="settings-card-title">{L['settings.instructions']}</h2>
               <div className="settings-instructions">
                 {activeProvider === 'futu' ? (
                   [
-                    { title: '下载安装 OpenD', desc: '从富途官网下载 OpenD 网关程序，支持 Windows / macOS / CentOS / Ubuntu' },
-                    { title: '启动并配置 OpenD', desc: '启动 OpenD，配置监听地址、端口等参数。若使用 WebSocket 连接，需配置 WebSocket 端口' },
-                    { title: '登录 OpenD', desc: '使用牛牛号（平台账号）和密码登录 OpenD。首次登录需完成问卷评估与协议确认' },
-                    { title: '连接并交易', desc: '在此页面填入 OpenD 的连接参数，点击"连接网关"即可开始获取行情和交易' },
+                    { title: L['settings.futuStep1Title'], desc: L['settings.futuStep1Desc'] },
+                    { title: L['settings.futuStep2Title'], desc: L['settings.futuStep2Desc'] },
+                    { title: L['settings.futuStep3Title'], desc: L['settings.futuStep3Desc'] },
+                    { title: L['settings.futuStep4Title'], desc: L['settings.futuStep4Desc'] },
                   ].map((s, i) => (
                     <div key={i} className="settings-step">
                       <span className="settings-step-num">{i + 1}</span>
@@ -197,10 +213,10 @@ const SettingsPage: React.FC = () => {
                   ))
                 ) : (
                   [
-                    { title: '注册开放平台', desc: '前往老虎证券开放平台 (open.itigerup.com) 注册开发者账号，创建应用获取 TigerID 和私钥' },
-                    { title: '获取 API 权限', desc: '在开放平台申请行情和交易权限，下载生成的 RSA 私钥文件（PKCS#1 格式）' },
-                    { title: '沙盒测试', desc: '先使用沙盒环境进行接口调试和功能验证，确保签名和请求格式正确' },
-                    { title: '切换生产环境', desc: '调试完成后将环境切换为 prod，填入真实交易账号，即可获取实时行情和下单交易' },
+                    { title: L['settings.tigerStep1Title'], desc: L['settings.tigerStep1Desc'] },
+                    { title: L['settings.tigerStep2Title'], desc: L['settings.tigerStep2Desc'] },
+                    { title: L['settings.tigerStep3Title'], desc: L['settings.tigerStep3Desc'] },
+                    { title: L['settings.tigerStep4Title'], desc: L['settings.tigerStep4Desc'] },
                   ].map((s, i) => (
                     <div key={i} className="settings-step">
                       <span className="settings-step-num">{i + 1}</span>
@@ -242,7 +258,7 @@ const SettingsPage: React.FC = () => {
                 onClick={() => setActiveCategory(item.id)}
               >
                 <span className="settings-nav-icon"><Icon size={15} /></span>
-                {item.label}
+                {L[item.labelKey as any]}
               </div>
             );
           })}
@@ -250,7 +266,7 @@ const SettingsPage: React.FC = () => {
         <div className="settings-sidebar-footer">
           <div className="settings-nav-item" onClick={() => setActivePanel('chart')}>
             <span className="settings-nav-icon"><ChevronLeft size={15} /></span>
-            返回行情交易
+            {L['settings.backToChart']}
           </div>
         </div>
       </div>
@@ -258,14 +274,14 @@ const SettingsPage: React.FC = () => {
       <div className="settings-content">
         <div className="settings-header">
           <h1 className="settings-title">
-            {NAV_ITEMS.find((n) => n.id === activeCategory)?.label ?? '设置'}
+            {L[NAV_ITEMS.find((n) => n.id === activeCategory)?.labelKey as any] ?? L['settings.title']}
           </h1>
           <span className="settings-subtitle">
-            {activeCategory === 'general' && '外观、语言、日期格式等基础设置'}
-            {activeCategory === 'chart' && 'K 线图配色、周期、指标等图表相关设置'}
-            {activeCategory === 'gateway' && '配置富途 OpenD 或老虎 OpenAPI 行情数据网关'}
-            {activeCategory === 'trade' && '下单参数、风控设置等交易相关设置'}
-            {activeCategory === 'ai' && '配置 AI 大模型 API，实现下单前智能评估和行情分析'}
+            {activeCategory === 'general' && L['settings.generalSub']}
+            {activeCategory === 'chart' && L['settings.chartSub']}
+            {activeCategory === 'gateway' && L['settings.gatewaySub']}
+            {activeCategory === 'trade' && L['settings.tradeSub']}
+            {activeCategory === 'ai' && L['settings.aiSub']}
           </span>
         </div>
 

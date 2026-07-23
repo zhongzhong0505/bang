@@ -11,11 +11,11 @@
 .status-left { display: flex; align-items: center; gap: 8px; }
 .status-right { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; }
 .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-.status-text { font-size: 11px; color: var(--text-muted); }
+.status-text { font-size: 11px; color: #5d6070; }
 .status-dot-connected { background: var(--green); }
 .status-dot-disconnected { background: var(--red); }
 .status-text-ohlc { font-size: 11px; color: var(--text-primary); }
 .status-text-ohlc-up { font-size: 11px; color: var(--green); }
 .status-text-ohlc-down { font-size: 11px; color: var(--red); }
-.status-text-small { font-size: 10px; opacity: 0.6; color: var(--text-muted); }
+.status-text-small { font-size: 10px; opacity: 0.6; color: #5d6070; }
 .status-text-green { font-size: 11px; color: var(--green); }

@@ -32,7 +32,7 @@
 .screener-close {
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: #5d6070;
   cursor: pointer;
   font-size: 16px;
   padding: 2px 6px;
@@ -53,7 +53,7 @@
 }
 .screener-filter-label {
   font-size: 10px;
-  color: var(--text-muted);
+  color: #5d6070;
 }
 .screener-filter-select,
 .screener-filter-input {
@@ -94,7 +94,7 @@
   position: sticky;
   top: 0;
   background: var(--bg-tertiary);
-  color: var(--text-muted);
+  color: #5d6070;
   font-weight: 600;
   text-align: right;
   padding: 6px 10px;
@@ -112,7 +112,7 @@
   font-family: var(--font-mono);
 }
 .screener-table td:first-child { text-align: left; font-family: inherit; }
-.screener-table td:nth-child(2) { text-align: left; font-family: inherit; color: var(--text-secondary); }
+.screener-table td:nth-child(2) { text-align: left; font-family: inherit; color: #9699a5; }
 .screener-table tr:hover { background: var(--bg-hover); }
 .screener-table tr { cursor: pointer; }
 .screener-sort-arrow { margin-left: 4px; font-size: 10px; }

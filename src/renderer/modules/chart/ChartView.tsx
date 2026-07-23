@@ -486,7 +486,7 @@ const ChartView: React.FC = () => {
           <div style={{
             position: 'absolute', inset: 0, display: 'flex',
             alignItems: 'center', justifyContent: 'center',
-            color: 'var(--text-muted)', fontSize: 14, flexDirection: 'column', gap: 8, zIndex: 1,
+            color: '#5d6070', fontSize: 14, flexDirection: 'column', gap: 8, zIndex: 1,
           }}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 6-10"/>
