@@ -864,10 +864,12 @@ const zh = {
  'settings.skillhubUrlDefault': 'https://zhongzhong0505.github.io/bang-skillhub/registry.json',
  'settings.skillhubSourceRemote': '远程',
  'settings.skillhubSourceLocal': '本地',
- 'settings.skillhubRefresh': '刷新',
+'settings.skillhubRefresh': '刷新',
 
-  'settings.importSkillZip': '导入 ZIP',
-  'settings.importSkillZipHint': '上传包含 skill.json、SKILL.md 或 prompt.txt 的 ZIP 包',
-  'settings.zipImportError': 'ZIP 导入失败',
-  'settings.zipImportSuccess': 'ZIP 技能导入成功',
+ 'settings.importSkillZip': '导入 ZIP',
+ 'settings.importSkillZipHint': '上传包含 skill.json、SKILL.md 或 prompt.txt 的 ZIP 包',
+ 'settings.zipImportError': 'ZIP 导入失败',
+ 'settings.zipImportSuccess': 'ZIP 技能导入成功',
 } as const;
+
+export default zh;

@@ -864,10 +864,13 @@ const en = {
  'settings.skillhubUrlDefault': 'https://zhongzhong0505.github.io/bang-skillhub/registry.json',
  'settings.skillhubSourceRemote': 'Remote',
  'settings.skillhubSourceLocal': 'Local',
- 'settings.skillhubRefresh': 'Refresh',
+'settings.skillhubRefresh': 'Refresh',
 
-  'settings.importSkillZip': 'Import ZIP',
-  'settings.importSkillZipHint': 'Upload a ZIP package containing skill.json, SKILL.md, or prompt.txt',
-  'settings.zipImportError': 'ZIP import failed',
-  'settings.zipImportSuccess': 'ZIP skill imported successfully',
+ 'settings.importSkillZip': 'Import ZIP',
+ 'settings.importSkillZipHint': 'Upload a ZIP package containing skill.json, SKILL.md, or prompt.txt',
+ 'settings.zipImportError': 'ZIP import failed',
+ 'settings.zipImportSuccess': 'ZIP skill imported successfully',
 } as const;
+
+export type TranslationKey = keyof typeof en;
+export default en;
