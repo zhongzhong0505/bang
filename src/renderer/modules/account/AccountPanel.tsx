@@ -32,7 +32,7 @@ const AccountPanel: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const tr = useTBatch([
-    'account.title', 'account.providerFutu', 'account.providerTiger', 'account.refresh',
+    'account.title', 'account.providerFutu', 'account.providerTiger', 'account.providerLocal', 'account.refresh',
     'account.disconnected', 'account.disconnectedHint', 'account.loading',
     'account.totalAssets', 'account.cash', 'account.marketValue', 'account.buyingPower',
     'account.pnlOverview', 'account.unrealizedPnl', 'account.unrealizedPnlRatio',
@@ -79,8 +79,8 @@ const AccountPanel: React.FC = () => {
           <div className="account-title-row">
             <h2 className="account-title">{tr['account.title']}</h2>
             {s && (
-              <span className="account-provider-tag">
-                {s.provider === 'futu' ? tr['account.providerFutu'] : tr['account.providerTiger']}
+            <span className="account-provider-tag">
+                {s.provider === 'futu' ? tr['account.providerFutu'] : s.provider === 'tiger' ? tr['account.providerTiger'] : tr['account.providerLocal']}
               </span>
             )}
           </div>

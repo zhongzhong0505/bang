@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../store';
 import { useTBatch } from '../../i18n';
 import { COMPARISON_STOCK_LIST } from '../../../shared/types';
-import type { SymbolSearchResult, SubType, ChartLayout } from '../../../shared/types';
+import type { SymbolSearchResult, SubType, ChartLayout, CustomIndicator } from '../../../shared/types';
+import CustomIndicatorEditor from '../chart/CustomIndicatorEditor';
 import './toolbar.css';
 
 const SUB_TYPES_MIN: { label: string; value: SubType }[] = [
@@ -68,6 +69,10 @@ const Toolbar: React.FC = () => {
   const toggleChipDistribution = useStore((s) => s.toggleChipDistribution);
   const toggleReplayMode = useStore((s) => s.toggleReplayMode);
   const toggleVolumeProfile = useStore((s) => s.toggleVolumeProfile);
+  const customIndicators = useStore((s) => s.customIndicators);
+  const activeCustomIndicators = useStore((s) => s.activeCustomIndicators);
+  const toggleCustomIndicator = useStore((s) => s.toggleCustomIndicator);
+  const removeCustomIndicator = useStore((s) => s.removeCustomIndicator);
   const comparisonSymbols = useStore((s) => s.comparisonSymbols);
   const addComparison = useStore((s) => s.addComparison);
   const removeComparison = useStore((s) => s.removeComparison);
@@ -78,10 +83,12 @@ const Toolbar: React.FC = () => {
   const gatewayConnected = useStore((s) => s.gatewayStatus.connected && s.gatewayStatus.loggedIn);
 
   const [compareQuery, setCompareQuery] = useState('');
+  const [showCustomEditor, setShowCustomEditor] = useState(false);
+  const [editingCustomInd, setEditingCustomInd] = useState<CustomIndicator | undefined>(undefined);
   const [compareResults, setCompareResults] = useState<SymbolSearchResult[]>(COMPARISON_STOCK_LIST.filter(s => s.code !== currentCode));
   const [compareLoading, setCompareLoading] = useState(false);
   const compareSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const L = useTBatch(['toolbar.searchStock', 'toolbar.day', 'toolbar.week', 'toolbar.month', 'toolbar.morePeriods', 'toolbar.candle', 'toolbar.hollow', 'toolbar.heikin', 'toolbar.bar', 'toolbar.line', 'toolbar.area', 'toolbar.mainIndicators', 'toolbar.subIndicators', 'toolbar.searching', 'toolbar.noMatch', 'toolbar.addedComparisons', 'toolbar.layout', 'toolbar.singleChart', 'toolbar.chartTools', 'toolbar.chipDistribution', 'toolbar.volumeProfile', 'toolbar.klineReplay', 'toolbar.searchPlaceholder', 'toolbar.indicators', 'toolbar.compare'] as any);
+  const L = useTBatch(['toolbar.searchStock', 'toolbar.day', 'toolbar.week', 'toolbar.month', 'toolbar.morePeriods', 'toolbar.candle', 'toolbar.hollow', 'toolbar.heikin', 'toolbar.bar', 'toolbar.line', 'toolbar.area', 'toolbar.mainIndicators', 'toolbar.subIndicators', 'toolbar.searching', 'toolbar.noMatch', 'toolbar.addedComparisons', 'toolbar.layout', 'toolbar.singleChart', 'toolbar.chartTools', 'toolbar.chipDistribution', 'toolbar.volumeProfile', 'toolbar.klineReplay', 'toolbar.searchPlaceholder', 'toolbar.indicators', 'toolbar.compare', 'toolbar.customIndicators', 'toolbar.newCustomInd', 'toolbar.editCustomInd', 'toolbar.deleteCustomInd'] as any);
 
   const SUB_TYPES: { label: string; value: SubType }[] = [
     ...SUB_TYPES_MIN,
@@ -188,6 +195,17 @@ const Toolbar: React.FC = () => {
               {INDICATORS_MAIN.map((ind) => (<div key={ind} className={`tb-menu-item${indicators.includes(ind) ? ' tb-menu-item-active' : ''}`} onClick={() => toggleIndicator(ind)}><span className="tb-menu-check">{indicators.includes(ind) ? '\u2713' : ''}</span>{ind}</div>))}
               <div className="tb-menu-section">{L['toolbar.subIndicators']}</div>
               {INDICATORS_SUB.map((ind) => (<div key={ind} className={`tb-menu-item${indicators.includes(ind) ? ' tb-menu-item-active' : ''}`} onClick={() => toggleIndicator(ind)}><span className="tb-menu-check">{indicators.includes(ind) ? '\u2713' : ''}</span>{ind}</div>))}
+              <div className="tb-menu-section">{L['toolbar.customIndicators']}</div>
+              {customIndicators.map((cind) => (
+                <div key={cind.id} className={`tb-menu-item${activeCustomIndicators.includes(cind.id) ? ' tb-menu-item-active' : ''}`}>
+                  <span className="tb-menu-check" style={{ cursor: 'pointer' }} onClick={() => toggleCustomIndicator(cind.id)}>{activeCustomIndicators.includes(cind.id) ? '✓' : ''}</span>
+                  <span style={{ flex: 1, cursor: 'pointer' }} onClick={() => toggleCustomIndicator(cind.id)}>{cind.name}</span>
+                  <span className="tb-custom-ind-badge">{cind.mode === 'overlay' ? '主' : '副'}</span>
+                  <span className="tb-custom-ind-edit" onClick={(e) => { e.stopPropagation(); setEditingCustomInd(cind); setShowCustomEditor(true); }} title={L['toolbar.editCustomInd']}>✎</span>
+                  <span className="tb-custom-ind-del" onClick={(e) => { e.stopPropagation(); removeCustomIndicator(cind.id); }} title={L['toolbar.deleteCustomInd']}>✕</span>
+                </div>
+              ))}
+              <div className="tb-menu-item" style={{ color: 'var(--accent, #2962ff)' }} onClick={() => { setEditingCustomInd(undefined); setShowCustomEditor(true); }}>+ {L['toolbar.newCustomInd']}</div>
             </>
           )}
         </Dropdown>
@@ -237,6 +255,12 @@ const Toolbar: React.FC = () => {
           )}
         </Dropdown>
       </div>
+      {showCustomEditor && (
+        <CustomIndicatorEditor
+          initial={editingCustomInd}
+          onClose={() => { setShowCustomEditor(false); setEditingCustomInd(undefined); }}
+        />
+      )}
     </div>
   );
 };

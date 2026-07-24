@@ -220,3 +220,27 @@
 .alert-item-condition { font-size: 12px; color: #5d6070; }
 .alert-item-price { font-size: 12px; font-family: var(--font-mono); color: var(--yellow); }
 .alert-item-triggered { border-left-color: #5d6070; opacity: 0.6; }
+
+/* Custom indicator dropdown items */
+.tb-custom-ind-badge {
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  background: var(--bg-tertiary, #2a2e39);
+  color: #5d6070;
+  margin-left: 2px;
+}
+.tb-custom-ind-edit {
+  color: #5d6070;
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 12px;
+}
+.tb-custom-ind-edit:hover { color: var(--accent, #2962ff); }
+.tb-custom-ind-del {
+  color: #5d6070;
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 12px;
+}
+.tb-custom-ind-del:hover { color: #ef5350; }

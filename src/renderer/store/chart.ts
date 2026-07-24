@@ -1,7 +1,8 @@
 import type { StateCreator } from 'zustand';
-import type { KlineData, SubType, ChartStyle, ComparisonItem } from '../../shared/types';
+import type { KlineData, SubType, ChartStyle, ComparisonItem, CustomIndicator } from '../../shared/types';
 import { DEFAULT_CHART_STYLE } from '../../shared/types';
 import type { AppState } from './index';
+import { DEFAULT_CUSTOM_PRESETS } from '../modules/chart/custom-indicator-engine';
 
 export type ChartType = 'candle' | 'line' | 'area' | 'bar' | 'hollow' | 'heikin';
 
@@ -33,6 +34,15 @@ export interface ChartSlice {
   replayIndex: number;
   toggleReplayMode: () => void;
   setReplayIndex: (i: number) => void;
+
+  // Custom indicators
+  customIndicators: CustomIndicator[];
+  addCustomIndicator: (ind: CustomIndicator) => void;
+  updateCustomIndicator: (id: string, ind: Partial<CustomIndicator>) => void;
+  removeCustomIndicator: (id: string) => void;
+  /** IDs of custom indicators currently active on the chart */
+  activeCustomIndicators: string[];
+  toggleCustomIndicator: (id: string) => void;
 }
 
 export const createChartSlice: StateCreator<AppState, [], [], ChartSlice> = (set) => ({
@@ -62,7 +72,7 @@ export const createChartSlice: StateCreator<AppState, [], [], ChartSlice> = (set
 
   comparisonSymbols: [],
   addComparison: (code, name) => set((s) => {
-    const colors = ['#f59e0b', '#29b6f6', '#ab47bc', '#ff9800', '#06b6d4'];
+    const colors = ['#f59e0b', '#2962ff', '#ab47bc', '#ff9800', '#06b6d4'];
     const idx = s.comparisonSymbols.length % colors.length;
     if (s.comparisonSymbols.find((c) => c.code === code)) return s;
     return { comparisonSymbols: [...s.comparisonSymbols, { code, name, color: colors[idx] }] };
@@ -73,4 +83,20 @@ export const createChartSlice: StateCreator<AppState, [], [], ChartSlice> = (set
   replayIndex: 0,
   toggleReplayMode: () => set((s) => ({ replayMode: !s.replayMode })),
   setReplayIndex: (i) => set({ replayIndex: i }),
+
+  customIndicators: [...DEFAULT_CUSTOM_PRESETS],
+  activeCustomIndicators: [],
+  addCustomIndicator: (ind) => set((s) => ({ customIndicators: [...s.customIndicators, ind] })),
+  updateCustomIndicator: (id, patch) => set((s) => ({
+    customIndicators: s.customIndicators.map((c) => (c.id === id ? { ...c, ...patch } : c)),
+  })),
+  removeCustomIndicator: (id) => set((s) => ({
+    customIndicators: s.customIndicators.filter((c) => c.id !== id),
+    activeCustomIndicators: s.activeCustomIndicators.filter((x) => x !== id),
+  })),
+  toggleCustomIndicator: (id) => set((s) => ({
+    activeCustomIndicators: s.activeCustomIndicators.includes(id)
+      ? s.activeCustomIndicators.filter((x) => x !== id)
+      : [...s.activeCustomIndicators, id],
+  })),
 });

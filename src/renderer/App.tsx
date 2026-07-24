@@ -135,7 +135,9 @@ const App: React.FC = () => {
         // Auto-connect if credentials are present
         const hasCredentials = cfg.provider === 'tiger'
           ? cfg.tigerId && cfg.account && cfg.privateKey
-          : cfg.host;
+          : cfg.provider === 'local'
+            ? true
+            : cfg.host;
         if (hasCredentials) {
           api.connectGateway(cfg).then(() => {
             api.getGatewayStatus().then((status) => { if (status) setGatewayStatus(status); });
@@ -151,7 +153,13 @@ const App: React.FC = () => {
       }
     });
 
-    const unsub = api.onGatewayStatus((status) => setGatewayStatus(status));
+    const unsub = api.onGatewayStatus((status) => {
+      const currentProvider = useStore.getState().gatewayStatus.provider;
+      // Ignore status updates from a different provider than the one
+      // currently shown — stale reconnect loops can still push these.
+      if (status.provider && status.provider !== currentProvider) return;
+      setGatewayStatus(status);
+    });
 
     // Subscribe to real-time snapshot push (updates watchlist prices)
     if (api.onSubscribeData) {

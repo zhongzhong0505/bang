@@ -21,6 +21,7 @@ import {
   computeWilliamsR, computeKDJ, computeSAR, computeVWAP,
 } from './indicators';
 import SubChart from './SubChart';
+import { evalCustomIndicator } from './custom-indicator-engine';
 import ChipDistribution from './ChipDistribution';
 import VolumeProfile from './VolumeProfile';
 import DrawingTools from './DrawingTools';
@@ -28,7 +29,7 @@ import DataWindow from './DataWindow';
 import ReplayControls from './ReplayControls';
 import { formatTickMark, formatCrosshairTime, isDailySubType } from '../../utils/format';
 import type { FormatOptions } from '../../utils/format';
-import type { KlineData } from '../../../shared/types';
+import type { KlineData, CustomIndicator } from '../../../shared/types';
 import './chart.css';
 
 
@@ -42,7 +43,7 @@ const INDICATOR_COLORS: Record<string, string> = {
 };
 
 // Error boundary for SubChart to prevent crash propagation
-interface SubChartEBProps { indicator: string; data: KlineData[]; syncFromChart: IChartApi | null }
+interface SubChartEBProps { indicator: string; data: KlineData[]; syncFromChart: IChartApi | null; customIndicators: CustomIndicator[]; activeCustomIndicators: string[] }
 interface SubChartEBState { hasError: boolean }
 class SubChartEB extends Component<SubChartEBProps, SubChartEBState> {
   state: SubChartEBState = { hasError: false };
@@ -51,7 +52,7 @@ class SubChartEB extends Component<SubChartEBProps, SubChartEBState> {
     if (this.state.hasError) {
       return <div className="chart-sub chart-sub-error">副图加载失败</div>;
     }
-    return <SubChart indicator={this.props.indicator} data={this.props.data} syncFromChart={this.props.syncFromChart} />;
+    return <SubChart indicator={this.props.indicator} data={this.props.data} syncFromChart={this.props.syncFromChart} customIndicators={this.props.customIndicators} activeCustomIndicators={this.props.activeCustomIndicators} />;
   }
 }
 
@@ -71,6 +72,8 @@ const ChartView: React.FC = () => {
   const chartType = useStore((s) => s.chartType);
   const chartStyle = useStore((s) => s.chartStyle);
   const indicators = useStore((s) => s.indicators);
+  const customIndicators = useStore((s) => s.customIndicators);
+  const activeCustomIndicators = useStore((s) => s.activeCustomIndicators);
   const appSettings = useStore((s) => s.appSettings);
   const showChipDistribution = useStore((s) => s.showChipDistribution);
   const showVolumeProfile = useStore((s) => s.showVolumeProfile);
@@ -83,13 +86,18 @@ const ChartView: React.FC = () => {
   const [realtimeKline, setRealtimeKline] = useState<KlineData[] | null>(null);
   const [useRealtime, setUseRealtime] = useState(false);
 
-  const hasSubChart = indicators.some((i) => ['MACD', 'RSI', 'KDJ', 'STOCH', 'CCI', 'OBV', 'ATR', 'ADX', 'WR'].includes(i));
+  const BUILTIN_SUB = ['MACD', 'RSI', 'KDJ', 'STOCH', 'CCI', 'OBV', 'ATR', 'ADX', 'WR'];
+  const activeCustomSubInds = activeCustomIndicators
+    .map((id) => customIndicators.find((c) => c.id === id))
+    .filter((c): c is CustomIndicator => !!c && c.mode === 'subchart');
+  const hasSubChart = indicators.some((i) => BUILTIN_SUB.includes(i)) || activeCustomSubInds.length > 0;
   const subIndicator = useMemo(() => {
     for (const i of indicators) {
-      if (['MACD', 'RSI', 'KDJ', 'STOCH', 'CCI', 'OBV', 'ATR', 'ADX', 'WR'].includes(i)) return i;
+      if (BUILTIN_SUB.includes(i)) return i;
     }
+    if (activeCustomSubInds.length > 0) return activeCustomSubInds[0].id;
     return null;
-  }, [indicators]);
+  }, [indicators, activeCustomSubInds]);
   const isDaily = isDailySubType(subType);
 
   // No mock data — chart only renders with real kline data
@@ -412,6 +420,26 @@ const ChartView: React.FC = () => {
       addLine(computeVWAP(data), '#06b6d4');
     }
 
+    // Custom overlay indicators
+    for (const id of activeCustomIndicators) {
+      const cind = customIndicators.find((c) => c.id === id);
+      if (!cind || cind.mode !== 'overlay') continue;
+      const result = evalCustomIndicator(cind, data);
+      if (!result) continue;
+      for (const line of cind.lines) {
+        const vals = result[line.name];
+        if (!vals) continue;
+        const series = chart.addSeries(LineSeries, {
+          color: line.color,
+          lineWidth: (line.lineWidth ?? 1) as any,
+          lineStyle: (line.lineStyle ?? 0) as any,
+          priceLineVisible: false,
+          lastValueVisible: false,
+        });
+        series.setData(data.map((d, i) => ({ time: d.time as Time, value: vals[i] ?? NaN })).filter((d) => !isNaN(d.value)));
+      }
+    }
+
     // Comparison overlay
     for (const comp of comparisonSymbols) {
       const compData = comparisonDataMap[comp.code];
@@ -477,7 +505,7 @@ const ChartView: React.FC = () => {
       chartRef.current = null;
       containerRef.current?.removeEventListener('contextmenu', ctxHandler);
     };
-  }, [currentCode, subType, chartType, chartStyle, indicators, hasSubChart, displayData, setKlineData, checkAlerts, comparisonSymbols, priceLines]);
+  }, [currentCode, subType, chartType, chartStyle, indicators, hasSubChart, displayData, setKlineData, checkAlerts, comparisonSymbols, priceLines, activeCustomIndicators, customIndicators]);
 
   return (
     <div className="chart-container">
@@ -566,7 +594,7 @@ const ChartView: React.FC = () => {
         )}
       </div>
       {subIndicator && (
-        <SubChartEB indicator={subIndicator} data={displayData} syncFromChart={chartApi} />
+        <SubChartEB indicator={subIndicator} data={displayData} syncFromChart={chartApi} customIndicators={customIndicators} activeCustomIndicators={activeCustomIndicators} />
       )}
       {replayMode && (
         <ReplayControls data={fullMockData} />

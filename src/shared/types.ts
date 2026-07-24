@@ -1,5 +1,5 @@
 // Gateway provider type
-export type GatewayProvider = 'futu' | 'tiger';
+export type GatewayProvider = 'futu' | 'tiger' | 'local';
 
 // Futu OpenD gateway configuration
 export interface FutuGatewayConfig {
@@ -24,8 +24,15 @@ export interface TigerGatewayConfig {
   serverUrl?: string;
 }
 
+// Local mock gateway configuration — no external connection required
+export interface LocalGatewayConfig {
+  provider: 'local';
+  /** Display name shown in the gateway selector */
+  label: string;
+}
+
 // Union type for gateway config
-export type GatewayConfig = FutuGatewayConfig | TigerGatewayConfig;
+export type GatewayConfig = FutuGatewayConfig | TigerGatewayConfig | LocalGatewayConfig;
 
 export interface GatewayStatus {
   connected: boolean;
@@ -479,6 +486,11 @@ export const DEFAULT_TIGER_CONFIG: TigerGatewayConfig = {
   licenses: ['TBUS', 'TBHK'],
   token: '',
   serverUrl: '',
+};
+
+export const DEFAULT_LOCAL_CONFIG: LocalGatewayConfig = {
+  provider: 'local',
+  label: '本地 Mock',
 };
 
 // ===== Quantitative Trading Types =====
@@ -1153,4 +1165,37 @@ export interface OverallWinRate {
 export interface WinRateRequest {
   startTime?: number;
   endTime?: number;
+}
+
+// ===== Custom Indicator Types =====
+
+/** Rendering mode for a custom indicator line */
+export type CustomIndicatorMode = 'overlay' | 'subchart';
+
+/** A single line output from a custom indicator */
+export interface CustomIndicatorLine {
+  name: string;
+  color: string;
+  /** Line style: 0=solid, 1=dotted, 2=dashed, 3=largeDashed */
+  lineStyle?: number;
+  lineWidth?: number;
+}
+
+/** Definition for a user-created custom indicator */
+export interface CustomIndicator {
+  id: string;
+  name: string;
+  mode: CustomIndicatorMode;
+  /**
+   * User-written JavaScript function body.
+   * Receives `(data, helpers)` where:
+   *   data: Array<{ time, open, high, low, close, volume, turnover }>
+   *   helpers: { ma(data, period), ema(data, period), stddev(data, period), ref(data, offset) }
+   * Must return an object whose keys match `lines[].name`,
+   *   each value being an array of numbers (same length as data, NaN for gaps).
+   */
+  code: string;
+  lines: CustomIndicatorLine[];
+  /** Built-in param names the user can reference in code */
+  params?: Record<string, number>;
 }

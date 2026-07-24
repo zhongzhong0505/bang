@@ -7,16 +7,19 @@ import {
   type IChartApi,
   type Time,
 } from 'lightweight-charts';
-import type { KlineData } from '../../../shared/types';
+import type { KlineData, CustomIndicator } from '../../../shared/types';
 import {
   computeMACD, computeRSI, computeStochastic, computeOBV,
   computeATR, computeCCI, computeADX, computeWilliamsR, computeKDJ,
 } from './indicators';
+import { evalCustomIndicator } from './custom-indicator-engine';
 
 interface SubChartProps {
   indicator: string;
   data: KlineData[];
   syncFromChart: IChartApi | null;
+  customIndicators: CustomIndicator[];
+  activeCustomIndicators: string[];
 }
 
 const SUB_CHART_COLORS: Record<string, Record<string, string>> = {
@@ -31,7 +34,7 @@ const SUB_CHART_COLORS: Record<string, Record<string, string>> = {
   WR: { wr: '#ab47bc' },
 };
 
-const SubChart: React.FC<SubChartProps> = ({ indicator, data, syncFromChart }) => {
+const SubChart: React.FC<SubChartProps> = ({ indicator, data, syncFromChart, customIndicators, activeCustomIndicators }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
 
@@ -128,6 +131,47 @@ const SubChart: React.FC<SubChartProps> = ({ indicator, data, syncFromChart }) =
         .setData(data.map((d) => ({ time: d.time as Time, value: -80 })));
     }
 
+    // Custom sub-chart indicator rendering
+    // If the indicator prop matches a custom indicator id, render it
+    const cindMatch = customIndicators.find((c) => c.id === indicator);
+    if (cindMatch && cindMatch.mode === 'subchart') {
+      const result = evalCustomIndicator(cindMatch, data);
+      if (result) {
+        for (const line of cindMatch.lines) {
+          const vals = result[line.name];
+          if (!vals) continue;
+          const s = chart.addSeries(LineSeries, {
+            color: line.color,
+            lineWidth: (line.lineWidth ?? 1) as any,
+            lineStyle: (line.lineStyle ?? 0) as any,
+            priceLineVisible: false,
+            lastValueVisible: false,
+          });
+          s.setData(data.map((d, i) => ({ time: d.time as Time, value: vals[i] ?? NaN })).filter((d) => !isNaN(d.value)));
+        }
+      }
+    }
+    // Also render any other active custom sub indicators not already rendered above
+    for (const id of activeCustomIndicators) {
+      if (id === indicator) continue; // already handled above
+      const cind = customIndicators.find((c) => c.id === id);
+      if (!cind || cind.mode !== 'subchart') continue;
+      const result = evalCustomIndicator(cind, data);
+      if (!result) continue;
+      for (const line of cind.lines) {
+        const vals = result[line.name];
+        if (!vals) continue;
+        const s = chart.addSeries(LineSeries, {
+          color: line.color,
+          lineWidth: (line.lineWidth ?? 1) as any,
+          lineStyle: (line.lineStyle ?? 0) as any,
+          priceLineVisible: false,
+          lastValueVisible: false,
+        });
+        s.setData(data.map((d, i) => ({ time: d.time as Time, value: vals[i] ?? NaN })).filter((d) => !isNaN(d.value)));
+      }
+    }
+
     chart.timeScale().fitContent();
 
     if (syncFromChart) {
@@ -161,7 +205,7 @@ const SubChart: React.FC<SubChartProps> = ({ indicator, data, syncFromChart }) =
       chart.remove();
       chartRef.current = null;
     };
-  }, [indicator, data, syncFromChart]);
+  }, [indicator, data, syncFromChart, customIndicators, activeCustomIndicators]);
 
   useEffect(() => {
     const el = containerRef.current;

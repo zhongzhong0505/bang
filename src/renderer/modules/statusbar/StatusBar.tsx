@@ -7,6 +7,7 @@ const StatusBar: React.FC = () => {
   const gatewayStatus = useStore((s) => s.gatewayStatus);
   const klineData = useStore((s) => s.klineData);
   const L = useTBatch(['settings.connected', 'settings.disconnected', 'status.futu', 'status.tiger', 'status.loggedIn', 'status.volUnit'] as any);
+  const L = useTBatch(['settings.connected', 'settings.disconnected', 'status.futu', 'status.tiger', 'status.local', 'status.loggedIn', 'status.volUnit'] as any);
 
   const lastBar = klineData[klineData.length - 1];
 
@@ -18,12 +19,14 @@ const StatusBar: React.FC = () => {
           {gatewayStatus.connected
             ? gatewayStatus.provider === 'tiger'
               ? `${L['settings.connected']} ${gatewayStatus.host ?? ''}`
+              : gatewayStatus.provider === 'local'
+                ? `${L['settings.connected']} mock`
               : `${L['settings.connected']} ${gatewayStatus.host}:${gatewayStatus.port}`
             : L['settings.disconnected']}
         </span>
         {gatewayStatus.provider && (
           <span className="status-text status-text-small">
-            {gatewayStatus.provider === 'futu' ? L['status.futu'] : L['status.tiger']}
+            {gatewayStatus.provider === 'futu' ? L['status.futu'] : gatewayStatus.provider === 'tiger' ? L['status.tiger'] : L['status.local']}
           </span>
         )}
         {gatewayStatus.loggedIn && <span className="status-text status-text-green">{L['status.loggedIn']}</span>}

@@ -2,8 +2,8 @@ import React, { useState, Suspense, lazy } from 'react';
 import './settings.css';
 import { useStore } from '../../store';
 import { useTBatch, useT } from '../../i18n';
-import type { GatewayConfig, GatewayStatus, FutuGatewayConfig, TigerGatewayConfig, GatewayProvider } from '../../../shared/types';
-import { DEFAULT_FUTU_CONFIG, DEFAULT_TIGER_CONFIG } from '../../../shared/types';
+import type { GatewayConfig, GatewayStatus, FutuGatewayConfig, TigerGatewayConfig, LocalGatewayConfig, GatewayProvider } from '../../../shared/types';
+import { DEFAULT_FUTU_CONFIG, DEFAULT_TIGER_CONFIG, DEFAULT_LOCAL_CONFIG } from '../../../shared/types';
 import {
   Settings,
   BarChart3,
@@ -19,6 +19,7 @@ const ChartSettings = lazy(() => import('./ChartSettings'));
 const TradeSettings = lazy(() => import('./TradeSettings'));
 const FutuSettings = lazy(() => import('./FutuSettings'));
 const TigerSettings = lazy(() => import('./TigerSettings'));
+const LocalSettings = lazy(() => import('./LocalSettings'));
 const AISettings = lazy(() => import('./AISettings'));
 
 const Loading = () => {
@@ -47,6 +48,7 @@ const SettingsPage: React.FC = () => {
     'settings.basic', 'settings.chart', 'settings.gatewayNav', 'settings.tradeNav', 'settings.ai',
     'settings.loading', 'settings.notConnected', 'settings.connectedHost', 'settings.loggedIn',
     'settings.futuOpenD', 'settings.tigerOpenAPI', 'settings.saved', 'settings.saveConfig',
+    'settings.localGateway',
     'settings.connecting', 'settings.connectGateway', 'settings.disconnectGateway',
     'settings.instructions', 'settings.backToChart', 'settings.title',
     'settings.generalSub', 'settings.chartSub', 'settings.gatewaySub', 'settings.tradeSub', 'settings.aiSub',
@@ -54,6 +56,8 @@ const SettingsPage: React.FC = () => {
     'settings.futuStep3Title', 'settings.futuStep3Desc', 'settings.futuStep4Title', 'settings.futuStep4Desc',
     'settings.tigerStep1Title', 'settings.tigerStep1Desc', 'settings.tigerStep2Title', 'settings.tigerStep2Desc',
     'settings.tigerStep3Title', 'settings.tigerStep3Desc', 'settings.tigerStep4Title', 'settings.tigerStep4Desc',
+    'settings.localStep1Title', 'settings.localStep1Desc', 'settings.localStep2Title', 'settings.localStep2Desc',
+    'settings.localStep3Title', 'settings.localStep3Desc', 'settings.localStep4Title', 'settings.localStep4Desc',
   ] as any);
 
   // Gateway state
@@ -72,6 +76,10 @@ const SettingsPage: React.FC = () => {
     ...DEFAULT_TIGER_CONFIG,
     ...(gatewayConfig.provider === 'tiger' ? gatewayConfig : {}),
   });
+  const [localForm, setLocalForm] = useState<LocalGatewayConfig>({
+    ...DEFAULT_LOCAL_CONFIG,
+    ...(gatewayConfig.provider === 'local' ? gatewayConfig : {}),
+  });
   const [connecting, setConnecting] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -82,9 +90,12 @@ const SettingsPage: React.FC = () => {
   const updateTigerField = (key: keyof TigerGatewayConfig, value: string | number) => {
     setTigerForm((prev) => ({ ...prev, [key]: value }));
   };
+  const updateLocalField = (key: keyof LocalGatewayConfig, value: string | number) => {
+    setLocalForm((prev) => ({ ...prev, [key]: value }));
+  };
 
   const handleSave = () => {
-    const config: GatewayConfig = activeProvider === 'futu' ? futuForm : tigerForm;
+    const config: GatewayConfig = activeProvider === 'local' ? localForm : activeProvider === 'tiger' ? tigerForm : futuForm;
     setGatewayConfig(config);
     const api = window.bangAPI;
     if (api) {
@@ -98,7 +109,7 @@ const SettingsPage: React.FC = () => {
     const api = window.bangAPI;
     if (!api) return;
     setConnecting(true);
-    const config: GatewayConfig = activeProvider === 'futu' ? futuForm : tigerForm;
+    const config: GatewayConfig = activeProvider === 'local' ? localForm : activeProvider === 'tiger' ? tigerForm : futuForm;
     await api.setConfig(config);
     await api.connectGateway(config);
     setTimeout(async () => {
@@ -139,6 +150,13 @@ const SettingsPage: React.FC = () => {
                 <span className="settings-provider-icon">T</span>
                 {L['settings.tigerOpenAPI']}
               </button>
+              <button
+                className={`settings-provider-tab${activeProvider === 'local' ? ' settings-provider-tab-active' : ''}`}
+                onClick={() => setActiveProvider('local')}
+              >
+                <span className="settings-provider-icon">L</span>
+                {L['settings.localGateway']}
+              </button>
             </div>
 
             <div className="settings-status-row">
@@ -147,6 +165,8 @@ const SettingsPage: React.FC = () => {
                 {gatewayStatus.connected
                   ? gatewayStatus.provider === 'tiger'
                     ? `${L['settings.connectedHost']} ${gatewayStatus.host ?? ''}`
+                    : gatewayStatus.provider === 'local'
+                      ? `${L['settings.connectedHost']} mock`
                     : `${L['settings.connectedHost']} ${gatewayStatus.host}:${gatewayStatus.port}`
                   : L['settings.notConnected']}
               </span>
@@ -157,25 +177,27 @@ const SettingsPage: React.FC = () => {
                 <span className="settings-status-text down">&middot; {gatewayStatus.error}</span>
               )}
               <span className="settings-status-text settings-status-text-meta">
-                {gatewayStatus.provider === 'futu' ? L['settings.futuOpenD'] : L['settings.tigerOpenAPI']}
+                {gatewayStatus.provider === 'futu' ? L['settings.futuOpenD'] : gatewayStatus.provider === 'tiger' ? L['settings.tigerOpenAPI'] : L['settings.localGateway']}
               </span>
             </div>
 
             <Suspense fallback={<Loading />}>
-              {activeProvider === 'futu' ? (
-                <FutuSettings
-                  form={futuForm}
-                  status={gatewayStatus}
-                  onUpdate={updateFutuField}
-                  onSave={handleSave}
-                  onConnect={handleConnect}
-                  onDisconnect={handleDisconnect}
-                  connecting={connecting}
-                  saved={saved}
-                />
-              ) : (
-                <TigerSettings form={tigerForm} onUpdate={updateTigerField} />
-              )}
+              {activeProvider === 'local' ? (
+                <LocalSettings />
+              ) : activeProvider === 'futu' ? (
+                  <FutuSettings
+                    form={futuForm}
+                    status={gatewayStatus}
+                    onUpdate={updateFutuField}
+                    onSave={handleSave}
+                    onConnect={handleConnect}
+                    onDisconnect={handleDisconnect}
+                    connecting={connecting}
+                    saved={saved}
+                  />
+                ) : (
+                  <TigerSettings form={tigerForm} onUpdate={updateTigerField} />
+                )}
             </Suspense>
 
             <div className="settings-actions">
@@ -196,7 +218,22 @@ const SettingsPage: React.FC = () => {
             <div className="settings-card">
               <h2 className="settings-card-title">{L['settings.instructions']}</h2>
               <div className="settings-instructions">
-                {activeProvider === 'futu' ? (
+                {activeProvider === 'local' ? (
+                  [
+                    { title: L['settings.localStep1Title'], desc: L['settings.localStep1Desc'] },
+                    { title: L['settings.localStep2Title'], desc: L['settings.localStep2Desc'] },
+                    { title: L['settings.localStep3Title'], desc: L['settings.localStep3Desc'] },
+                    { title: L['settings.localStep4Title'], desc: L['settings.localStep4Desc'] },
+                  ].map((s, i) => (
+                    <div key={i} className="settings-step">
+                      <span className="settings-step-num">{i + 1}</span>
+                      <div>
+                        <div className="settings-step-title">{s.title}</div>
+                        <div className="settings-step-desc">{s.desc}</div>
+                      </div>
+                    </div>
+                  ))
+                ) : activeProvider === 'futu' ? (
                   [
                     { title: L['settings.futuStep1Title'], desc: L['settings.futuStep1Desc'] },
                     { title: L['settings.futuStep2Title'], desc: L['settings.futuStep2Desc'] },
@@ -207,13 +244,13 @@ const SettingsPage: React.FC = () => {
                       <span className="settings-step-num">{i + 1}</span>
                       <div>
                         <div className="settings-step-title">{s.title}</div>
-                        <div className="settings-step-desc">{s.desc}</div>
-                      </div>
-                    </div>
+                       <div className="settings-step-desc">{s.desc}</div>
+                     </div>
+                   </div>
                   ))
-                ) : (
-                  [
-                    { title: L['settings.tigerStep1Title'], desc: L['settings.tigerStep1Desc'] },
+               ) : (
+                 [
+                   { title: L['settings.tigerStep1Title'], desc: L['settings.tigerStep1Desc'] },
                     { title: L['settings.tigerStep2Title'], desc: L['settings.tigerStep2Desc'] },
                     { title: L['settings.tigerStep3Title'], desc: L['settings.tigerStep3Desc'] },
                     { title: L['settings.tigerStep4Title'], desc: L['settings.tigerStep4Desc'] },
