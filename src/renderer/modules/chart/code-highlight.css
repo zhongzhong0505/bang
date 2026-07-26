@@ -1,0 +1,93 @@
+/* ===== Code Highlight Editor ===== */
+.ch-editor {
+  display: flex;
+  border: 1px solid var(--border, #2a2e39);
+  border-radius: 3px;
+  overflow: hidden;
+  background: #0d1117;
+  font-family: 'Menlo', 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  min-height: 200px;
+}
+.ch-editor-readonly .ch-textarea {
+  caret-color: transparent;
+}
+.ch-line-nums {
+  width: 40px;
+  padding: 10px 0;
+  background: #0d1117;
+  border-right: 1px solid #21262d;
+  text-align: right;
+  user-select: none;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ch-ln {
+  padding: 0 8px 0 4px;
+  color: #484f58;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.ch-code-area {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+.ch-highlight {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 10px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: #abb2bf;
+  pointer-events: none;
+  z-index: 0;
+}
+.ch-highlight code {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+.ch-textarea {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 10px;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: transparent;
+  caret-color: #528bff;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: auto;
+  tab-size: 2;
+  -moz-tab-size: 2;
+  z-index: 1;
+}
+.ch-textarea::selection {
+  background: rgba(82, 139, 255, 0.25);
+}
+.ch-textarea::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.ch-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ch-textarea::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+}
+.ch-textarea::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}

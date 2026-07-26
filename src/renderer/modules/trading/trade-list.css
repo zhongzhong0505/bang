@@ -34,14 +34,14 @@
 }
 .trade-list-title-row { display: flex; align-items: center; gap: 10px; }
 .trade-list-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
-.trade-list-count { font-size: 12px; color: var(--text-muted); }
+.trade-list-count { font-size: 12px; color: #5d6070; }
 .trade-list-actions { display: flex; gap: 6px; }
 .trade-list-btn {
   padding: 4px 10px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
   border-radius: 4px;
-  color: var(--text-secondary);
+  color: #9699a5;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.15s;
@@ -64,7 +64,7 @@
   border-radius: 6px;
   padding: 10px 14px;
 }
-.trade-summary-label { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+.trade-summary-label { font-size: 11px; color: #5d6070; margin-bottom: 2px; }
 .trade-summary-value { font-size: 18px; font-weight: 600; color: var(--text-primary); font-family: var(--font-mono); }
 .trade-summary-fee { color: var(--orange); }
 .trade-summary-value.up { color: var(--green); }
@@ -84,7 +84,7 @@
   background: transparent;
   border: 1px solid var(--border);
   border-radius: 3px;
-  color: var(--text-secondary);
+  color: #9699a5;
   font-size: 11px;
   cursor: pointer;
   transition: all 0.15s;
@@ -103,7 +103,7 @@
   align-items: center;
   justify-content: center;
   height: 200px;
-  color: var(--text-muted);
+  color: #5d6070;
   font-size: 14px;
 }
 
@@ -114,7 +114,7 @@
   text-align: left;
   font-size: 11px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: #5d6070;
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -137,9 +137,9 @@
   white-space: nowrap;
 }
 .trade-td-right { text-align: right; font-family: var(--font-mono); }
-.trade-td-time { color: var(--text-secondary); font-size: 11px; }
+.trade-td-time { color: #9699a5; font-size: 11px; }
 .trade-td-name { font-size: 12px; }
-.trade-td-code { font-size: 10px; color: var(--text-muted); }
+.trade-td-code { font-size: 10px; color: #5d6070; }
 .trade-td-fee { color: var(--orange); }
 .trade-td-net { color: var(--text-primary); font-weight: 500; }
 
@@ -149,7 +149,7 @@
   padding: 1px 6px;
   border-radius: 3px;
   background: var(--bg-active);
-  color: var(--text-secondary);
+  color: #9699a5;
 }
 .trade-side-tag {
   font-size: 11px;
@@ -171,7 +171,7 @@
 .trade-detail-title {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: #5d6070;
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -186,7 +186,7 @@
   border-radius: 3px;
 }
 .trade-fee-item:hover { background: var(--bg-hover); }
-.trade-fee-name { font-size: 12px; color: var(--text-secondary); }
+.trade-fee-name { font-size: 12px; color: #9699a5; }
 .trade-fee-amount { font-size: 12px; color: var(--text-primary); font-family: var(--font-mono); }
 .trade-fee-total {
   margin-top: 4px;
@@ -207,7 +207,7 @@
   justify-content: space-between;
   padding: 3px 8px;
 }
-.trade-info-label { font-size: 11px; color: var(--text-muted); }
+.trade-info-label { font-size: 11px; color: #5d6070; }
 .trade-info-value { font-size: 12px; color: var(--text-primary); font-family: var(--font-mono); }
 
 /* Footer */

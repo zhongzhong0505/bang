@@ -1,5 +1,5 @@
 // Gateway provider type
-export type GatewayProvider = 'futu' | 'tiger';
+export type GatewayProvider = 'futu' | 'tiger' | 'local';
 
 // Futu OpenD gateway configuration
 export interface FutuGatewayConfig {
@@ -24,8 +24,15 @@ export interface TigerGatewayConfig {
   serverUrl?: string;
 }
 
+// Local mock gateway configuration — no external connection required
+export interface LocalGatewayConfig {
+  provider: 'local';
+  /** Display name shown in the gateway selector */
+  label: string;
+}
+
 // Union type for gateway config
-export type GatewayConfig = FutuGatewayConfig | TigerGatewayConfig;
+export type GatewayConfig = FutuGatewayConfig | TigerGatewayConfig | LocalGatewayConfig;
 
 export interface GatewayStatus {
   connected: boolean;
@@ -257,18 +264,106 @@ export interface AISettings {
   model: string;
   baseUrl: string;
   systemPrompt: string;
-  tencentTokenPlan: TencentTokenPlanConfig;
+ tencentTokenPlan: TencentTokenPlanConfig;
+ skills: Record<string, boolean>;
+  customSkills: CustomSkill[];
+  /** Custom SkillHub registry URL (overrides default) */
+  skillhubUrl?: string;
 }
 
-export const DEFAULT_AI_SETTINGS: AISettings = {
-  enabled: false,
-  provider: 'openai',
-  apiKey: '',
-  model: 'gpt-5',
-  baseUrl: 'https://api.openai.com/v1',
-  systemPrompt: 'You are a professional trading analyst. Analyze the given order context and provide risk assessment in Chinese.',
-  tencentTokenPlan: { secretId: '', secretKey: '', region: 'ap-guangzhou' },
-};
+
+export type AISkillCategory = 'analysis' | 'market' | 'risk' | 'strategy' | 'fee' | 'pattern' | 'custom';
+
+export interface AISkillPreset {
+  id: string;
+  category: AISkillCategory;
+  /** i18n key suffix for the skill name */
+  nameKey: string;
+  /** i18n key suffix for the skill description */
+  descKey: string;
+  defaultEnabled: boolean;
+}
+
+export const AI_SKILL_PRESETS: AISkillPreset[] = [
+  {
+    id: 'technical_analysis',
+    category: 'analysis',
+    nameKey: 'skill.techAnalysis',
+    descKey: 'skill.techAnalysisDesc',
+    defaultEnabled: true,
+  },
+  {
+    id: 'market_knowledge',
+    category: 'market',
+    nameKey: 'skill.marketKnowledge',
+    descKey: 'skill.marketKnowledgeDesc',
+    defaultEnabled: true,
+  },
+  {
+    id: 'risk_assessment',
+    category: 'risk',
+    nameKey: 'skill.riskAssessment',
+    descKey: 'skill.riskAssessmentDesc',
+    defaultEnabled: true,
+  },
+  {
+    id: 'trading_strategy',
+    category: 'strategy',
+    nameKey: 'skill.tradingStrategy',
+    descKey: 'skill.tradingStrategyDesc',
+    defaultEnabled: false,
+  },
+  {
+    id: 'fee_calculation',
+    category: 'fee',
+    nameKey: 'skill.feeCalc',
+    descKey: 'skill.feeCalcDesc',
+    defaultEnabled: false,
+  },
+  {
+    id: 'pattern_recognition',
+    category: 'pattern',
+    nameKey: 'skill.patternRecognition',
+    descKey: 'skill.patternRecognitionDesc',
+    defaultEnabled: false,
+  },
+];
+
+export const DEFAULT_AI_SKILLS: Record<string, boolean> = AI_SKILL_PRESETS.reduce(
+  (acc, s) => { acc[s.id] = s.defaultEnabled; return acc; },
+  {} as Record<string, boolean>,
+);
+
+// User-defined custom skill (created locally or installed from SkillHub)
+export interface CustomSkill {
+  id: string;
+  name: string;
+  description: string;
+  category: AISkillCategory;
+  /** Full prompt text injected into the AI system message when enabled */
+  promptContent: string;
+  /** Author name (for SkillHub-installed skills) */
+  author?: string;
+  /** Version string (for SkillHub updates) */
+  version?: string;
+  /** Source: where this skill came from */
+  source: 'builtin' | 'custom' | 'skillhub';
+  createdAt: number;
+  updatedAt: number;
+}
+
+// SkillHub registry item (what the user sees when browsing the marketplace)
+export interface SkillHubItem {
+  id: string;
+  name: string;
+  description: string;
+  category: AISkillCategory;
+  promptContent: string;
+  author: string;
+  version: string;
+  tags?: string[];
+  downloads?: number;
+}
 
 export interface AIEvaluationContext {
   symbol: string;
@@ -321,6 +416,18 @@ export interface AIChatRequest {
   };
 }
 
+export const DEFAULT_AI_SETTINGS: AISettings = {
+  enabled: false,
+  provider: 'openai',
+  apiKey: '',
+  model: 'gpt-5',
+  baseUrl: 'https://api.openai.com/v1',
+  systemPrompt: 'You are a professional trading analyst. Analyze the given order context and provide risk assessment in Chinese.',
+  tencentTokenPlan: { secretId: '', secretKey: '', region: 'ap-guangzhou' },
+ skills: { ...DEFAULT_AI_SKILLS },
+  customSkills: [],
+};
+
 // IPC channels
 export const IPC = {
   GATEWAY_CONFIG_GET: 'gateway:config:get',
@@ -353,7 +460,10 @@ export const IPC = {
   EXPORT_DATA: 'data:export',
   MODIFY_ORDER_GATEWAY: 'gateway:order:modify',
   HISTORY_DEALS_GET: 'history:deals:get',
-  WIN_RATE_ANALYSIS: 'winrate:analyze',
+ WIN_RATE_ANALYSIS: 'winrate:analyze',
+ SKILLHUB_FETCH: 'skillhub:fetch',
+ SKILLHUB_FETCH_URL: 'skillhub:fetch:url',
+  SKILL_IMPORT_ZIP: 'skill:import:zip',
 } as const;
 
 // Default configs
@@ -376,6 +486,11 @@ export const DEFAULT_TIGER_CONFIG: TigerGatewayConfig = {
   licenses: ['TBUS', 'TBHK'],
   token: '',
   serverUrl: '',
+};
+
+export const DEFAULT_LOCAL_CONFIG: LocalGatewayConfig = {
+  provider: 'local',
+  label: '本地 Mock',
 };
 
 // ===== Quantitative Trading Types =====
@@ -1050,4 +1165,37 @@ export interface OverallWinRate {
 export interface WinRateRequest {
   startTime?: number;
   endTime?: number;
+}
+
+// ===== Custom Indicator Types =====
+
+/** Rendering mode for a custom indicator line */
+export type CustomIndicatorMode = 'overlay' | 'subchart';
+
+/** A single line output from a custom indicator */
+export interface CustomIndicatorLine {
+  name: string;
+  color: string;
+  /** Line style: 0=solid, 1=dotted, 2=dashed, 3=largeDashed */
+  lineStyle?: number;
+  lineWidth?: number;
+}
+
+/** Definition for a user-created custom indicator */
+export interface CustomIndicator {
+  id: string;
+  name: string;
+  mode: CustomIndicatorMode;
+  /**
+   * User-written JavaScript function body.
+   * Receives `(data, helpers)` where:
+   *   data: Array<{ time, open, high, low, close, volume, turnover }>
+   *   helpers: { ma(data, period), ema(data, period), stddev(data, period), ref(data, offset) }
+   * Must return an object whose keys match `lines[].name`,
+   *   each value being an array of numbers (same length as data, NaN for gaps).
+   */
+  code: string;
+  lines: CustomIndicatorLine[];
+  /** Built-in param names the user can reference in code */
+  params?: Record<string, number>;
 }

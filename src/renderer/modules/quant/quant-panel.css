@@ -20,14 +20,14 @@
 .quant-tab {
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: #9699a5;
   font-size: 12px;
   padding: 8px 12px;
   cursor: pointer;
   border-bottom: 2px solid transparent;
   transition: all 0.15s;
 }
-.quant-tab:hover { color: var(--text-secondary); }
+.quant-tab:hover { color: var(--text-primary); }
 .quant-tab-active { color: var(--accent); border-bottom-color: var(--accent); }
 .quant-badge {
   margin-left: 4px;
@@ -40,7 +40,7 @@
 .quant-close {
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: #5d6070;
   cursor: pointer;
   width: 28px;
   height: 28px;
@@ -69,7 +69,7 @@
 .quant-cancel-btn {
   padding: 6px 12px;
   background: var(--bg-tertiary);
-  color: var(--text-secondary);
+  color: #9699a5;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 12px;
@@ -89,7 +89,7 @@
 .quant-mini-btn {
   background: transparent;
   border: 1px solid var(--border);
-  color: var(--text-secondary);
+  color: #9699a5;
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 2px;
@@ -98,8 +98,8 @@
 .quant-mini-btn:hover { background: var(--bg-hover); }
 .quant-mini-btn-green { color: var(--green); }
 .quant-mini-btn-red { color: var(--red); }
-.quant-card-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-.quant-card-meta { display: flex; gap: 12px; font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+.quant-card-desc { font-size: 12px; color: #5d6070; margin-bottom: 6px; }
+.quant-card-meta { display: flex; gap: 12px; font-size: 11px; color: #5d6070; margin-bottom: 6px; }
 .quant-card-conditions { display: flex; gap: 4px; flex-wrap: wrap; }
 .quant-cond-tag {
   font-size: 10px;
@@ -114,7 +114,7 @@
   background: var(--green);
   display: inline-block;
 }
-.quant-empty-hint { text-align: center; color: var(--text-muted); font-size: 12px; padding: 24px; }
+.quant-empty-hint { text-align: center; color: #5d6070; font-size: 12px; padding: 24px; }
 
 /* Strategy editor */
 .quant-editor { display: flex; flex-direction: column; height: 100%; }
@@ -129,7 +129,7 @@
 .quant-editor-actions { display: flex; gap: 8px; }
 .quant-editor-body { padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
 .quant-form-row { display: flex; flex-direction: column; gap: 4px; }
-.quant-form-label { font-size: 11px; color: var(--text-muted); }
+.quant-form-label { font-size: 11px; color: #5d6070; }
 .quant-form-input {
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
@@ -170,7 +170,7 @@
   font-family: var(--font-mono);
   outline: none;
 }
-.quant-cond-hint { font-size: 10px; color: var(--text-muted); }
+.quant-cond-hint { font-size: 10px; color: #5d6070; }
 .quant-add-cond-btn {
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
@@ -193,7 +193,7 @@
   background: var(--bg-primary);
   border-radius: var(--radius);
 }
-.quant-result-label { font-size: 10px; color: var(--text-muted); }
+.quant-result-label { font-size: 10px; color: #5d6070; }
 .quant-result-value { font-size: 13px; font-weight: 600; color: var(--text-primary); }
 .quant-result-value-up { color: var(--green); }
 .quant-result-value-down { color: var(--red); }
@@ -202,7 +202,7 @@
 .quant-trade-th {
   text-align: left;
   padding: 4px 4px;
-  color: var(--text-muted);
+  color: #5d6070;
   font-weight: 500;
   border-bottom: 1px solid var(--border);
   font-size: 10px;
@@ -231,8 +231,8 @@
 .quant-signal-action-sell { color: var(--red); }
 .quant-signal-symbol { font-size: 12px; color: var(--text-primary); }
 .quant-signal-price { font-size: 12px; font-family: var(--font-mono); color: var(--text-primary); }
-.quant-signal-reason { color: var(--text-muted); font-size: 11px; }
-.quant-signal-time { color: var(--text-muted); font-size: 10px; }
+.quant-signal-reason { color: #5d6070; font-size: 11px; }
+.quant-signal-time { color: #5d6070; font-size: 10px; }
 .quant-signal-strategy { color: var(--accent); font-size: 10px; }
 
 /* Monitor */
@@ -252,7 +252,7 @@
 }
 .quant-monitor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .quant-monitor-item { display: flex; flex-direction: column; gap: 2px; }
-.quant-monitor-label { font-size: 10px; color: var(--text-muted); }
+.quant-monitor-label { font-size: 10px; color: #5d6070; }
 .quant-monitor-value { font-size: 13px; color: var(--text-primary); font-weight: 500; }
 .quant-monitor-value-up { color: var(--green); }
 .quant-monitor-value-down { color: var(--red); }

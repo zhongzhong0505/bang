@@ -32,6 +32,11 @@ const mainConfig: Configuration = {
   },
   resolve: { extensions: ['.ts', '.js'] },
   module: { rules: [swcRule] },
+  plugins: [
+    new rspack.CopyRspackPlugin({
+      patterns: [{ from: 'skillhub', to: 'skillhub' }],
+    }),
+  ],
   target: 'node',
   externals: [
     {
@@ -101,7 +106,7 @@ const rendererConfig: Configuration = {
   ].filter(Boolean) as any[],
   target: 'web',
   optimization: {
-    minimize: false,
+    minimize: !isDev,
     splitChunks: {
       chunks: 'all',
       maxInitialRequests: 20,

@@ -1,49 +1,50 @@
 import React from 'react';
 import { useStore } from '../../store';
 import './shortcuts.css';
+import { useTBatch } from '../../i18n';
 
-const SHORTCUTS = [
+const getShortcuts = (tr: Record<string, string>) => [
   {
-    group: '周期切换',
+    group: tr['shortcuts.periodGroup'],
     items: [
-      { key: '1', desc: '1分钟K线' },
-      { key: '5', desc: '5分钟K线' },
-      { key: 'D', desc: '日K线' },
-      { key: 'W', desc: '周K线' },
-      { key: 'M', desc: '月K线' },
+      { key: '1', desc: tr['shortcuts.period1m'] },
+      { key: '5', desc: tr['shortcuts.period5m'] },
+      { key: 'D', desc: tr['shortcuts.periodDay'] },
+      { key: 'W', desc: tr['shortcuts.periodWeek'] },
+      { key: 'M', desc: tr['shortcuts.periodMonth'] },
     ],
   },
   {
-    group: '图表类型',
+    group: tr['shortcuts.chartTypeGroup'],
     items: [
-      { key: 'C', desc: 'K线图' },
-      { key: 'L', desc: '折线图' },
-      { key: 'A', desc: '面积图' },
+      { key: 'C', desc: tr['shortcuts.chartCandle'] },
+      { key: 'L', desc: tr['shortcuts.chartLine'] },
+      { key: 'A', desc: tr['shortcuts.chartArea'] },
     ],
   },
   {
-    group: '视图控制',
+    group: tr['shortcuts.viewGroup'],
     items: [
-      { key: 'F11', desc: '全屏切换' },
-      { key: 'Ctrl+K', desc: '股票搜索' },
-      { key: 'Ctrl+S', desc: '截图保存' },
-      { key: 'Ctrl+/', desc: '快捷键帮助' },
-      { key: 'Esc', desc: '关闭弹窗/退出全屏' },
+      { key: 'F11', desc: tr['shortcuts.fullscreen'] },
+      { key: 'Ctrl+K', desc: tr['shortcuts.search'] },
+      { key: 'Ctrl+S', desc: tr['shortcuts.screenshot'] },
+      { key: 'Ctrl+/', desc: tr['shortcuts.help'] },
+      { key: 'Esc', desc: tr['shortcuts.close'] },
     ],
   },
   {
-    group: '缩放与滚动',
+    group: tr['shortcuts.zoomGroup'],
     items: [
-      { key: '鼠标滚轮', desc: '缩放K线' },
-      { key: '←/→', desc: '左/右滚动' },
-      { key: 'Home', desc: '跳到最新数据' },
+      { key: '鼠标滚轮', desc: tr['shortcuts.zoomKline'] },
+      { key: '←/→', desc: tr['shortcuts.scroll'] },
+      { key: 'Home', desc: tr['shortcuts.jumpLatest'] },
     ],
   },
   {
-    group: '交易操作',
+    group: tr['shortcuts.tradeGroup'],
     items: [
-      { key: 'Ctrl+B', desc: '买入' },
-      { key: 'Ctrl+E', desc: '卖出' },
+      { key: 'Ctrl+B', desc: tr['shortcuts.buy'] },
+      { key: 'Ctrl+E', desc: tr['shortcuts.sell'] },
     ],
   },
 ];
@@ -51,10 +52,21 @@ const SHORTCUTS = [
 const ShortcutsOverlay: React.FC = () => {
   const toggleShortcuts = useStore((s) => s.toggleShortcuts);
 
+  const tr = useTBatch([
+    'shortcuts.title', 'shortcuts.periodGroup', 'shortcuts.period1m', 'shortcuts.period5m',
+    'shortcuts.periodDay', 'shortcuts.periodWeek', 'shortcuts.periodMonth',
+    'shortcuts.chartTypeGroup', 'shortcuts.chartCandle', 'shortcuts.chartLine', 'shortcuts.chartArea',
+    'shortcuts.viewGroup', 'shortcuts.fullscreen', 'shortcuts.search', 'shortcuts.screenshot',
+    'shortcuts.help', 'shortcuts.close', 'shortcuts.zoomGroup', 'shortcuts.zoomKline',
+    'shortcuts.scroll', 'shortcuts.jumpLatest', 'shortcuts.tradeGroup', 'shortcuts.buy', 'shortcuts.sell',
+  ]);
+
+  const SHORTCUTS = getShortcuts(tr);
+
   return (
     <div className="shortcuts-overlay" onClick={(e) => { if (e.target === e.currentTarget) toggleShortcuts(); }}>
       <div className="shortcuts-panel">
-        <div className="shortcuts-title">键盘快捷键</div>
+        <div className="shortcuts-title">{tr['shortcuts.title']}</div>
         {SHORTCUTS.map((g) => (
           <div key={g.group} className="shortcuts-group">
             <div className="shortcuts-group-title">{g.group}</div>

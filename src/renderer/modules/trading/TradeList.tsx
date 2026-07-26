@@ -1,13 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import './trade-list.css';
+import { useTBatch } from '../../i18n';
 import { useStore } from '../../store';
 import type { TradeRecord, Market } from '../../../shared/types';
 
 type FilterMarket = 'ALL' | Market;
 type FilterSide = 'ALL' | 'BUY' | 'SELL';
 
-const MARKET_LABELS: Record<string, string> = {
-  HK: '港股', US: '美股', SH: '沪A', SZ: '深A', SG: '新加坡', JP: '日本',
+const MARKET_KEYS: Record<string, string> = {
+  HK: 'tradeList.marketHK', US: 'tradeList.marketUS', SH: 'tradeList.marketSH', SZ: 'tradeList.marketSZ', SG: 'tradeList.marketSG', JP: 'tradeList.marketJP',
 };
 
 function formatTime(ts: number): string {
@@ -27,6 +28,18 @@ const TradeList: React.FC = () => {
   const [filterMarket, setFilterMarket] = useState<FilterMarket>('ALL');
   const [filterSide, setFilterSide] = useState<FilterSide>('ALL');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const tr = useTBatch([
+    'tradeList.title', 'tradeList.count', 'tradeList.clear', 'tradeList.totalFee',
+    'tradeList.buyAmount', 'tradeList.sellAmount', 'tradeList.tradeCount',
+    'tradeList.allMarkets', 'tradeList.allSides', 'tradeList.buy', 'tradeList.sell',
+    'tradeList.empty', 'tradeList.thTime', 'tradeList.thSecurity', 'tradeList.thMarket',
+    'tradeList.thSide', 'tradeList.thPrice', 'tradeList.thQty', 'tradeList.thAmount',
+    'tradeList.thFee', 'tradeList.thNet', 'tradeList.feeDetail', 'tradeList.feeTotal',
+    'tradeList.tradeInfo', 'tradeList.provider', 'tradeList.providerFutu', 'tradeList.providerTiger',
+    'tradeList.currency', 'tradeList.orderId', 'tradeList.unitPrice', 'tradeList.quantity',
+    'tradeList.feeRatio', 'tradeList.total',
+  ] + Object.values(MARKET_KEYS) as any);
 
   const filtered = useMemo(() => {
     return tradeRecords.filter((t) => {
@@ -49,11 +62,11 @@ const TradeList: React.FC = () => {
       <div className="trade-list-modal" onClick={(e) => e.stopPropagation()}>
         <div className="trade-list-header">
           <div className="trade-list-title-row">
-            <h2 className="trade-list-title">交易明细</h2>
+            <h2 className="trade-list-title">{tr['tradeList.title']}</h2>
             <span className="trade-list-count">{filtered.length} 笔</span>
           </div>
           <div className="trade-list-actions">
-            <button className="trade-list-btn" onClick={clearTradeRecords}>清空</button>
+            <button className="trade-list-btn" onClick={clearTradeRecords}>{tr['tradeList.clear']}</button>
             <button className="trade-list-btn trade-list-close" onClick={toggleTradeList}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
           </div>
         </div>
@@ -61,25 +74,25 @@ const TradeList: React.FC = () => {
         {/* Summary cards */}
         <div className="trade-list-summary">
           <div className="trade-summary-card">
-            <div className="trade-summary-label">总费用</div>
+            <div className="trade-summary-label">{tr['tradeList.totalFee']}</div>
             <div className="trade-summary-value trade-summary-fee">
               {summary.totalFees.toFixed(2)}
             </div>
           </div>
           <div className="trade-summary-card">
-            <div className="trade-summary-label">买入金额</div>
+            <div className="trade-summary-label">{tr['tradeList.buyAmount']}</div>
             <div className="trade-summary-value up">
               {summary.buyAmount.toFixed(2)}
             </div>
           </div>
           <div className="trade-summary-card">
-            <div className="trade-summary-label">卖出金额</div>
+            <div className="trade-summary-label">{tr['tradeList.sellAmount']}</div>
             <div className="trade-summary-value down">
               {summary.sellAmount.toFixed(2)}
             </div>
           </div>
           <div className="trade-summary-card">
-            <div className="trade-summary-label">成交笔数</div>
+            <div className="trade-summary-label">{tr['tradeList.tradeCount']}</div>
             <div className="trade-summary-value">
               {summary.totalTrades}
             </div>
@@ -95,7 +108,7 @@ const TradeList: React.FC = () => {
                 className={`trade-filter-btn${filterMarket === m ? ' trade-filter-active' : ''}`}
                 onClick={() => setFilterMarket(m)}
               >
-                {m === 'ALL' ? '全部市场' : MARKET_LABELS[m]}
+                {m === 'ALL' ? tr['tradeList.allMarkets'] : tr[MARKET_KEYS[m] as any]}
               </button>
             ))}
           </div>
@@ -106,7 +119,7 @@ const TradeList: React.FC = () => {
                 className={`trade-filter-btn${filterSide === s ? ' trade-filter-active' : ''}`}
                 onClick={() => setFilterSide(s)}
               >
-                {s === 'ALL' ? '全部' : s === 'BUY' ? '买入' : '卖出'}
+                {s === 'ALL' ? tr['tradeList.allSides'] : s === 'BUY' ? tr['tradeList.buy'] : tr['tradeList.sell']}
               </button>
             ))}
           </div>
@@ -115,20 +128,20 @@ const TradeList: React.FC = () => {
         {/* Table */}
         <div className="trade-list-body">
           {filtered.length === 0 ? (
-            <div className="trade-list-empty">暂无交易记录</div>
+            <div className="trade-list-empty">{tr['tradeList.empty']}</div>
           ) : (
             <table className="trade-table">
               <thead>
                 <tr>
-                  <th className="trade-th">时间</th>
-                  <th className="trade-th">证券</th>
-                  <th className="trade-th">市场</th>
-                  <th className="trade-th">方向</th>
-                  <th className="trade-th trade-th-right">价格</th>
-                  <th className="trade-th trade-th-right">数量</th>
-                  <th className="trade-th trade-th-right">成交金额</th>
-                  <th className="trade-th trade-th-right">总费用</th>
-                  <th className="trade-th trade-th-right">净额</th>
+                  <th className="trade-th">{tr['tradeList.thTime']}</th>
+                  <th className="trade-th">{tr['tradeList.thSecurity']}</th>
+                  <th className="trade-th">{tr['tradeList.thMarket']}</th>
+                  <th className="trade-th">{tr['tradeList.thSide']}</th>
+                  <th className="trade-th trade-th-right">{tr['tradeList.thPrice']}</th>
+                  <th className="trade-th trade-th-right">{tr['tradeList.thQty']}</th>
+                  <th className="trade-th trade-th-right">{tr['tradeList.thAmount']}</th>
+                  <th className="trade-th trade-th-right">{tr['tradeList.totalFee']}</th>
+                  <th className="trade-th trade-th-right">{tr['tradeList.thNet']}</th>
                 </tr>
               </thead>
               <tbody>
@@ -144,11 +157,11 @@ const TradeList: React.FC = () => {
                         <div className="trade-td-code">{t.code}</div>
                       </td>
                       <td className="trade-td">
-                        <span className="trade-market-tag">{MARKET_LABELS[t.market] ?? t.market}</span>
+                        <span className="trade-market-tag">{tr[MARKET_KEYS[t.market] as any] ?? t.market}</span>
                       </td>
                       <td className="trade-td">
                         <span className={`trade-side-tag ${t.side === 'BUY' ? 'trade-side-buy' : 'trade-side-sell'}`}>
-                          {t.side === 'BUY' ? '买入' : '卖出'}
+                          {t.side === 'BUY' ? tr['tradeList.buy'] : tr['tradeList.sell']}
                         </span>
                       </td>
                       <td className="trade-td trade-td-right">{t.price.toFixed(2)}</td>
@@ -162,7 +175,7 @@ const TradeList: React.FC = () => {
                         <td colSpan={9}>
                           <div className="trade-detail-content">
                             <div className="trade-detail-section">
-                              <div className="trade-detail-title">费用明细</div>
+                              <div className="trade-detail-title">{tr['tradeList.feeDetail']}</div>
                               <div className="trade-fee-items">
                                 {t.fee.fees.map((f, i) => (
                                   <div key={i} className="trade-fee-item">
@@ -171,36 +184,36 @@ const TradeList: React.FC = () => {
                                   </div>
                                 ))}
                                 <div className="trade-fee-item trade-fee-total">
-                                  <span className="trade-fee-name">合计</span>
+                                  <span className="trade-fee-name">{tr['tradeList.feeTotal']}</span>
                                   <span className="trade-fee-amount">{t.fee.totalFee.toFixed(2)} {t.currency}</span>
                                 </div>
                               </div>
                             </div>
                             <div className="trade-detail-section">
-                              <div className="trade-detail-title">交易信息</div>
+                              <div className="trade-detail-title">{tr['tradeList.tradeInfo']}</div>
                               <div className="trade-info-grid">
                                 <div className="trade-info-item">
-                                  <span className="trade-info-label">券商</span>
-                                  <span className="trade-info-value">{t.provider === 'futu' ? '富途' : '老虎'}</span>
+                                  <span className="trade-info-label">{tr['tradeList.provider']}</span>
+                                  <span className="trade-info-value">{t.provider === 'futu' ? tr['tradeList.providerFutu'] : tr['tradeList.providerTiger']}</span>
                                 </div>
                                 <div className="trade-info-item">
-                                  <span className="trade-info-label">币种</span>
+                                  <span className="trade-info-label">{tr['tradeList.currency']}</span>
                                   <span className="trade-info-value">{t.currency}</span>
                                 </div>
                                 <div className="trade-info-item">
-                                  <span className="trade-info-label">订单号</span>
+                                  <span className="trade-info-label">{tr['tradeList.orderId']}</span>
                                   <span className="trade-info-value">{t.orderId ?? t.id}</span>
                                 </div>
                                 <div className="trade-info-item">
-                                  <span className="trade-info-label">单价</span>
+                                  <span className="trade-info-label">{tr['tradeList.unitPrice']}</span>
                                   <span className="trade-info-value">{t.price.toFixed(2)} {t.currency}</span>
                                 </div>
                                 <div className="trade-info-item">
-                                  <span className="trade-info-label">数量</span>
+                                  <span className="trade-info-label">{tr['tradeList.thQty']}</span>
                                   <span className="trade-info-value">{t.filledQty}</span>
                                 </div>
                                 <div className="trade-info-item">
-                                  <span className="trade-info-label">费率占比</span>
+                                  <span className="trade-info-label">{tr['tradeList.feeRatio']}</span>
                                   <span className="trade-info-value">
                                     {t.amount > 0 ? (t.fee.totalFee / t.amount * 100).toFixed(4) : '0'}%
                                   </span>
@@ -216,7 +229,7 @@ const TradeList: React.FC = () => {
               </tbody>
               <tfoot>
                 <tr className="trade-tfoot">
-                  <td className="trade-td" colSpan={6}>合计</td>
+                  <td className="trade-td" colSpan={6}>{tr['tradeList.feeTotal']}</td>
                   <td className="trade-td trade-td-right">{filtered.reduce((s, t) => s + t.amount, 0).toFixed(2)}</td>
                   <td className="trade-td trade-td-right trade-td-fee">{summary.totalFees.toFixed(2)}</td>
                   <td className="trade-td trade-td-right"></td>

@@ -22,7 +22,7 @@
 }
 .shortcuts-group { margin-bottom: 12px; }
 .shortcuts-group-title {
-  font-size: 11px; font-weight: 600; color: var(--text-secondary);
+  font-size: 11px; font-weight: 600; color: #9699a5;
   margin-bottom: 6px; text-transform: uppercase;
 }
 .shortcuts-row {
@@ -34,4 +34,4 @@
   border-radius: 3px; padding: 2px 8px; color: var(--text-primary);
   font-family: var(--font-mono); font-size: 11px; min-width: 28px; text-align: center;
 }
-.shortcuts-desc { color: var(--text-secondary); }
+.shortcuts-desc { color: #9699a5; }

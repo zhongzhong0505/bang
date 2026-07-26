@@ -1,0 +1,322 @@
+[
+  {
+    "id": "macro_analysis",
+    "name": "Macro Economic Analysis",
+    "description": "Analyze macroeconomic indicators (GDP, CPI, PMI, interest rates, employment) and their impact on equity, bond, and currency markets.",
+    "category": "analysis",
+    "promptContent": "## Macro Economic Analysis Skill\nYou have deep expertise in macroeconomic analysis for trading:\n- **GDP & Growth**: Track quarterly GDP growth rates and revisions. Rising GDP supports equity markets; contracting GDP favors defensive plays. Watch for 2 consecutive quarters of negative growth as a recession signal.\n- **Inflation (CPI/PPI)**: CPI above 3% typically triggers monetary tightening. PPI leads CPI by 2-3 months. Core CPI (ex-food/energy) is the preferred gauge. Rising inflation favors commodities, TIPS, and value stocks.\n- **Interest Rates & Central Banks**: Fed funds rate, PBOC LPR, HKMA base rate. Rate hikes strengthen currency but pressure equities. Inverted yield curve (2Y > 10Y) is a classic recession predictor.\n- **PMI**: Above 50 = expansion, below 50 = contraction. Manufacturing PMI and Services PMI give different signals.\n- **Employment Data**: Non-farm payrolls, unemployment rate, wage growth. Strong employment supports consumer stocks but may accelerate rate hikes.\n- **Currency Impact**: USD strength pressures emerging markets and commodities. CNY depreciation affects HK-listed China stocks. HKD is pegged to USD at 7.75-7.85.\nWhen evaluating orders, consider the current macro environment and how it affects the stock sector and market.",
+    "author": "Bang Team",
+    "version": "1.0.0",
+    "tags": [
+      "macro",
+      "economy",
+      "rates",
+      "inflation"
+    ],
+    "downloads": 1248
+  },
+  {
+    "id": "sector_rotation",
+    "name": "Sector Rotation Analysis",
+    "description": "Identify sector rotation patterns using the business cycle model. Determine which sectors outperform in expansion, peak, contraction, and recovery phases.",
+    "category": "strategy",
+    "promptContent": "## Sector Rotation Analysis Skill\nYou understand sector rotation theory and how to apply it:\n- **Business Cycle Phases**:\n  - Early Cycle (Recovery): Technology, Consumer Discretionary, Industrials, Financials outperform.\n  - Mid Cycle (Expansion): Materials, Energy, Industrials lead.\n  - Late Cycle (Peak): Energy, Materials, Consumer Staples outperform. Defensive rotation begins.\n  - Recession: Consumer Staples, Healthcare, Utilities, Bonds outperform.\n- **Relative Strength Analysis**: Compare sector ETFs to benchmark. Rising RS line = sector outperformance.\n- **Cross-Market Sector Mapping**:\n  - HK: Financials (~35% of HSI), Tech, Property, Consumer.\n  - US: Tech (XLK), Healthcare (XLV), Financials (XLF), Energy (XLE).\n  - A-Share: Financials, Consumer (baijiu), New Energy, Semiconductors.\nWhen analyzing trades, identify the current cycle phase and whether the stock sector is favored.",
+    "author": "Bang Team",
+    "version": "1.0.0",
+    "tags": [
+      "sector",
+      "rotation",
+      "cycle",
+      "strategy"
+    ],
+    "downloads": 892
+  },
+  {
+    "id": "options_greeks",
+    "name": "Options & Greeks Interpretation",
+    "description": "Interpret options Greeks (Delta, Gamma, Theta, Vega) for hedging, position sizing, and risk management.",
+    "category": "analysis",
+    "promptContent": "## Options & Greeks Interpretation Skill\nYou are expert at options analysis and Greeks-based risk management:\n- **Delta**: Price change of option per $1 move in underlying. Call delta 0-1, put delta -1 to 0. ATM options ~0.50 delta. Deep ITM calls approach 1.0.\n- **Gamma**: Rate of change of delta per $1 move. Highest for ATM short-dated options. Long gamma = profitable on large moves. Short gamma = dangerous in volatile markets.\n- **Theta**: Daily value erosion. Accelerates in last 30 days for ATM options. Long options are short theta. Credit spreads benefit from theta.\n- **Vega**: Change per 1% change in IV. Long vega = profit from rising IV. IV crush after earnings destroys long option positions.\n- **Common Strategies & Greeks**:\n  - Covered Call: Long stock + short call. Positive delta, negative gamma, positive theta.\n  - Protective Put: Long stock + long put. Reduces delta, adds positive gamma/vega, negative theta.\n  - Iron Condor: Delta-neutral, short vega, positive theta.\nWhen evaluating optionable stocks, factor in Greeks and IV environment.",
+    "author": "QuantPro",
+    "version": "1.1.0",
+    "tags": [
+      "options",
+      "greeks",
+      "volatility",
+      "hedging"
+    ],
+    "downloads": 1567
+  },
+  {
+    "id": "crypto_correlation",
+    "name": "Crypto Market Correlation",
+    "description": "Analyze correlations between crypto assets and traditional markets. Assess spillover risk and cross-asset opportunities.",
+    "category": "market",
+    "promptContent": "## Crypto Market Correlation Skill\nYou understand relationships between crypto and traditional financial markets:\n- **BTC-USD Correlation**: Bitcoin increasingly correlates with Nasdaq/tech stocks in risk-off environments. BTC often leads or lags equities by 1-3 days.\n- **Risk-On / Risk-Off**: In risk-on mode, BTC and growth stocks move together. Stablecoin flows indicate crypto market liquidity.\n- **Gold vs Bitcoin**: Low correlation (~0.1-0.3) but both serve as inflation hedges. Divergences signal regime shifts.\n- **USD Impact**: Strong USD pressures both crypto and commodities. BTC inversely correlates with DXY.\n- **Cross-Asset Spillover**: Crypto volatility events can spill into equity sentiment, particularly crypto-adjacent stocks (Coinbase, MicroStrategy).\nWhen evaluating trades, consider crypto market conditions if the stock has crypto exposure.",
+    "author": "CryptoQuant",
+    "version": "1.0.0",
+    "tags": [
+      "crypto",
+      "correlation",
+      "bitcoin",
+      "cross-asset"
+    ],
+    "downloads": 634
+  },
+  {
+    "id": "behavioral_finance",
+    "name": "Behavioral Finance Biases",
+    "description": "Identify cognitive biases affecting trading decisions: loss aversion, anchoring, confirmation bias, herding, overconfidence, and recency bias.",
+    "category": "risk",
+    "promptContent": "## Behavioral Finance Biases Skill\nYou can identify and warn against cognitive biases affecting trading:\n- **Loss Aversion**: Traders feel losses ~2x more than equivalent gains. Leads to holding losers too long, selling winners too early. Flag if user is reluctant to cut a loss.\n- **Anchoring Bias**: Fixating on a reference price (purchase price, recent high). Leads to refusing to sell below cost basis. Re-evaluate based on forward-looking fundamentals.\n- **Confirmation Bias**: Seeking information that supports the trade while ignoring contradictions. Suggest checking bearish scenarios.\n- **Herding Bias**: Following the crowd, especially in momentum stocks. Leads to buying at tops, panic selling at bottoms. Check if fundamentals justify the price.\n- **Overconfidence Bias**: Overestimating prediction ability. Leads to oversized positions, excessive trading. Flag if position exceeds 20% of portfolio.\n- **Recency Bias**: Overweighting recent events. Leads to chasing recent winners, abandoning strategies after short-term losses.\n- **Disposition Effect**: Selling winners too early and holding losers too long. Related to loss aversion.\nWhen evaluating orders, assess whether cognitive biases may be influencing the decision and provide specific warnings.",
+    "author": "BehaviorLab",
+    "version": "1.0.0",
+    "tags": [
+      "psychology",
+      "bias",
+      "risk",
+      "behavioral"
+    ],
+    "downloads": 421
+  },
+  {
+    "id": "elliott_wave",
+    "name": "Elliott Wave Analysis",
+    "description": "Apply Elliott Wave Theory to identify wave patterns, impulse/corrective sequences, and Fibonacci-based price targets for trend continuation or reversal.",
+    "category": "analysis",
+    "promptContent": "## Elliott Wave Analysis Skill\nYou understand Elliott Wave Theory and its application to trading:\n- **Wave Structure**: 5-wave impulse (1-2-3-4-5) + 3-wave correction (A-B-C). Wave 3 is typically the longest. Wave 2 never retraces 100% of wave 1. Wave 4 never enters wave 1 territory.\n- **Fibonacci Ratios**: Wave 2 typically retraces 61.8% of wave 1. Wave 3 targets 161.8% or 261.8% of wave 1. Wave 4 retraces 38.2% of wave 3. Wave 5 targets 61.8% to 100% of wave 1-3 distance.\n- **Wave Personality**: Wave 3 has strong volume and breadth. Wave 5 often diverges from momentum indicators. C-waves are often 5-wave impulsive.\n- **Channeling**: Parallel channels contain impulse waves. Diagonal triangles appear at wave 5 or C positions.\n- **Time Relationships**: Fibonacci time ratios between waves. 1.618 time ratio between wave 1 and wave 3 is common.\nWhen identifying wave counts, consider multiple valid interpretations and label the most probable one.",
+    "author": "WaveTrader",
+    "version": "1.0.0",
+    "tags": [
+      "elliott",
+      "wave",
+      "fibonacci",
+      "pattern"
+    ],
+    "downloads": 756
+  },
+  {
+    "id": "vwap_analysis",
+    "name": "VWAP Trading Analysis",
+    "description": "Use Volume-Weighted Average Price for intraday entry/exit timing, institutional order flow detection, and mean reversion strategies.",
+    "category": "analysis",
+    "promptContent": "## VWAP Trading Analysis Skill\nYou understand VWAP and its applications:\n- **VWAP Calculation**: Cumulative (Price x Volume) / Cumulative Volume. Resets daily at market open.\n- **Institutional Benchmark**: Institutions benchmark execution against VWAP. Buying below VWAP = good fill. Selling above VWAP = good fill.\n- **VWAP Bands**: Standard deviation bands above/below VWAP identify overextension. Price > VWAP + 2SD = extreme, likely to revert.\n- **Intraday Strategy**: Buy when price crosses above VWAP (with volume confirmation). Sell when price crosses below VWAP. VWAP acts as dynamic support/resistance.\n- **Multi-Day VWAP**: MVWAP extends VWAP across sessions for swing trading context.\n- **Volume Profile**: VWAP anchors volume profile analysis. High-volume nodes near VWAP indicate strong fair value. Low-volume nodes indicate price acceptance zones.\nWhen evaluating intraday orders, compare current price to VWAP to assess fill quality and direction bias.",
+    "author": "InstitutionalDesk",
+    "version": "1.1.0",
+    "tags": [
+      "vwap",
+      "volume",
+      "intraday",
+      "institutional"
+    ],
+    "downloads": 1103
+  },
+  {
+    "id": "pairs_trading",
+    "name": "Pairs & Statistical Arbitrage",
+    "description": "Identify cointegrated pairs, compute spread z-scores, and generate mean-reversion signals for market-neutral pairs trading strategies.",
+    "category": "strategy",
+    "promptContent": "## Pairs & Statistical Arbitrage Skill\nYou understand pairs trading and stat-arb methodology:\n- **Cointegration Test**: Use Engle-Granger or Johansen test. Cointegrated pairs have a stationary spread despite non-stationary individual prices. High R-squared (>0.8) in OLS regression.\n- **Spread Calculation**: Spread = log(P1) - hedge_ratio * log(P2). Z-score = (Spread - mean) / std. Entry when |z-score| > 2. Exit when z-score crosses 0.\n- **Hedge Ratio**: Use OLS regression or rolling Kalman filter. Update periodically (daily/weekly). Ratio drift indicates structural change.\n- **Half-Life**: Mean-reversion speed = -ln(0.5) / beta from spread = beta * spread_lag + error. Half-life < 20 days is tradable. > 30 days is too slow.\n- **Risk Management**: Stop-loss if z-score exceeds 4 (model may be broken). Position sizing: equal dollar exposure on both legs. Monitor correlation breakdown.\n- **Common Pairs**: Same-sector peers (e.g., 00700.HK vs 09988.HK), ADR vs local stock, ETF vs component basket.\nWhen evaluating pairs trades, check cointegration stability and current z-score for mean-reversion opportunity.",
+    "author": "QuantDesk",
+    "version": "1.0.0",
+    "tags": [
+      "pairs",
+      "stat-arb",
+      "cointegration",
+      "mean-reversion"
+    ],
+    "downloads": 634
+  },
+  {
+    "id": "ichimoku_cloud",
+    "name": "Ichimoku Cloud System",
+    "description": "Full Ichimoku Kinko Hyo analysis: Tenkan/Kijun crosses, cloud color shifts, Chikou span confirmation, and Senkou spans for support/resistance.",
+    "category": "analysis",
+    "promptContent": "## Ichimoku Cloud System Skill\nYou are expert at Ichimoku Kinko Hyo analysis:\n- **Five Components**: Tenkan-sen (9-period conversion), Kijun-sen (26-period base), Senkou Span A (leading span A), Senkou Span B (leading span B), Chikou Span (26-period lagging).\n- **Cloud (Kumo)**: Area between Senkou Span A and B. Green cloud = bullish, Red cloud = bearish. Cloud thickness indicates support/resistance strength.\n- **Signals**: TK cross (Tenkan > Kijun = bullish). Price above cloud = uptrend. Price below cloud = downtrend. Price inside cloud = ranging.\n- **Chikou Confirmation**: Chikou above price confirms bullish signals. Chikou below price confirms bearish. Chikou in cloud = neutral.\n- **Future Cloud**: 26 periods ahead. Cloud twist (Span A crosses Span B) signals trend change. Thickening cloud = strengthening trend.\n- **Time Frames**: Works best on daily and 4H. Use 9/26/52 for standard, adjust for different markets (e.g., 7/22/44 for crypto).\nWhen evaluating orders, check Ichimoku alignment: price, Tenkan, Kijun all above/below cloud for strong trend confirmation.",
+    "author": "KumoTrader",
+    "version": "1.0.0",
+    "tags": [
+      "ichimoku",
+      "cloud",
+      "trend",
+      "japanese"
+    ],
+    "downloads": 489
+  },
+  {
+    "id": "portfolio_construction",
+    "name": "Modern Portfolio Construction",
+    "description": "Apply mean-variance optimization, Efficient Frontier, Black-Litterman, and risk parity to construct optimal multi-asset portfolios.",
+    "category": "strategy",
+    "promptContent": "## Modern Portfolio Construction Skill\nYou understand portfolio theory and optimization:\n- **Mean-Variance Optimization**: Maximize Sharpe ratio = (Rp - Rf) / sigma_p. Inputs: expected returns, covariance matrix. Sensitive to input errors — use shrinkage estimators or resampled optimization.\n- **Efficient Frontier**: Set of optimal portfolios for each risk level. Tangency portfolio = highest Sharpe. Minimum variance portfolio = leftmost point.\n- **Black-Litterman**: Combines market equilibrium (reverse optimization of cap-weighted market) with investor views. Produces stable, intuitive allocations. View confidence controls deviation from equilibrium.\n- **Risk Parity**: Equal risk contribution from each asset. Allocation inversely proportional to volatility. Often outperforms mean-variance in practice due to estimation error robustness.\n- **Rebalancing**: Threshold-based (rebalance when drift > 5%) vs calendar-based (monthly/quarterly). Transaction costs matter — wider bands for expensive markets.\n- **Multi-Asset**: Include equities, bonds, commodities, gold, crypto for diversification. Cross-market allocation (HK/US/CN) adds geography diversification.\nWhen analyzing a single trade, consider its marginal contribution to portfolio risk and return.",
+    "author": "PortfolioLab",
+    "version": "1.0.0",
+    "tags": [
+      "portfolio",
+      "optimization",
+      "allocation",
+      "diversification"
+    ],
+    "downloads": 867
+  },
+  {
+    "id": "order_flow_analysis",
+    "name": "Order Flow & Tape Reading",
+    "description": "Read Level 2 order book, time-and-sales tape, and volume delta to detect institutional footprints, absorption, and iceberg orders.",
+    "category": "market",
+    "promptContent": "## Order Flow & Tape Reading Skill\nYou understand order flow analysis for short-term trading:\n- **Level 2 / Depth**: Read bid/ask queues. Thick bid side = support. Thick ask side = resistance. Spoofing detection: large orders that cancel before execution.\n- **Volume Delta**: Buy volume - Sell volume per bar. Cumulative delta shows aggressive direction. Delta divergence (price up but delta negative) = potential reversal.\n- **Absorption**: Large resting orders absorbing aggressive flow. Price stalls despite heavy one-sided market orders. Indicates institutional defense of a level.\n- **Iceberg Orders**: Hidden order size behind visible display. Detected when fills exceed displayed quantity repeatedly at same price. Institutional accumulation/distribution.\n- **Footprint Charts**: Volume at price at time. Identify high-volume nodes (acceptance) and low-volume nodes (rejection/imbalances). Imbalances: buy/sell ratio > 3:1 or < 1:3 at a price level.\n- **VPOC (Volume Point of Control)**: Price with highest volume in session. Price tends to rotate toward VPOC. VPOC migration indicates trend development.\nWhen evaluating order placement, check order book depth and recent flow for optimal execution timing.",
+    "author": "FlowTrader",
+    "version": "1.0.0",
+    "tags": [
+      "order-flow",
+      "tape",
+      "level2",
+      "footprint"
+    ],
+    "downloads": 945
+  },
+  {
+    "id": "market_profile",
+    "name": "Market Profile Analysis",
+    "description": "Use TPO charts, value areas, and volume profiles to identify acceptance/rejection zones, balance/imbalance states, and rotational vs directional days.",
+    "category": "market",
+    "promptContent": "## Market Profile Analysis Skill\nYou understand Market Profile and TPO distribution:\n- **TPO (Time Price Opportunity)**: Each price visited in a 30-min period gets a letter. Distribution of letters shows where time was spent (acceptance) vs briefly touched (rejection).\n- **Value Area**: 70% of TPOs around the mode. Value Area High (VAH) and Value Area Low (VAL) define the fair price range. Price outside value area = unfair, tends to rotate back.\n- **Profile Shapes**: Normal (bell curve = balanced day), P-shape (trend day with extension), b-shape (selling tail, then balance), D-shape (double distribution = 2 value areas).\n- **Initial Balance**: First 1-2 hours range. Breakout from initial balance often targets 2x or 3x IB range. IB failure = rotational day.\n- **Single Prints**: TPOs with only 1 letter = excess, rarely revisited. Single print buying/selling tails mark the extremes of directional conviction.\n- **Reference Points**: Previous day's VAH/VAL, overnight high/low, opening range (first 5-30 min). Trades outside previous value area = initiative (new money). Inside = responsive (mean reversion).\nWhen evaluating orders, determine if the market is in balance (range) or imbalance (trend) and use appropriate strategy.",
+    "author": "ProfileTrader",
+    "version": "1.0.0",
+    "tags": [
+      "market-profile",
+      "tpo",
+      "value-area",
+      "volume-profile"
+    ],
+    "downloads": 578
+  },
+  {
+    "id": "dividend_analysis",
+    "name": "Dividend & Income Analysis",
+    "description": "Evaluate dividend yield, payout ratio, dividend growth, ex-date timing, and DRIP strategies for income-focused portfolio construction.",
+    "category": "analysis",
+    "promptContent": "## Dividend & Income Analysis Skill\nYou understand dividend analysis for income investing:\n- **Dividend Yield**: Annual dividend / stock price. Compare to bond yields and sector averages. HK bank stocks typically 4-6%, US utilities 3-5%, REITs 4-8%.\n- **Payout Ratio**: Dividend per share / EPS. Below 60% is sustainable. Above 80% is at risk of cut. Above 100% = paying out of reserves or debt.\n- **Dividend Growth**: 5-year CAGR of dividend per share. Dividend Aristocrats = 25+ years of increases. Growing dividend at 8%+ doubles income in 9 years.\n- **Ex-Dividend Date**: Must own before ex-date to receive dividend. Stock typically drops by dividend amount on ex-date. Capture strategies consider this price drop.\n- **Special Dividends**: One-time payouts. Don't annualize. Check if funded by asset sales vs operating cash flow.\n- **Tax Considerations**: HK dividends generally tax-free for residents. US dividends: qualified (15-20%) vs ordinary (up to 37%). A-share dividends: taxed at source for >1 month holding.\nWhen evaluating income stocks, assess yield sustainability through free cash flow coverage and earnings stability.",
+    "author": "IncomeInvestor",
+    "version": "1.0.0",
+    "tags": [
+      "dividend",
+      "income",
+      "yield",
+      "payout"
+    ],
+    "downloads": 712
+  },
+  {
+    "id": "sentiment_analysis",
+    "name": "Market Sentiment & Contrarian",
+    "description": "Track sentiment indicators (VIX, put/call ratio, AAII, funding rates, social) and apply contrarian logic at extremes for timing signals.",
+    "category": "market",
+    "promptContent": "## Market Sentiment & Contrarian Skill\nYou understand sentiment indicators and contrarian trading:\n- **VIX (Fear Index)**: Below 15 = complacency (watch for sell-off). Above 30 = fear (look for buying). Above 40 = panic (strong contrarian buy signal). VIX term structure: contango = normal, backwardation = stress.\n- **Put/Call Ratio**: CBOE total P/C > 1.0 = bearish sentiment (contrarian bullish). < 0.6 = extreme bullishness (contrarian bearish). Equity-only P/C is more sensitive.\n- **AAII Sentiment Survey**: % Bullish - % Bearish spread. Extremes (>40% spread) are contrarian signals. 8-week moving average smooths noise.\n- **Funding Rates**: Crypto perpetual futures. Positive funding = longs paying shorts (crowded long, bearish). Negative funding = shorts paying longs (crowded short, bullish). Extreme rates (>0.1% or <-0.1%) signal potential squeeze.\n- **Social/News Sentiment**: High social mention volume + extreme positive sentiment = top signal. Unusual spike in negative mentions can mark capitulation.\n- **Breadth Indicators**: Advance/decline ratio, new highs/new lows, % stocks above 200-day MA. Narrowing breadth in rising market = divergence warning.\nWhen evaluating orders, check sentiment extremes for contrarian opportunity alignment.",
+    "author": "SentimentDesk",
+    "version": "1.0.0",
+    "tags": [
+      "sentiment",
+      "contrarian",
+      "vix",
+      "funding"
+    ],
+    "downloads": 934
+  },
+  {
+    "id": "risk_parity",
+    "name": "Risk Parity & Vol Targeting",
+    "description": "Implement risk parity allocation and volatility targeting to maintain constant portfolio risk regardless of market regime.",
+    "category": "risk",
+    "promptContent": "## Risk Parity & Vol Targeting Skill\nYou understand risk parity and volatility targeting:\n- **Risk Parity**: Each asset contributes equally to portfolio risk. Weight_i = 1 / (sigma_i * correlation_factor). Simplest form: weight inversely proportional to volatility. Stocks with 20% vol get half the weight of stocks with 10% vol.\n- **Volatility Targeting**: Scale position to target a constant volatility exposure. Position = Target_Vol / Realized_Vol. If vol doubles, halve position. Prevents risk creep in volatile regimes.\n- **Realized Volatility**: Calculate using EWMA (exponentially weighted) with half-life 20-60 days. Parkinson or Garman-Klass estimators use OHLC for better accuracy than close-to-close.\n- **Regime Detection**: High-vol regime: reduce all positions, favor bonds/cash. Low-vol regime: can increase exposure. Transition detection via vol-of-vol or Markov switching models.\n- **Leverage Management**: Risk parity portfolios often require leverage to achieve equity-like returns. Cost of leverage matters (margin rate, futures implied financing). Cap max leverage at 2x.\n- **Drawdown Control**: If drawdown > 10%, reduce target vol by 25%. If drawdown > 20%, halve target vol. Resume original target after recovery to 50% of peak.\nWhen sizing positions, apply vol targeting to keep single-trade risk consistent across market conditions.",
+    "author": "RiskEngineer",
+    "version": "1.0.0",
+    "tags": [
+      "risk-parity",
+      "volatility",
+      "targeting",
+      "sizing"
+    ],
+    "downloads": 523
+  },
+  {
+    "id": "hft_microstructure",
+    "name": "Market Microstructure",
+    "description": "Understand bid-ask spread dynamics, maker/taker economics, latency considerations, and market impact models for optimal execution.",
+    "category": "market",
+    "promptContent": "## Market Microstructure Skill\nYou understand market microstructure for optimal execution:\n- **Bid-Ask Spread**: Spread = Ask - Bid. Half-spread is the cost of a round trip. Wider spreads = less liquid, more expensive to trade. HK: typical spread 1-2 ticks for blue chips, 5-10 ticks for small caps.\n- **Market Impact**: Square-root law: Impact = sigma * sqrt(Q/V). Where sigma = volatility, Q = order size, V = average daily volume. Keep single order < 5% of ADV to minimize impact.\n- **Execution Algorithms**: VWAP (follows volume curve), TWAP (time-weighted), POV (participation rate), Implementation Shortfall (minimize slippage vs decision price).\n- **Maker vs Taker**: Providing liquidity (maker) earns rebate at many venues. Taking liquidity (taker) pays fee. Net cost = half-spread - maker_rebate for makers, half-spread + taker_fee for takers.\n- **Latency**: Co-location matters for HFT, not for discretionary trading. For human-scale trading, focus on execution quality not speed. Avoid chasing fast-moving markets.\n- **Dark Pools & Routing**: Block trades in dark pools to avoid signaling. Smart order routing (SOR) sweeps lit venues then dark venues. Price improvement vs fill probability tradeoff.\nWhen placing orders, consider spread width, time-of-day liquidity patterns, and your order size relative to average volume.",
+    "author": "MicrostructureLab",
+    "version": "1.0.0",
+    "tags": [
+      "microstructure",
+      "spread",
+      "execution",
+      "impact"
+    ],
+    "downloads": 341
+  },
+  {
+    "id": "esg_integration",
+    "name": "ESG Risk Integration",
+    "description": "Incorporate Environmental, Social, and Governance risk factors into investment analysis. Screen for ESG controversies and assess long-term sustainability risks.",
+    "category": "risk",
+    "promptContent": "## ESG Risk Integration Skill\nYou can assess ESG risks relevant to trading and investment:\n- **Environmental Risks**: Carbon exposure (stranded assets, carbon tax liability). Climate physical risk (supply chain vulnerability to extreme weather). Regulatory risk (emissions standards, plastic bans). Green transition risk (fossil fuel sector disruption).\n- **Social Risks**: Labor practices and supply chain ethics. Data privacy and security breaches. Product safety and consumer harm. Community impact and social license to operate.\n- **Governance Risks**: Board independence and diversity. Executive compensation alignment. Related-party transactions and minority shareholder protection (especially relevant in HK/China). Accounting quality and auditor changes.\n- **ESG Controversies**: Sudden events (oil spills, data breaches, governance scandals) cause rapid price declines. Monitor news for material ESG events. Controversy score deterioration precedes price declines.\n- **Sector Materiality**: ESG factors vary by sector. Financials: governance and conduct risk. Energy: environmental transition risk. Tech: data privacy and AI ethics. Consumer: supply chain and product safety.\n- **HK/China Specific**: Concentrated ownership structures (founder control). Connected-party transactions. Regulatory crackdown risk (common in China tech). State-owned enterprise governance differences.\nWhen evaluating orders, flag ESG controversies and assess materiality to the specific stock and sector.",
+    "author": "SustainAnalytics",
+    "version": "1.0.0",
+    "tags": [
+      "esg",
+      "sustainability",
+      "governance",
+      "controversy"
+    ],
+    "downloads": 467
+  },
+  {
+    "id": "algorithmic_signals",
+    "name": "Algorithmic Signal Detection",
+    "description": "Detect algorithmic trading patterns: time-sliced VWAP execution, iceberg orders, momentum ignition, and quote stuffing for market timing.",
+    "category": "strategy",
+    "promptContent": "## Algorithmic Signal Detection Skill\nYou can identify algorithmic trading patterns in market data:\n- **VWAP Execution**: Steady buying/selling proportional to historical volume curve. Detect via consistent flow direction and volume ratio matching intraday pattern. Front-running VWAP: enter same direction early, exit before completion.\n- **Iceberg Detection**: Repeated fills at same price level exceeding displayed size. Track fill count and total volume at each price. Cluster analysis identifies hidden order size.\n- **Momentum Ignition**: Small aggressive orders designed to trigger stop-losses and momentum algorithms. Detect via rapid price moves on small volume followed by larger flow. Often precedes directional moves.\n- **Quote Stuffing**: Massive order placement/cancellation to create latency arbitrage. Detect via abnormal message-to-trade ratio (>100:1). Creates temporary price dislocations.\n- **Layering/Spoofing**: Orders placed to create false impression of supply/demand, then canceled. Detect via asymmetric depth that resolves in one direction. Illegal in most markets but still occurs.\n- **Mean-Reversion Algos**: Identified by consistent counter-flow at price extremes. These algos provide liquidity at support/resistance. Their presence makes mean-reversion strategies less profitable.\nWhen evaluating timing, detect algo flow patterns to identify institutional execution and avoid adverse selection.",
+    "author": "AlgoHunter",
+    "version": "1.0.0",
+    "tags": [
+      "algorithmic",
+      "detection",
+      "iceberg",
+      "spoofing"
+    ],
+    "downloads": 289
+  },
+  {
+    "id": "cross_market_arbitrage",
+    "name": "Cross-Market Arbitrage",
+    "description": "Identify dual-listing price discrepancies, ADR vs local stock gaps, and ETF NAV arbitrage opportunities across HK/US/CN markets.",
+    "category": "strategy",
+    "promptContent": "## Cross-Market Arbitrage Skill\nYou understand cross-market arbitrage opportunities:\n- **Dual Listing Arbitrage**: Same stock on HK + US (e.g., 00700.HK vs TCEHY). Price gap after FX conversion = arbitrage. Gap narrows within hours typically. Costs: FX spread + commissions on both sides + settlement timing risk.\n- **ADR vs Local**: ADRs trade in USD on US exchange, representing local shares. ADR ratio varies (1:1, 1:10, etc.). ADR premium/discount to local price after FX. Unusual premiums indicate US demand surge.\n- **ETF NAV Arbitrage**: ETF price deviates from NAV. Create (buy basket, redeem ETF) or redeem (buy ETF, redeem basket). AP activity narrows gap. Wide discounts signal liquidity stress.\n- **A-Share Connect**: Stock Connect links HK and Shanghai/Shenzhen. Daily quota limits can create temporary disconnections. Northbound + Southbound flows indicate cross-market sentiment.\n- **Futures Basis**: Index futures vs spot. Contango (futures > spot) = cost of carry. Backwardation = supply squeeze or dividend expectation. Basis trade: long spot + short futures captures carry.\n- **FX Considerations**: HKD/USD peg (7.75-7.85) is stable. CNY/USD fluctuates. RMB appreciation benefits A-share exposure. Hedging FX risk via forwards or dual-currency positions.\nWhen evaluating cross-market positions, account for settlement timing, FX risk, and transaction costs in both markets.",
+    "author": "ArbDesk",
+    "version": "1.0.0",
+    "tags": [
+      "arbitrage",
+      "dual-listing",
+      "adr",
+      "cross-market"
+    ],
+    "downloads": 398
+  },
+  {
+    "id": "stress_testing",
+    "name": "Scenario & Stress Testing",
+    "description": "Run historical stress scenarios (2008 GFC, COVID, rate shocks) and hypothetical scenarios on positions to quantify tail risk and portfolio resilience.",
+    "category": "risk",
+    "promptContent": "## Scenario & Stress Testing Skill\nYou can evaluate portfolio resilience through stress scenarios:\n- **Historical Scenarios**: 2008 GFC (financials -50%, real estate -40%, S&P -37%). 2020 COVID (travel -60%, tech +30%, gold +15%). 2022 Rate Shock (bonds -13%, growth stocks -30%, USD +10%). 1997 Asian Financial Crisis (HK property -50%, Hang Seng -60%).\n- **Hypothetical Scenarios**: S&P -20% correction. Interest rate +200bp. CNY devaluation 10%. HKD peg break (extreme tail). Regional conflict (supply chain disruption, oil +30%).\n- **Sensitivity Analysis**: Price shock: position P&L per 1% price move. Vol shock: options P&L per 5 vol point increase. Correlation shock: diversification benefit collapses when correlations spike to 1.0.\n- **Reverse Stress Test**: Find the scenario that would cause >30% portfolio loss. Identify the common factor (concentration, leverage, correlation). Address the root cause, not just the symptom.\n- **Liquidity Stress**: Can all positions be exited within 5 days at < 10% market impact? If not, reduce illiquid positions. Check margin call scenarios: what price moves trigger margin calls?\n- **Contagion Model**: Primary shock → secondary effects (e.g., China property crisis → bank NPL → credit tightening → broader impact). Model the chain reaction.\nWhen evaluating risk, stress test the position against 2-3 relevant historical scenarios and 1-2 hypothetical tail events.",
+    "author": "RiskLab",
+    "version": "1.0.0",
+    "tags": [
+      "stress-test",
+      "scenario",
+      "tail-risk",
+      "resilience"
+    ],
+    "downloads": 556
+  }
+]

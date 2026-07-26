@@ -1,23 +1,25 @@
 import React, { useEffect, useCallback, useRef, useMemo, useState } from 'react';
 import { useStore } from '../../store';
 
+import { useTBatch } from '../../i18n';
 import { getMarketFromCode } from '../../../shared/types';
 import type { Market, Position } from '../../../shared/types';
 import './watchlist.css';
-
-const MARKET_FILTERS: { key: string; label: string }[] = [
-  { key: 'ALL', label: '全部' },
-  { key: 'US', label: '美股' },
-  { key: 'HK', label: '港股' },
-  { key: 'SH', label: '沪A' },
-  { key: 'SZ', label: '深A' },
-];
 
 // ─── Main component ────────────────────────────────────────
 
 const Watchlist: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'watchlist' | 'positions'>('watchlist');
   const [marketFilter, setMarketFilter] = useState('ALL');
+  const L = useTBatch(['watchlist.tabWatchlist', 'watchlist.tabPositions', 'watchlist.allMarkets', 'watchlist.us', 'watchlist.hk', 'watchlist.sh', 'watchlist.sz'] as any);
+
+  const MARKET_FILTERS: { key: string; label: string }[] = [
+    { key: 'ALL', label: L['watchlist.allMarkets'] },
+    { key: 'US', label: L['watchlist.us'] },
+    { key: 'HK', label: L['watchlist.hk'] },
+    { key: 'SH', label: L['watchlist.sh'] },
+    { key: 'SZ', label: L['watchlist.sz'] },
+  ];
 
   return (
     <div className="watchlist">
@@ -26,11 +28,11 @@ const Watchlist: React.FC = () => {
         <button
           className={`watchlist-tab${activeTab === 'watchlist' ? ' watchlist-tab-active' : ''}`}
           onClick={() => setActiveTab('watchlist')}
-        >自选</button>
+        >{L['watchlist.tabWatchlist']}</button>
         <button
           className={`watchlist-tab${activeTab === 'positions' ? ' watchlist-tab-active' : ''}`}
           onClick={() => setActiveTab('positions')}
-        >持仓</button>
+        >{L['watchlist.tabPositions']}</button>
       </div>
 
       {/* Market filter (only in watchlist tab) */}
@@ -66,6 +68,7 @@ const WatchlistContent: React.FC<{ marketFilter: string }> = ({ marketFilter }) 
   const setCurrentStock = useStore((s) => s.setCurrentStock);
   const currentCode = useStore((s) => s.currentCode);
   const removeFromWatchlist = useStore((s) => s.removeFromWatchlist);
+  const L = useTBatch(['watchlist.emptyWatchlist', 'watchlist.remove'] as any);
 
   const filteredList = useMemo(() => {
     if (marketFilter === 'ALL') return watchlist;
@@ -100,7 +103,8 @@ const WatchlistContent: React.FC<{ marketFilter: string }> = ({ marketFilter }) 
   useEffect(() => { updateAll(); }, [watchlist, updateAll]);
 
   if (filteredList.length === 0) {
-    return <div className="watchlist-empty">暂无{marketFilter !== 'ALL' ? MARKET_FILTERS.find(f => f.key === marketFilter)?.label : ''}自选股</div>;
+    const filterLabel = marketFilter !== 'ALL' ? MARKET_FILTERS.find(f => f.key === marketFilter)?.label : '';
+    return <div className="watchlist-empty">{filterLabel ? `${filterLabel} ` : ''}{L['watchlist.emptyWatchlist']}</div>;
   }
 
   return (
@@ -135,7 +139,7 @@ const WatchlistContent: React.FC<{ marketFilter: string }> = ({ marketFilter }) 
               <button
                 className="watchlist-remove"
                 onClick={(e) => { e.stopPropagation(); removeFromWatchlist(item.code); }}
-                title="移除"
+                title={L['watchlist.remove']}
               >
                 &times;
               </button>
@@ -156,6 +160,7 @@ const PositionsContent: React.FC = () => {
   const currentCode = useStore((s) => s.currentCode);
   const gatewayStatus = useStore((s) => s.gatewayStatus);
   const snapshots = useStore((s) => s.snapshots);
+  const L = useTBatch(['watchlist.emptyPositions', 'watchlist.shares'] as any);
 
   const fetchPositions = useCallback(async () => {
     const api = window.bangAPI;
@@ -170,7 +175,7 @@ const PositionsContent: React.FC = () => {
   useEffect(() => { fetchPositions(); }, [fetchPositions]);
 
   if (positions.length === 0) {
-    return <div className="watchlist-empty">暂无持仓</div>;
+    return <div className="watchlist-empty">{L['watchlist.emptyPositions']}</div>;
   }
 
   return (
@@ -187,7 +192,7 @@ const PositionsContent: React.FC = () => {
           >
             <div className="watchlist-item-left">
               <span className="watchlist-item-name">{pos.name || pos.code}</span>
-              <span className="watchlist-item-code">{pos.code} · {pos.qty}股</span>
+              <span className="watchlist-item-code">{pos.code} · {pos.qty}{L['watchlist.shares']}</span>
             </div>
             <div className="watchlist-item-right">
               <span className={`watchlist-price ${isUp ? 'watchlist-price-up' : 'watchlist-price-down'}`}>

@@ -21,7 +21,7 @@
   width: 28px; height: 28px;
   display: flex; align-items: center; justify-content: center;
   background: transparent; border: none;
-  color: var(--text-secondary); cursor: pointer;
+  color: #9699a5; cursor: pointer;
   border-radius: 3px; font-size: 14px; transition: all 0.15s;
 }
 .draw-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
@@ -44,11 +44,11 @@
 }
 .replay-btn {
   background: transparent; border: none;
-  color: var(--text-secondary); cursor: pointer;
+  color: #9699a5; cursor: pointer;
   font-size: 14px; padding: 4px 8px; border-radius: 3px;
 }
 .replay-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-.replay-info { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+.replay-info { font-size: 11px; color: #5d6070; font-family: var(--font-mono); }
 
 /* Chip distribution */
 .chip-dist {
@@ -80,7 +80,7 @@
   left: 8px;
   z-index: 8;
   font-size: 11px;
-  color: var(--text-secondary);
+  color: #9699a5;
   background: rgba(10, 14, 23, 0.7);
   padding: 2px 6px;
   border-radius: 3px;
@@ -93,7 +93,7 @@
   border-radius: 4px; font-size: 12px; pointer-events: none;
 }
 .chart-info-row { display: flex; gap: 6px; align-items: center; }
-.chart-info-label { color: var(--text-muted); font-size: 11px; }
+.chart-info-label { color: #5d6070; font-size: 11px; }
 .chart-info-value { font-family: var(--font-mono); font-size: 12px; color: var(--text-primary); }
 .chart-info-divider { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 4px; }
 
@@ -115,7 +115,7 @@
 .chart-context-item {
   padding: 6px 12px;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: #9699a5;
   cursor: pointer;
   transition: background 0.1s;
 }
@@ -125,7 +125,7 @@
 /* Sub chart error */
 .chart-sub-error {
   display: flex; align-items: center; justify-content: center;
-  color: var(--text-muted); font-size: 12px;
+  color: #5d6070; font-size: 12px;
   cursor: pointer;
 }
 
@@ -143,7 +143,7 @@
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  color: var(--text-secondary);
+  color: #9699a5;
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -190,7 +190,7 @@
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  color: var(--text-secondary);
+  color: #9699a5;
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -199,7 +199,7 @@
 /* Drawing tools extended */
 .draw-hint {
   font-size: 10px;
-  color: var(--text-muted);
+  color: #5d6070;
   padding: 0 6px;
   white-space: nowrap;
 }
@@ -266,7 +266,7 @@
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border);
   font-size: 11px;
-  color: var(--text-secondary);
+  color: #9699a5;
   cursor: pointer;
 }
 .chart-slot-name { font-weight: 600; color: var(--text-primary); }

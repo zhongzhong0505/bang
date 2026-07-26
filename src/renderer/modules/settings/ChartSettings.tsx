@@ -1,49 +1,66 @@
 import React from 'react';
 import './settings.css';
 import { useStore } from '../../store';
+import { useTBatch } from '../../i18n';
 import type { SubType, ChartStyle } from '../../../shared/types';
 import { DEFAULT_CHART_STYLE } from '../../../shared/types';
 import type { ChartType } from '../../store';
 
-const SUB_TYPE_OPTIONS: { value: SubType; label: string }[] = [
-  { value: '1', label: '1 分钟' },
-  { value: '5', label: '5 分钟' },
-  { value: '15', label: '15 分钟' },
-  { value: '30', label: '30 分钟' },
-  { value: '60', label: '60 分钟' },
-  { value: 'DAY', label: '日线' },
-  { value: 'WEEK', label: '周线' },
-  { value: 'MONTH', label: '月线' },
-];
 
-const CHART_TYPE_OPTIONS: { value: ChartType; label: string }[] = [
-  { value: 'candle', label: 'K 线 (蜡烛图)' },
-  { value: 'hollow', label: '空心 K 线' },
-  { value: 'heikin', label: '平均 K 线 (Heikin-Ashi)' },
-  { value: 'bar', label: '美国线 (OHLC)' },
-  { value: 'line', label: '折线图' },
-  { value: 'area', label: '面积图' },
-];
 
 const ChartSettings: React.FC = () => {
   const appSettings = useStore((s) => s.appSettings);
   const setAppSettings = useStore((s) => s.setAppSettings);
   const chartStyle = useStore((s) => s.chartStyle);
   const setChartStyle = useStore((s) => s.setChartStyle);
+  const L = useTBatch([
+    'settings.defaultChart', 'settings.defaultChartDesc', 'settings.defaultPeriod', 'settings.defaultChartType',
+    'settings.period1m', 'settings.period5m', 'settings.period15m', 'settings.period30m',
+    'settings.period60m', 'settings.periodDay', 'settings.periodWeek', 'settings.periodMonth',
+    'settings.chartColors', 'settings.chartColorsDesc',
+    'settings.upColor', 'settings.downColor', 'settings.gridColor', 'settings.crosshairColor',
+    'settings.chartOptions', 'settings.chartOptionsDesc',
+    'settings.showGrid', 'settings.show', 'settings.hide',
+    'settings.priceScalePos', 'settings.right', 'settings.left',
+    'settings.lineWidth', 'settings.subChartHeight', 'settings.subChartHeightHint',
+    'settings.resetDefaults', 'settings.resetDefaultsDesc', 'settings.resetColorsBtn',
+    'settings.chartTypeCandle', 'settings.chartTypeHollow', 'settings.chartTypeHeikin',
+    'settings.chartTypeBar', 'settings.chartTypeLine', 'settings.chartTypeArea',
+  ] as any);
 
   const updateStyle = (key: keyof ChartStyle, value: string | number | boolean) => {
     setChartStyle({ [key]: value });
   };
 
+  const SUB_TYPE_OPTIONS: { value: SubType; label: string }[] = [
+    { value: '1', label: L['settings.period1m'] },
+    { value: '5', label: L['settings.period5m'] },
+    { value: '15', label: L['settings.period15m'] },
+    { value: '30', label: L['settings.period30m'] },
+    { value: '60', label: L['settings.period60m'] },
+    { value: 'DAY', label: L['settings.periodDay'] },
+    { value: 'WEEK', label: L['settings.periodWeek'] },
+    { value: 'MONTH', label: L['settings.periodMonth'] },
+  ];
+
+  const CHART_TYPE_OPTIONS: { value: ChartType; label: string }[] = [
+    { value: 'candle', label: L['settings.chartTypeCandle'] },
+    { value: 'hollow', label: L['settings.chartTypeHollow'] },
+    { value: 'heikin', label: L['settings.chartTypeHeikin'] },
+    { value: 'bar', label: L['settings.chartTypeBar'] },
+    { value: 'line', label: L['settings.chartTypeLine'] },
+    { value: 'area', label: L['settings.chartTypeArea'] },
+  ];
+
   return (
     <div className="settings-section">
       {/* Default Chart */}
       <div className="settings-card">
-        <h2 className="settings-card-title">默认图表</h2>
-        <p className="settings-card-desc">设置打开股票时的默认周期和图表类型</p>
+        <h2 className="settings-card-title">{L['settings.defaultChart']}</h2>
+        <p className="settings-card-desc">{L['settings.defaultChartDesc']}</p>
         <div className="settings-form-grid">
           <div className="settings-field">
-            <label className="settings-label">默认周期</label>
+            <label className="settings-label">{L['settings.defaultPeriod']}</label>
             <select
               className="settings-select"
               value={appSettings.defaultSubType}
@@ -55,7 +72,7 @@ const ChartSettings: React.FC = () => {
             </select>
           </div>
           <div className="settings-field">
-            <label className="settings-label">默认图表类型</label>
+            <label className="settings-label">{L['settings.defaultChartType']}</label>
             <select
               className="settings-select"
               value={appSettings.defaultChartType}
@@ -71,11 +88,11 @@ const ChartSettings: React.FC = () => {
 
       {/* Chart Colors */}
       <div className="settings-card">
-        <h2 className="settings-card-title">图表配色</h2>
-        <p className="settings-card-desc">自定义 K 线图的颜色方案，修改后需要重新加载图表生效</p>
+        <h2 className="settings-card-title">{L['settings.chartColors']}</h2>
+        <p className="settings-card-desc">{L['settings.chartColorsDesc']}</p>
         <div className="settings-form-grid">
           <div className="settings-field">
-            <label className="settings-label">阳线颜色 (上涨)</label>
+            <label className="settings-label">{L['settings.upColor']}</label>
             <div className="settings-color-row">
               <input
                 type="color"
@@ -91,7 +108,7 @@ const ChartSettings: React.FC = () => {
             </div>
           </div>
           <div className="settings-field">
-            <label className="settings-label">阴线颜色 (下跌)</label>
+            <label className="settings-label">{L['settings.downColor']}</label>
             <div className="settings-color-row">
               <input
                 type="color"
@@ -107,7 +124,7 @@ const ChartSettings: React.FC = () => {
             </div>
           </div>
           <div className="settings-field">
-            <label className="settings-label">网格颜色</label>
+            <label className="settings-label">{L['settings.gridColor']}</label>
             <div className="settings-color-row">
               <input
                 type="color"
@@ -123,7 +140,7 @@ const ChartSettings: React.FC = () => {
             </div>
           </div>
           <div className="settings-field">
-            <label className="settings-label">十字准线颜色</label>
+            <label className="settings-label">{L['settings.crosshairColor']}</label>
             <div className="settings-color-row">
               <input
                 type="color"
@@ -143,11 +160,11 @@ const ChartSettings: React.FC = () => {
 
       {/* Chart Options */}
       <div className="settings-card">
-        <h2 className="settings-card-title">图表选项</h2>
-        <p className="settings-card-desc">调整图表的显示选项</p>
+        <h2 className="settings-card-title">{L['settings.chartOptions']}</h2>
+        <p className="settings-card-desc">{L['settings.chartOptionsDesc']}</p>
         <div className="settings-form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
           <div className="settings-field">
-            <label className="settings-label">显示网格</label>
+            <label className="settings-label">{L['settings.showGrid']}</label>
             <div className="settings-toggle-row">
               <button
                 className={`settings-toggle${chartStyle.showGrid ? ' settings-toggle-on' : ''}`}
@@ -156,23 +173,23 @@ const ChartSettings: React.FC = () => {
                 <span className="settings-toggle-knob" />
               </button>
               <span className="settings-toggle-text">
-                {chartStyle.showGrid ? '显示' : '隐藏'}
+                {chartStyle.showGrid ? L['settings.show'] : L['settings.hide']}
               </span>
             </div>
           </div>
           <div className="settings-field">
-            <label className="settings-label">价格刻度位置</label>
+            <label className="settings-label">{L['settings.priceScalePos']}</label>
             <select
               className="settings-select"
               value={chartStyle.priceScalePosition}
               onChange={(e) => updateStyle('priceScalePosition', e.target.value)}
             >
-              <option value="right">右侧</option>
-              <option value="left">左侧</option>
+              <option value="right">{L['settings.right']}</option>
+              <option value="left">{L['settings.left']}</option>
             </select>
           </div>
           <div className="settings-field">
-            <label className="settings-label">线条宽度</label>
+            <label className="settings-label">{L['settings.lineWidth']}</label>
             <input
               className="settings-input"
               type="number"
@@ -183,7 +200,7 @@ const ChartSettings: React.FC = () => {
             />
           </div>
           <div className="settings-field">
-            <label className="settings-label">子图高度占比 (%)</label>
+            <label className="settings-label">{L['settings.subChartHeight']}</label>
             <input
               className="settings-input"
               type="number"
@@ -192,20 +209,20 @@ const ChartSettings: React.FC = () => {
               value={Math.round(chartStyle.scaleMarginsBottom * 100)}
               onChange={(e) => updateStyle('scaleMarginsBottom', parseInt(e.target.value) / 100)}
             />
-            <span className="settings-hint">MACD/RSI 等子图的底部预留空间</span>
+            <span className="settings-hint">{L['settings.subChartHeightHint']}</span>
           </div>
         </div>
       </div>
 
       {/* Reset */}
       <div className="settings-card">
-        <h2 className="settings-card-title">恢复默认</h2>
-        <p className="settings-card-desc">将图表配色和选项恢复到默认值</p>
+        <h2 className="settings-card-title">{L['settings.resetDefaults']}</h2>
+        <p className="settings-card-desc">{L['settings.resetDefaultsDesc']}</p>
         <button
           className="settings-save-btn"
           onClick={() => setChartStyle({ ...DEFAULT_CHART_STYLE })}
         >
-          恢复默认配色
+          {L['settings.resetColorsBtn']}
         </button>
       </div>
     </div>

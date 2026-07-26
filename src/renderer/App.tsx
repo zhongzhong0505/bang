@@ -3,11 +3,12 @@ import { useStore } from './store';
 import Watchlist from './modules/watchlist/Watchlist';
 import Toolbar from './modules/toolbar/Toolbar';
 import StatusBar from './modules/statusbar/StatusBar';
-import SettingsPage from './modules/settings/SettingsPage';
-import ShortcutsOverlay from './modules/shortcuts/ShortcutsOverlay';
 import Sidebar from './modules/sidebar/Sidebar';
+import { loadLocale } from './i18n';
 
 const ChartView = lazy(() => import('./modules/chart/ChartView'));
+const SettingsPage = lazy(() => import('./modules/settings/SettingsPage'));
+const ShortcutsOverlay = lazy(() => import('./modules/shortcuts/ShortcutsOverlay'));
 const OrderPanel = lazy(() => import('./modules/trading/OrderPanel'));
 const DepthOfMarket = lazy(() => import('./modules/trading/DepthOfMarket'));
 const QuantPanel = lazy(() => import('./modules/quant/QuantPanel'));
@@ -108,6 +109,12 @@ const App: React.FC = () => {
   const setFullscreen = useStore((s) => s.setFullscreen);
   const isFullscreen = useStore((s) => s.isFullscreen);
 
+  // Load i18n locale on demand when language changes
+  useEffect(() => {
+    const locale = (appSettings.language ?? 'zh-CN').startsWith('zh') ? 'zh' as const : 'en' as const;
+    loadLocale(locale);
+  }, [appSettings.language]);
+
   useEffect(() => {
     setTheme(appSettings.theme);
     useStore.getState().setFontSize(appSettings.fontSize ?? 'normal');
@@ -128,7 +135,9 @@ const App: React.FC = () => {
         // Auto-connect if credentials are present
         const hasCredentials = cfg.provider === 'tiger'
           ? cfg.tigerId && cfg.account && cfg.privateKey
-          : cfg.host;
+          : cfg.provider === 'local'
+            ? true
+            : cfg.host;
         if (hasCredentials) {
           api.connectGateway(cfg).then(() => {
             api.getGatewayStatus().then((status) => { if (status) setGatewayStatus(status); });
@@ -144,7 +153,13 @@ const App: React.FC = () => {
       }
     });
 
-    const unsub = api.onGatewayStatus((status) => setGatewayStatus(status));
+    const unsub = api.onGatewayStatus((status) => {
+      const currentProvider = useStore.getState().gatewayStatus.provider;
+      // Ignore status updates from a different provider than the one
+      // currently shown — stale reconnect loops can still push these.
+      if (status.provider && status.provider !== currentProvider) return;
+      setGatewayStatus(status);
+    });
 
     // Subscribe to real-time snapshot push (updates watchlist prices)
     if (api.onSubscribeData) {
@@ -214,9 +229,9 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [setFullscreen, isFullscreen]);
 
-  if (activePanel === 'settings') {
-    return <ErrorBoundary><SettingsPage /></ErrorBoundary>;
-  }
+ if (activePanel === 'settings') {
+    return <ErrorBoundary><Suspense fallback={<Fallback />}><SettingsPage /></Suspense></ErrorBoundary>;
+ }
 
   return (
     <div className="app-root" data-panel="chart">
@@ -240,7 +255,7 @@ const App: React.FC = () => {
       {showCalendar && <ErrorBoundary><Suspense fallback={<Fallback />}><CalendarPanel /></Suspense></ErrorBoundary>}
       {showWinRate && <ErrorBoundary><Suspense fallback={<Fallback />}><WinRatePanel /></Suspense></ErrorBoundary>}
       {showAIChat && <ErrorBoundary><Suspense fallback={<Fallback />}><AIChatPanel /></Suspense></ErrorBoundary>}
-      {showShortcuts && <ShortcutsOverlay />}
+      {showShortcuts && <ErrorBoundary><Suspense fallback={<Fallback />}><ShortcutsOverlay /></Suspense></ErrorBoundary>}
       </div>
     </div>
   );

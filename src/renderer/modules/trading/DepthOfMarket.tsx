@@ -1,12 +1,15 @@
 import React, { useMemo } from 'react';
 import { useStore } from '../../store';
 import './dom.css';
+import { useTBatch } from '../../i18n';
 
 const DepthOfMarket: React.FC = () => {
   const currentName = useStore((s) => s.currentName);
   const klineData = useStore((s) => s.klineData);
 
   const lastPrice = klineData.length > 0 ? klineData[klineData.length - 1].close : 0;
+
+  const tr = useTBatch(['dom.title', 'dom.spread']);
 
   const domData = useMemo(() => {
     const asks: { price: number; qty: number; orders: number }[] = [];
@@ -24,7 +27,7 @@ const DepthOfMarket: React.FC = () => {
   return (
     <div className="dom-panel">
       <div className="dom-header">
-        <span className="dom-title">盘口深度 {currentName}</span>
+        <span className="dom-title">{tr['dom.title']} {currentName}</span>
         <button className="dom-close" onClick={() => useStore.getState().toggleOrderPanel()}>x</button>
       </div>
       <div className="dom-body">
