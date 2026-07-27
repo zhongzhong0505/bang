@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import type { Fundamentals, CalendarEvent, OverallWinRate } from '../../shared/types';
+import type { Fundamentals, FinancialStatements, CalendarEvent, OverallWinRate } from '../../shared/types';
 import type { AppState } from './index';
 
 export interface PanelsSlice {
@@ -7,6 +7,9 @@ export interface PanelsSlice {
   toggleFundamentals: () => void;
   fundamentalsData: Fundamentals | null;
   setFundamentalsData: (f: Fundamentals | null) => void;
+
+  financialStatements: FinancialStatements | null;
+  setFinancialStatements: (s: FinancialStatements | null) => void;
 
   showCalendar: boolean;
   toggleCalendar: () => void;
@@ -27,6 +30,9 @@ export const createPanelsSlice: StateCreator<AppState, [], [], PanelsSlice> = (s
   toggleFundamentals: () => set((s) => ({ showFundamentals: !s.showFundamentals })),
   fundamentalsData: null,
   setFundamentalsData: (f) => set({ fundamentalsData: f }),
+
+  financialStatements: null,
+  setFinancialStatements: (s) => set({ financialStatements: s }),
 
   showCalendar: false,
   toggleCalendar: () => set((s) => ({ showCalendar: !s.showCalendar })),

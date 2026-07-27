@@ -460,9 +460,11 @@ export const IPC = {
   EXPORT_DATA: 'data:export',
   MODIFY_ORDER_GATEWAY: 'gateway:order:modify',
   HISTORY_DEALS_GET: 'history:deals:get',
- WIN_RATE_ANALYSIS: 'winrate:analyze',
- SKILLHUB_FETCH: 'skillhub:fetch',
- SKILLHUB_FETCH_URL: 'skillhub:fetch:url',
+  WIN_RATE_ANALYSIS: 'winrate:analyze',
+  FINANCIAL_STATEMENTS: 'financial:statements:get',
+  FINANCIAL_INDICATORS: 'financial:indicators:get',
+SKILLHUB_FETCH: 'skillhub:fetch',
+SKILLHUB_FETCH_URL: 'skillhub:fetch:url',
   SKILL_IMPORT_ZIP: 'skill:import:zip',
 } as const;
 
@@ -945,17 +947,104 @@ export interface Fundamentals {
   marketCap: number;
   eps: number;
  dividendYield: number;
- revenue: number;
- netIncome: number;
- totalShares: number;
- floatShares: number;
- beta: number;
- high52Week: number;
- low52Week: number;
- sector: string;
- industry: string;
- description: string;
- updateTime: number;
+  revenue: number;
+  netIncome: number;
+  totalShares: number;
+  floatShares: number;
+  beta: number;
+  high52Week: number;
+  low52Week: number;
+  sector: string;
+  industry: string;
+  description: string;
+  updateTime: number;
+  indicators: FinancialIndicators;
+}
+
+// ===== Extended Financial Indicators =====
+
+export interface FinancialIndicators {
+  /** Return on Equity (%) */
+  roe: number;
+  /** Return on Assets (%) */
+  roa: number;
+  /** Gross Profit Margin (%) */
+  grossMargin: number;
+  /** Net Profit Margin (%) */
+  netMargin: number;
+  /** Debt-to-Equity ratio */
+  debtToEquity: number;
+  /** Current Ratio */
+  currentRatio: number;
+  /** Quick Ratio (Acid Test) */
+  quickRatio: number;
+  /** Revenue YoY Growth (%) */
+  revenueGrowth: number;
+  /** Net Income YoY Growth (%) */
+  netIncomeGrowth: number;
+  /** Price-to-Sales ratio */
+  psRatio: number;
+  /** Price-to-Cash-Flow ratio */
+  pcfRatio: number;
+  /** EV / EBITDA */
+  evEbitda: number;
+  /** Book Value Per Share */
+  bvps: number;
+  /** Cash Flow Per Share */
+  cfps: number;
+  /** Sales Per Share */
+  sps: number;
+}
+
+// ===== Financial Statement Types =====
+
+export type StatementPeriod = 'quarter' | 'annual';
+
+export interface IncomeStatement {
+  period: StatementPeriod;
+  /** Reporting period end date (YYYY-MM-DD) */
+  endDate: string;
+  revenue: number;
+  costOfRevenue: number;
+  grossProfit: number;
+  operatingExpenses: number;
+  operatingIncome: number;
+  netIncome: number;
+  eps: number;
+  ebitda: number;
+}
+
+export interface BalanceSheet {
+  period: StatementPeriod;
+  endDate: string;
+  totalAssets: number;
+  totalLiabilities: number;
+  totalEquity: number;
+  currentAssets: number;
+  currentLiabilities: number;
+  cash: number;
+  longTermDebt: number;
+  retainedEarnings: number;
+}
+
+export interface CashFlowStatement {
+  period: StatementPeriod;
+  endDate: string;
+  operatingCashFlow: number;
+  investingCashFlow: number;
+  financingCashFlow: number;
+  freeCashFlow: number;
+  capitalExpenditure: number;
+  dividendsPaid: number;
+}
+
+export interface FinancialStatements {
+  code: string;
+  currency: string;
+  income: IncomeStatement[];
+  balanceSheet: BalanceSheet[];
+  cashFlow: CashFlowStatement[];
+  updateTime: number;
 }
 
 // ===== Economic Calendar Types =====

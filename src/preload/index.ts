@@ -67,6 +67,10 @@ const api = {
     ipcRenderer.invoke("fundamentals:get", code),
 
   // Calendar
+  getFinancialStatements: (code: string) =>
+    ipcRenderer.invoke(IPC.FINANCIAL_STATEMENTS, code),
+
+  // Calendar
   getCalendar: (date?: string) =>
     ipcRenderer.invoke("calendar:get", date),
 

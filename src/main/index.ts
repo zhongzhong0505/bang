@@ -16,6 +16,7 @@ import { IPC } from '../shared/types';
 
 import { generateScreenerResults } from './screener-service';
 import { generateFundamentals } from './fundamentals-service';
+import { generateFinancialStatements } from './fundamentals-service';
 import { getCalendarEvents } from './calendar-service';
 
 let mainWindow: BrowserWindow | null = null;
@@ -129,6 +130,11 @@ ipcMain.handle(IPC.STOCK_SEARCH, async (_e, keyword: string) => {
 // Fundamentals
 ipcMain.handle('fundamentals:get', (_e, code: string) => {
   return generateFundamentals(code);
+});
+
+// Financial statements (quarterly income / balance sheet / cash flow)
+ipcMain.handle(IPC.FINANCIAL_STATEMENTS, (_e, code: string) => {
+  return generateFinancialStatements(code);
 });
 
 // Calendar

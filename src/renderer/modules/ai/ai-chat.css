@@ -94,3 +94,15 @@
   padding: 4px 14px;
   border-bottom: 1px solid var(--border);
 }
+
+.ai-chat-thinking {
+  display: inline-block;
+  animation: ai-chat-pulse 1.2s ease-in-out infinite;
+  color: var(--accent);
+  font-style: italic;
+}
+
+@keyframes ai-chat-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}

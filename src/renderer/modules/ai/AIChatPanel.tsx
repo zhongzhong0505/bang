@@ -1,153 +1,180 @@
-import React, { useCallback, useMemo } from 'react';
-import { ConfigProvider, theme as antdTheme } from 'antd';
-import { ProChat } from '@ant-design/pro-chat';
-import type { ChatRequest } from '@ant-design/pro-chat';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { useStore } from '../../store';
 import './ai-chat.css';
-import { useT, useTBatch } from '../../i18n';
+import { useTBatch } from '../../i18n';
+
+interface ChatMsg {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
 
 const AIChatPanel: React.FC = () => {
   const toggleAIChat = useStore((s) => s.toggleAIChat);
   const currentCode = useStore((s) => s.currentCode);
   const currentName = useStore((s) => s.currentName);
-  const resolvedTheme = useStore((s) => s.resolvedTheme);
 
   const tr = useTBatch([
-    'ai.title', 'ai.current', 'ai.placeholder', 'ai.notConfigured',
-    'ai.noReply', 'ai.error', 'ai.requestFailed', 'ai.thinking',
-    'ai.send', 'ai.inputPlaceholder',
+    'ai.title', 'ai.placeholder', 'ai.notConfigured',
+    'ai.thinking', 'ai.send', 'ai.inputPlaceholder',
+    'ai.error', 'ai.requestFailed', 'ai.current',
   ]);
 
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
-  const [streaming, setStreaming] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const streamRef = useRef<string>('');
+  const unsubRef = useRef<(() => void) | null>(null);
+  const abortedRef = useRef(false);
 
-  const request: ChatRequest = useCallback(async (messages, _config, signal) => {
+  // Auto-scroll to bottom on new content
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Cleanup stream listener on unmount
+  useEffect(() => {
+    return () => { unsubRef.current?.(); };
+  }, []);
+
+  const handleSend = useCallback(() => {
+    const text = input.trim();
+    if (!text || isStreaming) return;
+
     const api = (window as any).bangAPI;
     if (!api?.aiChat) {
-      setMessages((prev) => [...prev, { role: 'system', content: tr['ai.notConfigured'] }]);
-      setStreaming(false);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'user', content: text },
+        { role: 'system', content: tr['ai.notConfigured'] },
+      ]);
+      setInput('');
       return;
     }
 
-    try {
-      const chatMessages = [...messages, userMsg].map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-      const result = await api.aiChat(chatMessages);
-      if (result.success) {
-        // Streaming handled by onAIStreamChunk
-        if (!streamRef.current) {
-          setMessages((prev) => [...prev, { role: 'assistant', content: result.text || tr['ai.noReply'] }]);
-          setStreaming(false);
-        }
-      } else {
-        setMessages((prev) => [...prev, { role: 'system', content: tr['ai.error'].replace('{error}', result.error) }]);
-        setStreaming(false);
-      }
-    } catch (err: any) {
-      setMessages((prev) => [...prev, { role: 'system', content: tr['ai.requestFailed'].replace('{error}', err.message) }]);
-      setStreaming(false);
-    }
-  }, [input, messages, streaming]);
+    const userMsg: ChatMsg = { role: 'user', content: text };
+    const assistantMsg: ChatMsg = { role: 'assistant', content: '' };
+    const newMessages = [...messages, userMsg, assistantMsg];
+    setMessages(newMessages);
+    setInput('');
+    setIsStreaming(true);
+    abortedRef.current = false;
 
-        let closed = false;
-        let unsub: (() => void) | null = null;
+    // Messages to send to API (exclude the empty assistant placeholder)
+    const apiMessages = [...messages, userMsg].map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
 
-        const close = () => {
-          if (closed) return;
-          closed = true;
-          unsub?.();
-          try { controller.close(); } catch {}
-        };
+    const streamIndex = newMessages.length - 1;
 
-        signal?.addEventListener('abort', () => close());
-
-        unsub = api.onAIStreamChunk((data: any) => {
-          if (closed || signal?.aborted) return;
-          if (data.done) {
-            close();
-          } else if (data.delta) {
-            try { controller.enqueue(textEncoder.encode(data.delta)); } catch {}
+    // Listen for stream chunks
+    unsubRef.current?.();
+    unsubRef.current = api.onAIStreamChunk((data: any) => {
+      if (abortedRef.current) return;
+      if (data.done) {
+        setIsStreaming(false);
+        unsubRef.current?.();
+        unsubRef.current = null;
+      } else if (data.delta) {
+        setMessages((prev) => {
+          const updated = [...prev];
+          if (updated[streamIndex]) {
+            updated[streamIndex] = {
+              ...updated[streamIndex],
+              content: updated[streamIndex].content + data.delta,
+            };
           }
+          return updated;
         });
-
-        api.aiChat(chatMessages)
-          .then((result: any) => {
-            if (closed) return;
-            if (!result.success) {
-              try {
-                controller.enqueue(textEncoder.encode(`AI 错误: ${result.error}`));
-              } catch {}
-              close();
-            }
-          })
-          .catch((err: any) => {
-            if (closed) return;
-            try {
-              controller.enqueue(textEncoder.encode(`请求失败: ${err.message}`));
-            } catch {}
-            close();
-          });
-      },
+      }
     });
 
-    return new Response(stream);
-  }, []);
+    // Initiate the request
+    api.aiChat(apiMessages)
+      .then((result: any) => {
+        if (abortedRef.current) return;
+        if (!result.success) {
+          setMessages((prev) => {
+            const updated = [...prev];
+            if (updated[streamIndex]) {
+              updated[streamIndex] = {
+                ...updated[streamIndex],
+                content: updated[streamIndex].content || tr['ai.error'].replace('{error}', result.error),
+              };
+            }
+            return updated;
+          });
+        }
+        setIsStreaming(false);
+        unsubRef.current?.();
+        unsubRef.current = null;
+      })
+      .catch((err: any) => {
+        if (abortedRef.current) return;
+        setMessages((prev) => {
+          const updated = [...prev];
+          if (updated[streamIndex]) {
+            updated[streamIndex] = {
+              ...updated[streamIndex],
+              content: updated[streamIndex].content || tr['ai.requestFailed'].replace('{error}', err.message),
+            };
+          }
+          return updated;
+        });
+        setIsStreaming(false);
+        unsubRef.current?.();
+        unsubRef.current = null;
+      });
+  }, [input, isStreaming, messages, tr]);
 
-  const helloMessage = useMemo(() => (
-    <span>当前: {currentName} ({currentCode})。向 AI 提问行情分析、技术面解读、交易建议等</span>
-  ), [currentName, currentCode]);
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  }, [handleSend]);
+
+  const helloText = useMemo(() =>
+    `${tr['ai.current']}: ${currentName} (${currentCode})`,
+    [tr, currentName, currentCode]
+  );
 
   return (
     <div className="ai-chat-overlay">
       <div className="ai-chat-header">
         <span>{tr['ai.title']}</span>
-        <button className="ai-chat-close" onClick={toggleAIChat}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
+        <button className="ai-chat-close" onClick={toggleAIChat}>
+          <svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+        </button>
       </div>
-      <div className="ai-chat-context">
-        {tr['ai.current']}: {currentName} ({currentCode})
-      </div>
+      <div className="ai-chat-context">{helloText}</div>
       <div className="ai-chat-messages">
         {messages.length === 0 && (
-          <div className="ai-chat-msg ai-chat-msg-system">
-            {tr['ai.placeholder'].replace('{name}', currentName)}
-          </div>
+          <div className="ai-chat-msg ai-chat-msg-system">{tr['ai.placeholder'].replace('{name}', currentName)}</div>
         )}
         {messages.map((msg, i) => (
-          <div key={i} className={`ai-chat-msg ai-chat-msg-${msg.role}`}>{msg.content}</div>
+          <div key={i} className={`ai-chat-msg ai-chat-msg-${msg.role}`}>
+            {msg.content}
+            {msg.role === 'assistant' && isStreaming && i === messages.length - 1 && !msg.content && (
+              <span className="ai-chat-thinking">{tr['ai.thinking']}</span>
+            )}
+          </div>
         ))}
-        {streaming && !messages[messages.length - 1]?.content && (
-          <div className="ai-chat-msg ai-chat-msg-assistant">思考中...</div>
-        )}
         <div ref={messagesEndRef} />
       </div>
       <div className="ai-chat-input-area">
-        <textarea className="ai-chat-input" rows={1}
-          value={input} onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown} placeholder={tr['ai.inputPlaceholder']} disabled={streaming} />
-        <button className="ai-chat-send" onClick={handleSend} disabled={streaming || !input.trim()}>
-          {streaming ? '...' : tr['ai.send']}
+        <textarea
+          className="ai-chat-input"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={tr['ai.inputPlaceholder']}
+          rows={1}
+          disabled={isStreaming}
+        />
+        <button className="ai-chat-send" onClick={handleSend} disabled={isStreaming || !input.trim()}>
+          {tr['ai.send']}
         </button>
-      </div>
-      <div className="ai-chat-body">
-        <ConfigProvider
-          theme={{
-            cssVar: true,
-            algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
-          }}
-        >
-          <ProChat
-            request={request}
-            helloMessage={helloMessage}
-            placeholder="输入问题..."
-            showTitle={false}
-            style={{ height: '100%' }}
-          />
-        </ConfigProvider>
       </div>
     </div>
   );
