@@ -217,6 +217,57 @@ export function generateFinancialStatements(code: string): FinancialStatements {
     });
   }
 
+  // ===== Generate annual data by aggregating quarters =====
+  const annualIncome: Record<string, IncomeStatement> = {};
+  const annualBS: Record<string, BalanceSheet> = {};
+  const annualCF: Record<string, CashFlowStatement> = {};
+
+  for (const q of income) {
+    const yr = q.endDate.slice(0, 4);
+    const a = annualIncome[yr];
+    if (a) {
+      a.revenue += q.revenue; a.costOfRevenue += q.costOfRevenue;
+      a.grossProfit += q.grossProfit; a.operatingExpenses += q.operatingExpenses;
+      a.operatingIncome += q.operatingIncome; a.netIncome += q.netIncome;
+      a.ebitda += q.ebitda; a.eps = +(a.eps + q.eps).toFixed(2);
+    } else {
+      annualIncome[yr] = { period: 'annual', endDate: `${yr}-12-31`,
+        revenue: q.revenue, costOfRevenue: q.costOfRevenue, grossProfit: q.grossProfit,
+        operatingExpenses: q.operatingExpenses, operatingIncome: q.operatingIncome,
+        netIncome: q.netIncome, eps: q.eps, ebitda: q.ebitda,
+      };
+    }
+  }
+  // Balance sheet: take latest quarter of each year as snapshot
+  for (const q of balanceSheet) {
+    const yr = q.endDate.slice(0, 4);
+    annualBS[yr] = { ...q, period: 'annual', endDate: `${yr}-12-31` };
+  }
+  // Cash flow: sum quarters per year
+  for (const q of cashFlow) {
+    const yr = q.endDate.slice(0, 4);
+    const a = annualCF[yr];
+    if (a) {
+      a.operatingCashFlow += q.operatingCashFlow; a.investingCashFlow += q.investingCashFlow;
+      a.financingCashFlow += q.financingCashFlow; a.freeCashFlow += q.freeCashFlow;
+      a.capitalExpenditure += q.capitalExpenditure; a.dividendsPaid += q.dividendsPaid;
+    } else {
+      annualCF[yr] = { period: 'annual', endDate: `${yr}-12-31`,
+        operatingCashFlow: q.operatingCashFlow, investingCashFlow: q.investingCashFlow,
+        financingCashFlow: q.financingCashFlow, freeCashFlow: q.freeCashFlow,
+        capitalExpenditure: q.capitalExpenditure, dividendsPaid: q.dividendsPaid,
+      };
+    }
+  }
+
+  // Append annual entries (sorted by year ascending)
+  const years = Object.keys(annualIncome).sort();
+  for (const yr of years) {
+    if (annualIncome[yr]) income.push(annualIncome[yr]);
+    if (annualBS[yr]) balanceSheet.push(annualBS[yr]);
+    if (annualCF[yr]) cashFlow.push(annualCF[yr]);
+  }
+
   return {
     code, currency, income, balanceSheet, cashFlow, updateTime: Date.now(),
   };

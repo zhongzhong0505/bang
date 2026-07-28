@@ -115,3 +115,97 @@
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
 }
+
+/* Chart cards */
+.fund-chart-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+.fund-chart-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.fund-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.fund-chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+.fund-chart-legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* SVG chart text styles */
+.fund-svg-chart text {
+  font-family: var(--font-mono);
+}
+.fund-svg-chart .fund-chart-label {
+  font-size: 9px;
+  fill: var(--text-secondary);
+}
+.fund-svg-chart .fund-chart-value {
+  font-size: 9px;
+  fill: var(--text-primary);
+}
+.fund-svg-chart .fund-chart-axis {
+  font-size: 8px;
+  fill: var(--text-muted);
+}
+.fund-svg-chart .fund-chart-axis-right {
+  fill: var(--yellow);
+}
+
+/* Inline YoY in table cells */
+.fund-yoy-inline {
+  display: block;
+  font-size: 9px;
+  margin-top: 1px;
+  opacity: 0.8;
+}
+
+/* Filter bar: dropdown selectors (TradingView-style) */
+.fund-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.fund-filter-select {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 3px 8px;
+  border-radius: 2px;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='8' height='5' viewBox='0 0 8 5' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%239699a5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  padding-right: 20px;
+}
+.fund-filter-select:hover { border-color: var(--text-secondary); }
+.fund-filter-select:focus { border-color: var(--accent); }
+.fund-filter-select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
