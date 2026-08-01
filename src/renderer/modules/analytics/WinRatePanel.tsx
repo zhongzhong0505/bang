@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useStore } from '../../store';
 import type { OverallWinRate, StockWinRate, MatchedTrade } from '../../../shared/types';
 import DatePicker from '../../components/DatePicker';
+import AppModal from '../../components/AppModal';
 import './analytics.css';
 import { useT, useTBatch } from '../../i18n';
 
@@ -577,11 +578,8 @@ const WinRatePanel: React.FC = () => {
   };
 
   return (
-    <div className="winrate-overlay" onClick={(e) => { if (e.target === e.currentTarget) toggleWinRate(); }}>
-      <div className="winrate-panel">
+    <AppModal open={true} onClose={toggleWinRate} title={tr['winrate.title']} width={900}>
        <div className="winrate-header">
-         <h2 className="winrate-title">{tr['winrate.title']}</h2>
-          {isMock && <span className="winrate-mock-badge">{tr['winrate.mockBadge']}</span>}
         <div className="winrate-controls">
             <DatePicker
               value={startDate}
@@ -786,8 +784,7 @@ const WinRatePanel: React.FC = () => {
             </>
           )}
         </div>
-      </div>
-    </div>
+    </AppModal>
   );
 };
 

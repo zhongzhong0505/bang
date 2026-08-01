@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore } from '../../store';
 import './shortcuts.css';
+import AppModal from '../../components/AppModal';
 import { useTBatch } from '../../i18n';
 
 const getShortcuts = (tr: Record<string, string>) => [
@@ -64,9 +65,8 @@ const ShortcutsOverlay: React.FC = () => {
   const SHORTCUTS = getShortcuts(tr);
 
   return (
-    <div className="shortcuts-overlay" onClick={(e) => { if (e.target === e.currentTarget) toggleShortcuts(); }}>
+    <AppModal open={true} onClose={toggleShortcuts} title={tr['shortcuts.title']} width={600}>
       <div className="shortcuts-panel">
-        <div className="shortcuts-title">{tr['shortcuts.title']}</div>
         {SHORTCUTS.map((g) => (
           <div key={g.group} className="shortcuts-group">
             <div className="shortcuts-group-title">{g.group}</div>
@@ -79,7 +79,7 @@ const ShortcutsOverlay: React.FC = () => {
           </div>
         ))}
       </div>
-    </div>
+    </AppModal>
   );
 };
 

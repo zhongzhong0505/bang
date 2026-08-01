@@ -132,6 +132,11 @@ const App: React.FC = () => {
     api.getConfig().then((cfg) => {
       if (cfg) {
         setGatewayConfig(cfg);
+        // Sync gatewayStatus provider with loaded config
+        useStore.getState().setGatewayStatus({
+          ...useStore.getState().gatewayStatus,
+          provider: cfg.provider,
+        });
         // Auto-connect if credentials are present
         const hasCredentials = cfg.provider === 'tiger'
           ? cfg.tigerId && cfg.account && cfg.privateKey
@@ -139,8 +144,12 @@ const App: React.FC = () => {
             ? true
             : cfg.host;
         if (hasCredentials) {
+          console.log('[App] auto-connecting to', cfg.provider);
           api.connectGateway(cfg).then(() => {
-            api.getGatewayStatus().then((status) => { if (status) setGatewayStatus(status); });
+            api.getGatewayStatus().then((status) => {
+              console.log('[App] gateway status after connect:', JSON.stringify(status));
+              if (status) setGatewayStatus(status);
+            });
           });
         }
       }
@@ -154,10 +163,6 @@ const App: React.FC = () => {
     });
 
     const unsub = api.onGatewayStatus((status) => {
-      const currentProvider = useStore.getState().gatewayStatus.provider;
-      // Ignore status updates from a different provider than the one
-      // currently shown — stale reconnect loops can still push these.
-      if (status.provider && status.provider !== currentProvider) return;
       setGatewayStatus(status);
     });
 

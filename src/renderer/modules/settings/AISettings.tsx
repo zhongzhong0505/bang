@@ -575,7 +575,7 @@ const AISettings: React.FC = () => {
               </div>
               <div className="settings-skillhub-header-right">
                 <button className="settings-skillhub-refresh" onClick={loadSkillHub} disabled={skillHubLoading}>{L['settings.skillhubRefresh']}</button>
-                <button className="settings-skillhub-close" onClick={() => setShowSkillHub(false)}>{L['settings.closeSkillhub']}</button>
+                <button className="settings-skillhub-close" onClick={() => setShowSkillHub(false)}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
               </div>
             </div>
             {/* Search & Filter bar */}

@@ -3,6 +3,7 @@ import { useStore } from '../../store';
 import type { ScreenerFilter, ScreenerResult, Market } from '../../../shared/types';
 import { DEFAULT_SCREENER_FILTER } from '../../../shared/types';
 import './screener.css';
+import AppModal from '../../components/AppModal';
 import { useT, useTBatch } from '../../i18n';
 
 const MARKET_KEYS: Record<string, string> = {
@@ -74,12 +75,8 @@ const ScreenerPanel: React.FC = () => {
   };
 
   return (
-    <div className="screener-overlay" onClick={(e) => { if (e.target === e.currentTarget) toggleScreener(); }}>
-      <div className="screener-panel">
+    <AppModal open={true} onClose={toggleScreener} title={tr['screener.title']} width={900}>
         <div className="screener-header">
-          <span>{tr['screener.title']}</span>
-          <button className="screener-close" onClick={toggleScreener}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
-        </div>
         <div className="screener-filters">
           <div className="screener-filter-group">
             <span className="screener-filter-label">{tr['screener.market']}</span>
@@ -143,7 +140,7 @@ const ScreenerPanel: React.FC = () => {
           </table>
         </div>
       </div>
-    </div>
+    </AppModal>
   );
 };
 

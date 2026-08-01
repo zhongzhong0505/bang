@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import './trade-list.css';
+import AppDrawer from '../../components/AppDrawer';
 import { useTBatch } from '../../i18n';
 import { useStore } from '../../store';
 import type { TradeRecord, Market } from '../../../shared/types';
@@ -58,16 +59,13 @@ const TradeList: React.FC = () => {
   }, [filtered]);
 
   return (
-    <div className="trade-list-overlay" onClick={toggleTradeList}>
-      <div className="trade-list-modal" onClick={(e) => e.stopPropagation()}>
+    <AppDrawer open={true} onClose={toggleTradeList} title={tr['tradeList.title']} width={420}>
         <div className="trade-list-header">
           <div className="trade-list-title-row">
-            <h2 className="trade-list-title">{tr['tradeList.title']}</h2>
             <span className="trade-list-count">{filtered.length} 笔</span>
           </div>
           <div className="trade-list-actions">
             <button className="trade-list-btn" onClick={clearTradeRecords}>{tr['tradeList.clear']}</button>
-            <button className="trade-list-btn trade-list-close" onClick={toggleTradeList}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
           </div>
         </div>
 
@@ -238,8 +236,7 @@ const TradeList: React.FC = () => {
             </table>
           )}
         </div>
-      </div>
-    </div>
+      </AppDrawer>
   );
 };
 

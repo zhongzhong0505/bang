@@ -261,7 +261,7 @@ const OrderPanel: React.FC = () => {
                     <span className="order-ai-recommendation" style={{ color: aiResult.recommendation === 'reject' ? 'var(--red)' : aiResult.recommendation === 'caution' ? '#f59e0b' : 'var(--green)' }}>
                       {aiResult.recommendation === 'reject' ? L['order.reject'] : aiResult.recommendation === 'caution' ? L['order.caution'] : L['order.proceed']}
                     </span>
-                    <button className="order-ai-close" onClick={() => setShowAIPanel(false)}>x</button>
+                    <button className="order-ai-close" onClick={() => setShowAIPanel(false)}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
                   </div>
                   {aiResult.warnings.length > 0 && (
                     <div className="order-ai-warnings">

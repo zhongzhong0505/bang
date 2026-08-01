@@ -98,7 +98,7 @@ const CustomIndicatorEditor: React.FC<{
       <div className="cie-panel">
         <div className="cie-header">
           <span className="cie-title">{L['customInd.editorTitle']}</span>
-          <button className="cie-close" onClick={onClose}>✕</button>
+          <button className="cie-close" onClick={onClose}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
         </div>
 
         <div className="cie-body">
@@ -138,7 +138,7 @@ const CustomIndicatorEditor: React.FC<{
               <div key={key} className="cie-param-row">
                 <input className="cie-param-key" value={key} onChange={(e) => updateParamKey(key, e.target.value)} />
                 <input type="number" className="cie-param-val" value={val} onChange={(e) => updateParamValue(key, +e.target.value)} />
-                <button className="cie-del-btn" onClick={() => removeParam(key)}>✕</button>
+                <button className="cie-del-btn" onClick={() => removeParam(key)}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
               </div>
             ))}
           </div>

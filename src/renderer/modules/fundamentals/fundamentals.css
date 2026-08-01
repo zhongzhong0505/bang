@@ -1,31 +1,8 @@
-.fundamentals-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 60px;
-  z-index: 500;
-}
-.fundamentals-panel {
-  width: 640px;
-  max-height: 80vh;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-light);
-  border-radius: 4px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-  overflow: hidden;
-}
 .fundamentals-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 16px; border-bottom: 1px solid var(--border);
   font-size: 13px; font-weight: 600; color: var(--text-primary);
 }
-.fundamentals-close {
-  background: none; border: none; color: #5d6070; cursor: pointer; padding: 4px; display: flex; align-items: center;
-}
-.fundamentals-close:hover { color: var(--text-primary); }
 .fundamentals-body { padding: 16px; overflow-y: auto; max-height: calc(80vh - 90px); }
 .fundamentals-grid {
   display: grid;

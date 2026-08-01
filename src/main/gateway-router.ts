@@ -50,11 +50,16 @@ export function getGatewayStatus(): GatewayStatus {
 }
 
 export function requestKline(code: string, subType: SubType, count?: number): Promise<KlineData[]> {
+  console.log('[gateway-router] requestKline activeProvider=', activeProvider, 'code=', code, 'subType=', subType, 'count=', count);
   if (activeProvider === 'local') {
-    return localGateway.requestKline(code, subType, count);
+    return localGateway.requestKline(code, subType, count).then(data => {
+      console.log('[gateway-router] local mock returned', data.length, 'candles');
+      return data;
+    });
   } else if (activeProvider === 'tiger') {
     return tigerGateway.requestKline(code, subType, count);
   }
+  console.log('[gateway-router] futu fallback, returning empty');
   futuGateway.requestKline(code, subType, count);
   return Promise.resolve([]);
 }

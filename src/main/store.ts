@@ -2,7 +2,7 @@ import { app } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import type { GatewayConfig } from '../shared/types';
-import { DEFAULT_FUTU_CONFIG, DEFAULT_TIGER_CONFIG } from '../shared/types';
+import { DEFAULT_FUTU_CONFIG, DEFAULT_TIGER_CONFIG, DEFAULT_LOCAL_CONFIG } from '../shared/types';
 
 const CONFIG_FILE = path.join(app.getPath('userData'), 'gateway-config.json');
 
@@ -13,6 +13,9 @@ export function loadConfig(): GatewayConfig {
       const parsed = JSON.parse(data);
       if (parsed.provider === 'tiger') {
         return { ...DEFAULT_TIGER_CONFIG, ...parsed };
+      }
+      if (parsed.provider === 'local') {
+        return { ...DEFAULT_LOCAL_CONFIG, ...parsed };
       }
       return { ...DEFAULT_FUTU_CONFIG, ...parsed };
     }

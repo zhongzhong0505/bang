@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import './account-panel.css';
+import AppDrawer from '../../components/AppDrawer';
 import { useT, useTBatch } from '../../i18n';
 import { useStore } from '../../store';
 import type { AccountSummary } from '../../../shared/types';
@@ -73,11 +74,9 @@ const AccountPanel: React.FC = () => {
   const s = accountSummary;
 
   return (
-    <div className="account-overlay" onClick={toggleAccountPanel}>
-      <div className="account-modal" onClick={(e) => e.stopPropagation()}>
+    <AppDrawer open={true} onClose={toggleAccountPanel} title={tr['account.title']} width={380}>
         <div className="account-header">
           <div className="account-title-row">
-            <h2 className="account-title">{tr['account.title']}</h2>
             {s && (
             <span className="account-provider-tag">
                 {s.provider === 'futu' ? tr['account.providerFutu'] : s.provider === 'tiger' ? tr['account.providerTiger'] : tr['account.providerLocal']}
@@ -90,9 +89,6 @@ const AccountPanel: React.FC = () => {
                 <path d="M7 2a5 5 0 1 0 4.33 2.5" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
                 <path d="M7 1l2 2-2 2" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-            </button>
-            <button className="account-btn account-close" onClick={toggleAccountPanel}>
-              <svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
             </button>
           </div>
         </div>
@@ -229,8 +225,7 @@ const AccountPanel: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </AppDrawer>
   );
 };
 

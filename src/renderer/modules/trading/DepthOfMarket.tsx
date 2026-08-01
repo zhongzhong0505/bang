@@ -28,7 +28,7 @@ const DepthOfMarket: React.FC = () => {
     <div className="dom-panel">
       <div className="dom-header">
         <span className="dom-title">{tr['dom.title']} {currentName}</span>
-        <button className="dom-close" onClick={() => useStore.getState().toggleOrderPanel()}>x</button>
+        <button className="dom-close" onClick={() => useStore.getState().toggleOrderPanel()}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
       </div>
       <div className="dom-body">
         <div className="dom-asks">

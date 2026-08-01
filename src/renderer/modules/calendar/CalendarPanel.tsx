@@ -3,6 +3,8 @@ import { useStore } from '../../store';
 import { useTBatch } from '../../i18n';
 import type { CalendarEvent, CalendarEventType } from '../../../shared/types';
 import './calendar.css';
+import AppModal from '../../components/AppModal';
+import AppDatePicker from '../../components/DatePicker';
 
 const CalendarPanel: React.FC = () => {
   const toggleCalendar = useStore((s) => s.toggleCalendar);
@@ -66,10 +68,8 @@ const CalendarPanel: React.FC = () => {
   const filtered = activeTab === 'all' ? calendarEvents : calendarEvents.filter((e) => e.type === activeTab);
 
   return (
-    <div className="calendar-overlay" onClick={(e) => { if (e.target === e.currentTarget) toggleCalendar(); }}>
-      <div className="calendar-panel">
+    <AppModal open={true} onClose={toggleCalendar} title={L['calendar.title']} width={700}>
         <div className="calendar-header">
-          <span>{L['calendar.title']}</span>
           <div className="calendar-header-right">
             {dataSource && (
               <span className={`calendar-source calendar-source-${dataSource}`}>
@@ -78,11 +78,10 @@ const CalendarPanel: React.FC = () => {
             )}
             <div className="calendar-date-picker">
               <label className="calendar-date-label">{L['calendar.dateLabel']}</label>
-              <input
-                type="date"
-                className="calendar-date-input"
+              <AppDatePicker
                 value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
+                onChange={setSelectedDate}
+                placeholder={L['calendar.dateLabel']}
               />
             </div>
             <button className="calendar-refresh" onClick={() => fetchData(selectedDate)} disabled={loading} title={L['calendar.refresh']}>
@@ -91,13 +90,10 @@ const CalendarPanel: React.FC = () => {
                 <path d="M1 1l.67 2.5L4.17 2.5" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <button className="calendar-close" onClick={toggleCalendar}>
-              <svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
-            </button>
           </div>
         </div>
         {dataSource === 'mock' && !loading && (
-          <div className="calendar-fallback-hint">{L['calendar.fallback']}</div>
+        <div className="calendar-fallback-hint">{L['calendar.fallback']}</div>
         )}
         <div className="calendar-tabs">
           {EVENT_TYPES.map((t) => (
@@ -136,8 +132,7 @@ const CalendarPanel: React.FC = () => {
             </>
           )}
         </div>
-      </div>
-    </div>
+      </AppModal>
   );
 };
 

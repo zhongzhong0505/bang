@@ -3,6 +3,7 @@ import { useStore } from '../../store';
 import type { Fundamentals, FinancialStatements, StatementPeriod } from '../../../shared/types';
 import { BarChart, LineChart, ComboChart, type BarSeries } from './FundChart';
 import './fundamentals.css';
+import AppModal from '../../components/AppModal';
 import { useT, useTBatch } from '../../i18n';
 
 type FundTab = 'indicators' | 'income' | 'balance' | 'cashflow' | 'ai';
@@ -623,15 +624,8 @@ const FundamentalsPanel: React.FC = () => {
   ];
 
   return (
-    <div className="fundamentals-overlay" onClick={(e) => { if (e.target === e.currentTarget) toggleFundamentals(); }}>
-      <div className="fundamentals-panel">
+    <AppModal open={true} onClose={toggleFundamentals} title={`${currentName} ${tr['fund.title']}`} width={900}>
         <div className="fundamentals-header">
-          <span>{currentName} {tr['fund.title']}</span>
-          <button className="fundamentals-close" onClick={toggleFundamentals}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="1" y1="1" x2="13" y2="13" /><line x1="13" y1="1" x2="1" y2="13" />
-            </svg>
-          </button>
         </div>
         <div className="fund-tabs">
           {tabs.map(t => (
@@ -666,8 +660,7 @@ const FundamentalsPanel: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </AppModal>
   );
 };
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
 import '../toolbar/toolbar.css';
+import AppModal from '../../components/AppModal';
 import { useT, useTBatch } from '../../i18n';
 
 const genId = () => 'alert-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -44,11 +45,8 @@ const AlertPanel: React.FC = () => {
   };
 
   return (
-    <div className="indicator-settings-overlay" onClick={toggleAlertPanel}>
-      <div className="indicator-settings-dialog indicator-settings-dialog-wide" onClick={(e) => e.stopPropagation()}>
+    <AppModal open={true} onClose={toggleAlertPanel} title={tr['alert.title']} width={420}>
         <div className="indicator-settings-header">
-          <span>{tr['alert.title']}</span>
-          <button className="quant-close" onClick={toggleAlertPanel}><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg></button>
         </div>
         <div className="indicator-settings-body">
           <div className="alert-current-info">
@@ -114,8 +112,7 @@ const AlertPanel: React.FC = () => {
             ))}
           </div>
         </div>
-      </div>
-    </div>
+      </AppModal>
   );
 };
 
